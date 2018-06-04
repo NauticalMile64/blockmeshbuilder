@@ -33,6 +33,24 @@ class Vertex(object):
     def __eq__(self, rhs):
         return (self.z, self.y, self.x) == (rhs.z, rhs.y, rhs.z)
 
+class Geometry(object):
+    def __init__(self, name):
+        self.name = name
+
+class Sphere(Geometry):
+    def __init__(self, name, center, radius):
+        Geometry.__init__(self, name)
+        self.center = center
+        self.radius = radius
+    
+    def format(self):
+        return '''{0}
+    {{
+        type searchableSphere;
+        centre {1};
+        radius {2:18.15g};
+    }}
+'''.format(self.name, self.center.format(), self.radius)
 
 class Point(object):
     def __init__(self, x, y, z):
@@ -52,13 +70,13 @@ class Face(object):
         self.vnames = vnames
         self.name = name
 
-    def format(self, vertices):
+    def format(self, vertices, prj_geom=''):
         """Format instance to dump
         vertices is dict of name to Vertex
         """
         index = ' '.join(str(vertices[vn].index) for vn in self.vnames)
         com = ' '.join(self.vnames)  # for comment
-        return '({0:s})  // {1:s} ({2:s})'.format(index, self.name, com)
+        return '({0:s}) {3} // {1:s} ({2:s})'.format(index, self.name, com, prj_geom)
 
 
 class Grading(object):
@@ -274,6 +292,8 @@ class BlockMeshDict(object):
         self.blocks = {}
         self.edges = {}
         self.boundaries = {}
+        self.geometries = {}
+        self.proj_faces = {}
 
     def set_metric(self, metric):
         """set self.comvert_to_meters by word"""
@@ -334,7 +354,16 @@ class BlockMeshDict(object):
         b = Boundary(type_, name, faces)
         self.boundaries[name] = b
         return b
-
+    
+    def add_sphere(self, name, center, radius):
+        s = Sphere(name, center, radius)
+        self.geometries[name] = s
+        return s
+    
+    def add_proj_face(self, name, face, proj_geometry_name):
+        self.proj_faces[face.name] = {'face' : face, 'proj_geom' : proj_geometry_name}
+        return face
+    
     def assign_vertexid(self):
         """1. create list of Vertex which are referred by blocks only.
         2. sort vertex according to (x, y, z)
@@ -370,6 +399,17 @@ class BlockMeshDict(object):
         buf.write(');')
         return buf.getvalue()
 
+    def format_geometry_section(self):
+        """format geometry section.
+        """
+        buf = io.StringIO()
+        buf.write('geometry\n')
+        buf.write('{\n')
+        for g in self.geometries.values():
+            buf.write('    ' + g.format() + '\n')
+        buf.write('};')
+        return buf.getvalue()
+    
     def format_blocks_section(self):
         """format blocks section.
         assign_vertexid() should be called before this method, because
@@ -395,7 +435,22 @@ class BlockMeshDict(object):
             buf.write('  ' + e.format(self.vertices) + '\n')
         buf.write(');')
         return buf.getvalue()
-
+    
+    def format_faces_section(self):
+        """format faces section.
+        assign_vertexid() should be called before this method, because
+        vertices refered by blocks should have valid index.
+        """
+        buf = io.StringIO()
+        buf.write('faces\n')
+        buf.write('(\n')
+        for pFace in self.proj_faces.values():
+            buf.write(' project {0} \n'.format(
+                pFace['face'].format(self.vertices,pFace['proj_geom'])))
+        
+        buf.write(');')
+        return buf.getvalue()
+    
     def format_boundary_section(self):
         """format boundary section.
         assign_vertexid() should be called before this method, because
@@ -437,11 +492,15 @@ FoamFile
 
 convertToMeters $metricconvert;
 
+$geometry
+
 $vertices
 
 $edges
 
 $blocks
+
+$faces
 
 $boundary
 
@@ -452,8 +511,10 @@ $mergepatchpairs
 
         return template.substitute(
             metricconvert=str(self.convert_to_meters),
+            geometry=self.format_geometry_section(),
             vertices=self.format_vertices_section(),
             edges=self.format_edges_section(),
             blocks=self.format_blocks_section(),
+            faces=self.format_faces_section(),
             boundary=self.format_boundary_section(),
             mergepatchpairs=self.format_mergepatchpairs_section())
