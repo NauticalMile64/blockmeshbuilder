@@ -388,7 +388,7 @@ class BlockMeshDict(object):
     def format_vertices_section(self):
         """format vertices section.
         assign_vertexid() should be called before this method, because
-        self.valid_vetices should be available and member self.valid_vertices
+        self.valid_vertices should be available and member self.valid_vertices
         should have valid index.
         """
         buf = io.StringIO()
@@ -413,7 +413,7 @@ class BlockMeshDict(object):
     def format_blocks_section(self):
         """format blocks section.
         assign_vertexid() should be called before this method, because
-        vertices reffered by blocks should have valid index.
+        vertices referred by blocks should have valid index.
         """
         buf = io.StringIO()
         buf.write('blocks\n')
@@ -426,7 +426,7 @@ class BlockMeshDict(object):
     def format_edges_section(self):
         """format edges section.
         assign_vertexid() should be called before this method, because
-        vertices reffered by blocks should have valid index.
+        vertices referred by blocks should have valid index.
         """
         buf = io.StringIO()
         buf.write('edges\n')
@@ -454,7 +454,7 @@ class BlockMeshDict(object):
     def format_boundary_section(self):
         """format boundary section.
         assign_vertexid() should be called before this method, because
-        vertices reffered by faces should have valid index.
+        vertices referred by faces should have valid index.
         """
         buf = io.StringIO()
         buf.write('boundary\n')
