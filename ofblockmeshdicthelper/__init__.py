@@ -308,13 +308,17 @@ class BlockMeshDict(object):
             'Angstrom': 1e-10}
         self.convert_to_meters = metricsym_to_conversion[metric]
 
-    def add_vertex(self, x, y, z, name):
+    def add_vertex(self, vertex, name):
         """add vertex by coordinate and uniq name
         x y z is coordinates of vertex
         name is uniq name to refer the vertex
         returns Vertex object whici is added.
         """
-        self.vertices[name] = Vertex(x, y, z, name)
+        if name in self.vertices:
+            print('Vertex {} has already been assigned'.format(name))
+        else:
+            self.vertices[name] = vertex
+        
         return self.vertices[name]
 
     def del_vertex(self, name):
