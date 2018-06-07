@@ -7,31 +7,53 @@ from collections import Iterable
 from string import Template
 
 
-class Vertex(object):
-    def __init__(self, x, y, z, name, index=None):
+class Point(object):
+    def __init__(self, x, y, z):
         self.x = x
         self.y = y
         self.z = z
-        self.name = name  # identical name
-        self.alias = set([name])  # aliasname, self.name should be included
-
-        # seqential index which is assigned at final output
-        # for blocks, edges, boundaries
-        self.index = None
 
     def format(self):
-        com = str(self.index) + ' ' + self.name
-        if len(self.alias) > 1:
-            com += ' : '
-            com += ' '.join(self.alias)
-        return '( {0:18.15g} {1:18.15g} {2:18.15g} )  // {3:s}'.format(
-            self.x, self.y, self.z, com)
+        return '( {0:18.15g} {1:18.15g} {2:18.15g} )'.format(
+            self.x, self.y, self.z)
 
     def __lt__(self, rhs):
         return (self.z, self.y, self.x) < (rhs.z, rhs.y, rhs.z)
 
     def __eq__(self, rhs):
         return (self.z, self.y, self.x) == (rhs.z, rhs.y, rhs.z)
+
+class Vertex(Point):
+    def __init__(self, x, y, z, name, index=None):
+        
+        Point.__init__(self, x, y, z)
+        
+        self.name = name  # identical name
+        self.alias = set([name])  # aliasname, self.name should be included
+
+        # seqential index which is assigned at final output
+        # for blocks, edges, boundaries
+        self.index = None
+        self.proj_g = None
+    
+    def format(self):
+        com = str(self.index) + ' ' + self.name
+        if len(self.alias) > 1:
+            com += ' : '
+            com += ' '.join(self.alias)
+        
+        vertex_str = Point.format(self)
+        
+        proj_str, geom_name = '',''
+        if self.proj_g:
+            proj_str = 'project'
+            geom_name = '({})'.format(self.proj_g.name)
+        
+        return '{0} {1} {2} // {3:s}'.format(
+            proj_str, vertex_str, geom_name, com)
+    
+    def proj_geom(self, geometry):
+        self.proj_g = geometry
 
 class Geometry(object):
     def __init__(self, name):
@@ -51,16 +73,6 @@ class Sphere(Geometry):
         radius {2:18.15g};
     }}
 '''.format(self.name, self.center.format(), self.radius)
-
-class Point(object):
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-
-    def format(self):
-        return '( {0:18.15g} {1:18.15g} {2:18.15g} )'.format(
-            self.x, self.y, self.z)
 
 class Face(object):
     def __init__(self, vnames, name):
