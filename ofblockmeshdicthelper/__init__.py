@@ -22,6 +22,12 @@ class Point(object):
 
     def __eq__(self, rhs):
         return (self.z, self.y, self.x) == (rhs.z, rhs.y, rhs.z)
+        
+    def __add__(self, rhs):
+        return Point(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+    
+    def __sub__(self, rhs):
+        return Point(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
 
 class Vertex(Point):
     def __init__(self, x, y, z, name, index=None):
