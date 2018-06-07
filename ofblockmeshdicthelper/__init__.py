@@ -207,7 +207,22 @@ class HexBlock(object):
         return Face(vnames, name)
 
 
-class ArcEdge(object):
+class Edge(object):
+    def __init__(self, vnames, name):
+        self.vnames = vnames
+        self.name = name
+
+    def format(self, vertices):
+        """Format instance to dump
+        vertices is dict of name to Vertex
+        """
+        index = ' '.join(str(vertices[vn].index) for vn in self.vnames)
+        vcom = ' '.join(self.vnames)  # for comment
+        return '{{0}} {0:s} {{1}}'\
+                '// {1:s} ({2:s})'.format(
+                        index, self.name, vcom)
+        
+class ArcEdge(Edge):
     def __init__(self, vnames, name, interVertex):
         """Initialize ArcEdge instance
         vnames is the vertex names in order descrived in
@@ -217,42 +232,37 @@ class ArcEdge(object):
         name is the uniq name of the block
         grading is grading method.
         """
-        self.vnames = vnames
-        self.name = name
+        
+        Edge.__init__(self, vnames, name)
         self.interVertex = interVertex
 
     def format(self, vertices):
         """Format instance to dump
         vertices is dict of name to Vertex
         """
-        index = ' '.join(str(vertices[vn].index) for vn in self.vnames)
-        vcom = ' '.join(self.vnames)  # for comment
-        return 'arc {0:s} ({1.x:f} {1.y:f} {1.z:f}) '\
-                '// {2:s} ({3:s})'.format(
-                        index, self.interVertex, self.name, vcom)
+        
+        return Edge.format(self,vertices).format('arc',
+                '({0.x:f} {0.y:f} {0.z:f}) '.format(self.interVertex))
 
-class SplineEdge(object):
+class SplineEdge(Edge):
     def __init__(self, vnames, name, points):
         """Initialize SplineEdge instance
         vnames is the vertex names in order descrived in
           http://www.openfoam.org/docs/user/mesh-description.php
         # two vertices is needed for Spline
         """
-        self.vnames = vnames
-        self.name = name
+        
+        Edge.__init__(self,vnames,name)
         self.points = points
 
     def format(self, vertices):
         """Format instance to dump
         vertices is dict of name to Vertex
         """
-        index = ' '.join(str(vertices[vn].index) for vn in self.vnames)
-        vcom = ' '.join(self.vnames)  # for comment
+        
         buf = io.StringIO()
 
-        buf.write('spline {0:s}                      '\
-                '// {1:s} ({2:s})'.format(
-                        index,self.name, vcom))
+        buf.write(Edge.format(self,vertices).format('spline',''))
         buf.write('\n     (\n')
         for p in self.points:
             buf.write('         '+p.format()+'\n')
@@ -260,6 +270,14 @@ class SplineEdge(object):
         buf.write('')
         return buf.getvalue()
 
+class ProjectionEdge(Edge):
+    def __init__(self, vnames, name, geom):
+        Edge.__init__(self, vnames, name)
+        self.proj_geom = geom
+
+    def format(self, vertices):
+        return Edge.format(self,vertices).format('project',
+                '({})'.format(self.geom.name))
 
 class Boundary(object):
     def __init__(self, type_, name, faces=[]):
@@ -355,16 +373,9 @@ class BlockMeshDict(object):
         b = HexBlock(vnames, cells, name, grading)
         self.blocks[name] = b
         return b
-
-    def add_arcedge(self, vnames, name, interVertex):
-        e = ArcEdge(vnames, name, interVertex)
-        self.edges[name] = e
-        return e
-
-    def add_splineedge(self, vnames, name, points):
-        e = SplineEdge(vnames, name, points)
-        self.edges[name] = e
-        return e
+    
+    def add_edge(self, edge, name):
+        self.edges[name] = edge
 
     def add_boundary(self, type_, name, faces=[]):
         b = Boundary(type_, name, faces)
