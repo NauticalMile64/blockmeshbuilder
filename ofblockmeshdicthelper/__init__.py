@@ -264,7 +264,7 @@ class ProjectionEdge(Edge):
 
     def format(self, vertices):
         return Edge.format(self,vertices).format('project',
-                '({})'.format(self.geom.name))
+                '({})'.format(self.proj_geom.name))
 
 class Boundary(object):
     def __init__(self, type_, name, faces=[]):
