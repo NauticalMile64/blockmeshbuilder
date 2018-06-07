@@ -208,51 +208,38 @@ class HexBlock(object):
 
 
 class Edge(object):
-    def __init__(self, vnames, name):
-        self.vnames = vnames
+    def __init__(self, eVertices, name):
+    
+        #http://www.openfoam.org/docs/user/mesh-description.php
+        
+        self.eVertices = eVertices
         self.name = name
 
     def format(self, vertices):
-        """Format instance to dump
-        vertices is dict of name to Vertex
-        """
-        index = ' '.join(str(vertices[vn].index) for vn in self.vnames)
-        vcom = ' '.join(self.vnames)  # for comment
+        index = ' '.join(str(v.index) for v in self.eVertices)
+        vcom = ' '.join(str(v.name) for v in self.eVertices)  # for comment
         return '{{0}} {0:s} {{1}}'\
                 '// {1:s} ({2:s})'.format(
                         index, self.name, vcom)
         
 class ArcEdge(Edge):
-    def __init__(self, vnames, name, interVertex):
-        """Initialize ArcEdge instance
-        vnames is the vertex names in order descrived in
-          http://www.openfoam.org/docs/user/mesh-description.php
-        # two vertices is needed for Arc
-        cells is number of cells devied into in each direction
-        name is the uniq name of the block
-        grading is grading method.
-        """
+    def __init__(self, eVertices, name, interVertex):
         
-        Edge.__init__(self, vnames, name)
+        Edge.__init__(self, eVertices, name)
         self.interVertex = interVertex
 
     def format(self, vertices):
-        """Format instance to dump
-        vertices is dict of name to Vertex
-        """
         
         return Edge.format(self,vertices).format('arc',
                 '({0.x:f} {0.y:f} {0.z:f}) '.format(self.interVertex))
 
 class SplineEdge(Edge):
-    def __init__(self, vnames, name, points):
-        """Initialize SplineEdge instance
-        vnames is the vertex names in order descrived in
+    def __init__(self, eVertices, name, points):
+        """
           http://www.openfoam.org/docs/user/mesh-description.php
-        # two vertices is needed for Spline
         """
         
-        Edge.__init__(self,vnames,name)
+        Edge.__init__(self,eVertices,name)
         self.points = points
 
     def format(self, vertices):
@@ -271,8 +258,8 @@ class SplineEdge(Edge):
         return buf.getvalue()
 
 class ProjectionEdge(Edge):
-    def __init__(self, vnames, name, geom):
-        Edge.__init__(self, vnames, name)
+    def __init__(self, eVertices, name, geom):
+        Edge.__init__(self, eVertices, name)
         self.proj_geom = geom
 
     def format(self, vertices):
