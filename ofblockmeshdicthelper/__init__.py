@@ -78,19 +78,19 @@ class Sphere(Geometry):
 '''.format(self.name, self.center.format(), self.radius)
 
 class Face(object):
-	def __init__(self, vnames, name):
+	def __init__(self, vertices, name):
 		"""
 		vname is list or tuple of vertex names
 		"""
-		self.vnames = vnames
+		self.vertices = vertices
 		self.name = name
 	
 	def format(self, prj_geom=''):
 		"""Format instance to dump
 		vertices is dict of name to Vertex
 		"""
-		index = ' '.join(str(vertices[vn].index) for vn in self.vnames)
-		com = ' '.join(self.vnames)  # for comment
+		index = ' '.join(str(v.index) for v in self.vertices)
+		com = ' '.join(v.name for v in self.vertices)  # for comment
 		return '({0:s}) {3} // {1:s} ({2:s})'.format(index, self.name, com, prj_geom)
 
 
