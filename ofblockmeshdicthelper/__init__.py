@@ -12,14 +12,14 @@ class Point(object):
 		self.x = x
 		self.y = y
 		self.z = z
-
+	
 	def format(self):
 		return '( {0:18.15g} {1:18.15g} {2:18.15g} )'.format(
 			self.x, self.y, self.z)
-
+	
 	def __lt__(self, rhs):
 		return (self.z, self.y, self.x) < (rhs.z, rhs.y, rhs.z)
-		
+	
 	def __add__(self, rhs):
 		return Point(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
 	
@@ -33,7 +33,7 @@ class Vertex(Point):
 		
 		self.name = name  # identical name
 		self.alias = set([name])  # aliasname, self.name should be included
-
+		
 		# seqential index which is assigned at final output
 		# for blocks, edges, boundaries
 		self.index = None
@@ -84,7 +84,7 @@ class Face(object):
 		"""
 		self.vnames = vnames
 		self.name = name
-
+	
 	def format(self, prj_geom=''):
 		"""Format instance to dump
 		vertices is dict of name to Vertex
@@ -108,7 +108,7 @@ class SimpleGradingElement(object):
 		  or iterative object consits (dirction ratio, cell ratio, expansion ratio)
 		"""
 		self.d = d
-
+	
 	def format(self):
 		if isinstance(self.d, Iterable):
 			s = io.StringIO()
@@ -138,7 +138,7 @@ class SimpleGrading(Grading):
 			self.z = SimpleGradingElement(z)
 		else:
 			self.z = z
-
+	
 	def format(self):
 		return 'simpleGrading ({0:s} {1:s} {2:s})'.format(self.x.format(), self.y.format(), self.z.format())
 
@@ -156,7 +156,7 @@ class HexBlock(object):
 		self.cells = cells
 		self.name = name
 		self.grading = grading
-
+	
 	def format(self):
 		"""Format instance to dump
 		vertices is dict of name to Vertex
@@ -166,7 +166,7 @@ class HexBlock(object):
 		return 'hex ({0:s}) {2:s} ({1[0]:d} {1[1]:d} {1[2]:d}) '\
 			   '{4:s}  // {2:s} ({3:s})'.format(
 					index, self.cells, self.name, vcom, self.grading.format())
-
+	
 	def face(self, index, name=None):
 		"""Generate Face object
 		index is number or keyword to identify the face of Hex
@@ -200,10 +200,10 @@ class HexBlock(object):
 			'f-{}-n',
 			'f-{}-b',
 			'f-{}-t']
-
+		
 		if isinstance(index, string_types):
 			index = kw_to_index[index]
-
+		
 		face_vertices = tuple([self.vertices[i] for i in index_to_vertex[index]])
 		if name is None:
 			name = index_to_defaultsuffix[index].format(self.name)
@@ -212,29 +212,31 @@ class HexBlock(object):
 
 class Edge(object):
 	def __init__(self, vertices, name):
-	
+		
 		#http://www.openfoam.org/docs/user/mesh-description.php
 		
 		self.vertices = vertices
 		self.name = name
-
+	
 	def format(self):
 		index = ' '.join(str(v.index) for v in self.vertices)
 		vcom = ' '.join(str(v.name) for v in self.vertices)  # for comment
 		return '{{0}} {0:s} {{1}}'\
 				'// {1:s} ({2:s})'.format(
 						index, self.name, vcom)
-		
+
+
 class ArcEdge(Edge):
 	def __init__(self, vertices, name, interVertex):
 		
 		Edge.__init__(self, vertices, name)
 		self.interVertex = interVertex
-
+	
 	def format(self):
 		
 		return Edge.format(self).format('arc',
 				'({0.x:f} {0.y:f} {0.z:f}) '.format(self.interVertex))
+
 
 class SplineEdge(Edge):
 	def __init__(self, vertices, name, points):
@@ -244,14 +246,14 @@ class SplineEdge(Edge):
 		
 		Edge.__init__(self,vertices,name)
 		self.points = points
-
+	
 	def format(self):
 		"""Format instance to dump
 		vertices is dict of name to Vertex
 		"""
 		
 		buf = io.StringIO()
-
+		
 		buf.write(Edge.format(self).format('spline',''))
 		buf.write('\n     (\n')
 		for p in self.points:
@@ -260,14 +262,16 @@ class SplineEdge(Edge):
 		buf.write('')
 		return buf.getvalue()
 
+
 class ProjectionEdge(Edge):
 	def __init__(self, vertices, name, geom):
 		Edge.__init__(self, vertices, name)
 		self.proj_geom = geom
-
+	
 	def format(self):
 		return Edge.format(self).format('project',
 				'({})'.format(self.proj_geom.name))
+
 
 class Boundary(object):
 	def __init__(self, type_, name, faces=[]):
@@ -279,13 +283,13 @@ class Boundary(object):
 		self.type_ = type_
 		self.name = name
 		self.faces = faces
-
+	
 	def add_face(self, face):
 		"""add face instance
 		face is a Face instance (not name) to be added
 		"""
 		self.faces.append(face)
-
+	
 	def format(self):
 		"""Format instance to dump
 		vertices is dict of name to Vertex
@@ -314,7 +318,7 @@ class BlockMeshDict(object):
 		self.boundaries = {}
 		self.geometries = {}
 		self.proj_faces = {}
-
+	
 	def set_metric(self, metric):
 		"""set self.comvert_to_meters by word"""
 		metricsym_to_conversion = {
@@ -327,7 +331,7 @@ class BlockMeshDict(object):
 			'A': 1e-10,
 			'Angstrom': 1e-10}
 		self.convert_to_meters = metricsym_to_conversion[metric]
-
+	
 	def reduce_vertex(self, name1, *names):
 		"""treat name1, name2, ... as same point.
 
@@ -341,13 +345,13 @@ class BlockMeshDict(object):
 			v.alias.update(w.alias)
 			# replace mapping from n w by to v
 			self.vertices[n] = v
-
+	
 	def add_hexblock(self, block, name):
 		self.blocks[name] = block
 	
 	def add_edge(self, edge, name):
 		self.edges[name] = edge
-
+	
 	def add_boundary(self, boundary, name):
 		self.boundaries[name] = boundary
 	
@@ -365,32 +369,20 @@ class BlockMeshDict(object):
 		3. assign sequence number for each Vertex
 		4. sorted list is saved as self.valid_vertices
 		"""
-
+		
 		# gather 'uniq' names which are refferred by blocks
 		valid_vertices = []
 		i = 0
 		
 		for b in self.blocks.values():
-			for v in b.vertices:
-				if v.name == 'cv-3':
-					print('why')
-					print(i)
-					for vr in valid_vertices:
-						if v == vr:
-							print(v)
-							print(vr)
-							print(vr.name)
-					print(v in valid_vertices)
-					
+			for v in b.vertices:					
 				if v not in valid_vertices:
 					valid_vertices.append(v)
 					v.index = i
 					i += 1
 
 		self.valid_vertices = valid_vertices
-		#for i, v in enumerate(self.valid_vertices):
-		#    v.index = i
-
+	
 	def format_vertices_section(self):
 		"""format vertices section.
 		assign_vertexid() should be called before this method, because
@@ -404,7 +396,7 @@ class BlockMeshDict(object):
 			buf.write('    ' + v.format() + '\n')
 		buf.write(');')
 		return buf.getvalue()
-
+	
 	def format_geometry_section(self):
 		"""format geometry section.
 		"""
@@ -428,7 +420,7 @@ class BlockMeshDict(object):
 			buf.write('    ' + b.format() + '\n')
 		buf.write(');')
 		return buf.getvalue()
-
+	
 	def format_edges_section(self):
 		"""format edges section.
 		assign_vertexid() should be called before this method, because
@@ -472,13 +464,13 @@ class BlockMeshDict(object):
 			buf.write(indent + s + '\n')
 		buf.write(');')
 		return buf.getvalue()
-
+	
 	def format_mergepatchpairs_section(self):
 		return '''\
 mergePatchPairs
 (
 );'''
-
+	
 	def format(self):
 		template = Template(r'''/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
