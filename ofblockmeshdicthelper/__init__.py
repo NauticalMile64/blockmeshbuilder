@@ -341,8 +341,6 @@ class BlockMeshDict(object):
             print('Vertex {} has already been assigned'.format(name))
         else:
             self.vertices[name] = vertex
-        
-        return self.vertices[name]
 
     def del_vertex(self, name):
         """del name key from self.vertices"""
@@ -362,18 +360,14 @@ class BlockMeshDict(object):
             # replace mapping from n w by to v
             self.vertices[n] = v
 
-    def add_hexblock(self, vnames, cells, name, grading=SimpleGrading(1, 1, 1)):
-        b = HexBlock(vnames, cells, name, grading)
-        self.blocks[name] = b
-        return b
+    def add_hexblock(self, block, name):
+        self.blocks[name] = block
     
     def add_edge(self, edge, name):
         self.edges[name] = edge
 
-    def add_boundary(self, type_, name, faces=[]):
-        b = Boundary(type_, name, faces)
-        self.boundaries[name] = b
-        return b
+    def add_boundary(self, boundary, name):
+        self.boundaries[name] = boundary
     
     def add_geometry(self, name, geometry):
         self.geometries[name] = geometry
