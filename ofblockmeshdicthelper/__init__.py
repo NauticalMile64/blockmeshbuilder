@@ -26,6 +26,7 @@ class Point(object):
 	def __sub__(self, rhs):
 		return Point(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
 
+
 class Vertex(Point):
 	def __init__(self, x, y, z, name, index=None):
 		
@@ -58,10 +59,12 @@ class Vertex(Point):
 	def proj_geom(self, geometry):
 		self.proj_g = geometry
 
+
 class Geometry(object):
 	def __init__(self, name):
 		self.name = name
 
+		
 class Sphere(Geometry):
 	def __init__(self, name, center, radius):
 		Geometry.__init__(self, name)
@@ -76,6 +79,7 @@ class Sphere(Geometry):
 		radius {2:18.15g};
 	}}
 '''.format(self.name, self.center.format(), self.radius)
+
 
 class Face(object):
 	def __init__(self, vertices, name):
@@ -375,7 +379,7 @@ class BlockMeshDict(object):
 		i = 0
 		
 		for b in self.blocks.values():
-			for v in b.vertices:					
+			for v in b.vertices:
 				if v not in valid_vertices:
 					valid_vertices.append(v)
 					v.index = i
