@@ -223,12 +223,19 @@ class Edge(object):
 		self.name = name
 	
 	def format(self):
-		index = ' '.join(str(v.index) for v in self.vertices)
+		
+		indices = [v.index for v in self.vertices]
+		index = ' '.join(str(ind) for ind in indices)
 		vcom = ' '.join(str(v.name) for v in self.vertices)  # for comment
-		return '{{0}} {0:s} {{1}}'\
+		res_str = '{{0}} {0:s} {{1}}'\
 				'// {1:s} ({2:s})'.format(
 						index, self.name, vcom)
-
+		
+		# If either vertex has not been included in any blocks the edge is meaningless
+		if None in indices:
+			res_str = '// ' + res_str
+		
+		return res_str
 
 class ArcEdge(Edge):
 	def __init__(self, vertices, name, interVertex):
