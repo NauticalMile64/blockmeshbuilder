@@ -455,7 +455,7 @@ class BlockMeshDict(object):
 		buf.write('(\n')
 		for pFace in self.proj_faces.values():
 			buf.write(' project {0} \n'.format(
-				pFace['face'].format(pFace['proj_geom'])))
+				pFace['face'].format(pFace['proj_geom'].name)))
 		
 		buf.write(');')
 		return buf.getvalue()
