@@ -285,7 +285,7 @@ class ProjectionEdge(Edge):
 
 
 class Boundary(object):
-	def __init__(self, type_, name, faces=[]):
+	def __init__(self, type_, name):
 		""" initialize boundary
 		type_ is type keyword (wall, patch, empty, ..)
 		name is name of boundary emelment
@@ -293,7 +293,7 @@ class Boundary(object):
 		"""
 		self.type_ = type_
 		self.name = name
-		self.faces = faces
+		self.faces = []
 	
 	def add_face(self, face):
 		"""add face instance
