@@ -368,11 +368,9 @@ class BlockMeshDict(object):
 	
 	def add_geometry(self, name, geometry):
 		self.geometries[name] = geometry
-		return geometry
 	
 	def add_proj_face(self, name, face, proj_geometry_name):
 		self.proj_faces[name] = {'face' : face, 'proj_geom' : proj_geometry_name}
-		return face
 	
 	def assign_vertexid(self):
 		"""1. create list of Vertex which are referred by blocks only.
