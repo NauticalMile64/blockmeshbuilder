@@ -62,9 +62,22 @@ class Vertex(Point):
 
 class Geometry(object):
 	def __init__(self, name):
+		assert(name)
 		self.name = name
-
+	
+	def format(self,type,data_dict):
+		buf = io.StringIO()
 		
+		buf.write('\t'+self.name)
+		buf.write('\t{')
+		buf.write('\t\t type {0};'.format(type))
+		for label, data in data_dict.items():
+			buf.write('\t\t{0} {1};'.format(label, data))
+		
+		buf.write('\t}')
+		return buf.getvalue()
+
+
 class Sphere(Geometry):
 	def __init__(self, name, center, radius):
 		Geometry.__init__(self, name)
@@ -72,13 +85,11 @@ class Sphere(Geometry):
 		self.radius = radius
 	
 	def format(self):
-		return '''{0}
-	{{
-		type searchableSphere;
-		centre {1};
-		radius {2:18.15g};
-	}}
-'''.format(self.name, self.center.format(), self.radius)
+		return Geometry.format(self,'searchableSphere',
+			{
+				'centre' : self.center.format(),
+				'radius' : '{0:18.15g}'.format(self.radius)
+			})
 
 
 class Face(object):
