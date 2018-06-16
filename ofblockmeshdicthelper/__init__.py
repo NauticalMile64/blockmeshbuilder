@@ -98,57 +98,59 @@ class Face(object):
 		return '({0:s}) {3} // {1:s} ({2:s})'.format(index, self.name, com, prj_geom)
 
 
-class Grading(object):
-	"""base class for Simple- and Edge- Grading"""
+class GradingElement(object):
 	pass
 
 
-class SimpleGradingElement(object):
-	"""x, y or z Element of simpleGrading. adopted to multi-grading
-	"""
+class SimpleGradingElement(GradingElement):
 	def __init__(self, d):
-		"""initialization
-		d is single number for expansion ratio
-		  or iterative object consits (dirction ratio, cell ratio, expansion ratio)
-		"""
 		self.d = d
 	
 	def format(self):
-		if isinstance(self.d, Iterable):
-			s = io.StringIO()
-			s.write('( ')
-			for e in self.d:
-				s.write('( {0:g} {1:g} {2:g} ) '.format(e[0], e[1], e[2]))
-			s.write(')')
-			return s.getvalue()
-		else:
-			return str(self.d)
+		return str(self.d)
+
+
+class MultiGradingElement(GradingElement):
+	def __init__(self,len_pcts,num_cells,expansions):
+		self.len_pcts = len_pcts
+		self.num_cells = num_cells
+		self.expansions = expansions
+	
+	def format(self):
+		return '({})'.format(' '.join('({0} {1} {2})'.format(lp,nc,ex) 
+				for lp,nc,ex in zip(self.len_pcts, self.num_cells, self.expansions)))
+
+
+class Grading(object):
+	def __init__(self,gradingElements):
+		self.gradingElements = gradingElements
+	
+	def format(self):
+		return '{{0}}Grading ({0})'.format(' '.join(ge.format() for ge in self.gradingElements))
 
 
 class SimpleGrading(Grading):
-	"""configutation for 'simpleGrading'
-	multi-grading is not implemented yet
-	"""
-	def __init__(self, x, y, z):
-		if not isinstance(x, SimpleGradingElement):
-			self.x = SimpleGradingElement(x)
-		else:
-			self.x = x
-		if not isinstance(y, SimpleGradingElement):
-			self.y = SimpleGradingElement(y)
-		else:
-			self.y = y
-		if not isinstance(z, SimpleGradingElement):
-			self.z = SimpleGradingElement(z)
-		else:
-			self.z = z
+	def __init__(self, gradingElements):
+		assert(len(gradingElements) == 3)
+		Grading.__init__(self, gradingElements)
 	
 	def format(self):
-		return 'simpleGrading ({0:s} {1:s} {2:s})'.format(self.x.format(), self.y.format(), self.z.format())
+		return Grading.format(self).format('simple')
 
 
+class EdgeGrading(Grading):
+	def __init__(self, gradingElements):
+		assert(len(gradingElements) == 12)
+		Grading.__init__(self, gradingElements)
+	
+	def format(self):
+		return Grading.format(self).format('edge')
+
+
+uniformGradingElement = SimpleGradingElement(1)
+uniformGrading = SimpleGrading([uniformGradingElement]*3)
 class HexBlock(object):
-	def __init__(self, vertices, cells, name, grading=SimpleGrading(1, 1, 1)):
+	def __init__(self, vertices, cells, name, grading=uniformGrading):
 		"""Initialize HexBlock instance
 		vnames is the vertex names in order descrived in
 			http://www.openfoam.org/docs/user/mesh-description.php
