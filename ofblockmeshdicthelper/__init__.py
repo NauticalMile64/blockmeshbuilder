@@ -68,13 +68,13 @@ class Geometry(object):
 	def format(self,type,data_dict):
 		buf = io.StringIO()
 		
-		buf.write('\t'+self.name)
-		buf.write('\t{')
-		buf.write('\t\t type {0};'.format(type))
+		buf.write(self.name)
+		buf.write('\n\t{')
+		buf.write('\n\t\ttype {0};'.format(type))
 		for label, data in data_dict.items():
-			buf.write('\t\t{0} {1};'.format(label, data))
+			buf.write('\n\t\t{0} {1};'.format(label, data))
 		
-		buf.write('\t}')
+		buf.write('\n\t}')
 		return buf.getvalue()
 
 
@@ -88,6 +88,22 @@ class Sphere(Geometry):
 		return Geometry.format(self,'searchableSphere',
 			{
 				'centre' : self.center.format(),
+				'radius' : '{0:18.15g}'.format(self.radius)
+			})
+
+
+class Cylinder(Geometry):
+	def __init__(self, name, point1, point2, radius):
+		Geometry.__init__(self, name)
+		self.point1 = point1
+		self.point2 = point2
+		self.radius = radius
+	
+	def format(self):
+		return Geometry.format(self,'searchableCylinder',
+			{
+				'point1' : self.point1.format(),
+				'point2' : self.point2.format(),
 				'radius' : '{0:18.15g}'.format(self.radius)
 			})
 
