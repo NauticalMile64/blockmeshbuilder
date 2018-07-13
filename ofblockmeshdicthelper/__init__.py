@@ -138,14 +138,14 @@ class SimpleGradingElement(GradingElement):
 
 
 class MultiGradingElement(GradingElement):
-	def __init__(self,len_pcts,num_cells,expansions):
+	def __init__(self,len_pcts,cell_pcts,exp_ratios):
 		self.len_pcts = len_pcts
-		self.num_cells = num_cells
-		self.expansions = expansions
+		self.cell_pcts = cell_pcts
+		self.exp_ratios = exp_ratios
 	
 	def format(self):
 		return '({})'.format(' '.join('({0} {1} {2})'.format(lp,nc,ex) 
-				for lp,nc,ex in zip(self.len_pcts, self.num_cells, self.expansions)))
+				for lp,nc,ex in zip(self.len_pcts, self.cell_pcts, self.exp_ratios)))
 
 
 class Grading(object):
@@ -454,8 +454,8 @@ class BlockMeshDict(object):
 		buf = io.StringIO()
 		buf.write('blocks\n')
 		buf.write('(\n')
-		for b in self.blocks.values():
-			buf.write('    ' + b.format() + '\n')
+		for name,b in self.blocks.items():
+			buf.write('    ' + b.format() + ' b-{}\n'.format(name))
 		buf.write(');')
 		return buf.getvalue()
 	
