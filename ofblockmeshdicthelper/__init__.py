@@ -1,11 +1,9 @@
+# -*- coding: future_fstrings -*-
 # for compatibility with Py2.7
 from __future__ import unicode_literals, print_function
 from six import string_types
 
 import io
-from collections import Iterable
-from string import Template
-
 
 class Point(object):
 	def __init__(self, x, y, z):
@@ -14,8 +12,7 @@ class Point(object):
 		self.z = z
 	
 	def format(self):
-		return '( {0:18.15g} {1:18.15g} {2:18.15g} )'.format(
-			self.x, self.y, self.z)
+		return f'( {self.x:18.15g} {self.y:18.15g} {self.z:18.15g} )'
 	
 	def __lt__(self, rhs):
 		return (self.z, self.y, self.x) < (rhs.z, rhs.y, rhs.z)
@@ -49,10 +46,9 @@ class Vertex(Point):
 		proj_str, geom_name = '',''
 		if self.proj_g:
 			proj_str = 'project'
-			geom_name = '({})'.format(self.proj_g.name)
+			geom_name = f'({self.proj_g.name})'
 		
-		return '{0} {1} {2} // {3:s}'.format(
-			proj_str, vertex_str, geom_name, com)
+		return f'{proj_str} {vertex_str} {geom_name} // {com:s}'
 	
 	def proj_geom(self, geometry):
 		self.proj_g = geometry
@@ -68,9 +64,9 @@ class Geometry(object):
 		
 		buf.write(self.name)
 		buf.write('\n\t{')
-		buf.write('\n\t\ttype {0};'.format(type))
+		buf.write(f'\n\t\ttype {type};')
 		for label, data in data_dict.items():
-			buf.write('\n\t\t{0} {1};'.format(label, data))
+			buf.write(f'\n\t\t{label} {data};')
 		
 		buf.write('\n\t}')
 		return buf.getvalue()
@@ -86,7 +82,7 @@ class Sphere(Geometry):
 		return Geometry.format(self,'searchableSphere',
 			{
 				'centre' : self.center.format(),
-				'radius' : '{0:18.15g}'.format(self.radius)
+				'radius' : f'{self.radius:18.15g}'
 			})
 
 
@@ -102,7 +98,7 @@ class Cylinder(Geometry):
 			{
 				'point1' : self.point1.format(),
 				'point2' : self.point2.format(),
-				'radius' : '{0:18.15g}'.format(self.radius)
+				'radius' : f'{self.radius:18.15g}'
 			})
 
 
@@ -114,7 +110,7 @@ class Face(object):
 	def format(self, prj_geom=''):
 		index = ' '.join(str(v.index) for v in self.vertices)
 		com = ' '.join(v.name for v in self.vertices)
-		return '({0:s}) {3} // {1:s} ({2:s})'.format(index, self.name, com, prj_geom)
+		return f'({index:s}) {prj_geom} // {self.name:s} ({com:s})'
 
 
 class GradingElement(object):
@@ -136,7 +132,7 @@ class MultiGradingElement(GradingElement):
 		self.exp_ratios = exp_ratios
 	
 	def format(self):
-		return '({})'.format(' '.join('({0} {1} {2})'.format(lp,nc,ex) 
+		return '({})'.format(' '.join(f'({lp} {nc} {ex})' 
 				for lp,nc,ex in zip(self.len_pcts, self.cell_pcts, self.exp_ratios)))
 
 
@@ -184,10 +180,8 @@ class HexBlock(object):
 	
 	def format(self):
 		index = ' '.join(str(v.index) for v in self.vertices)
-		vcom = ' '.join(v.name for v in self.vertices)  # for comment
-		return 'hex ({0:s}) {2:s} ({1[0]:d} {1[1]:d} {1[2]:d}) '\
-			   '{4:s}  // {2:s} ({3:s})'.format(
-					index, self.cells, self.name, vcom, self.grading.format())
+		vcom = ' '.join(v.name for v in self.vertices)
+		return f'hex ({index:s}) {self.name:s} ({cells[0]:d} {cells[1]:d} {cells[2]:d}) {self.grading.format():s}  // {self.name:s} ({vcom:s})'
 	
 	def face(self, index, name=None):
 		"""Generate Face object
@@ -227,8 +221,10 @@ class HexBlock(object):
 			index = kw_to_index[index]
 		
 		face_vertices = tuple([self.vertices[i] for i in index_to_vertex[index]])
+		
 		if name is None:
 			name = index_to_defaultsuffix[index].format(self.name)
+		
 		return Face(face_vertices, name)
 
 
@@ -244,9 +240,7 @@ class Edge(object):
 		indices = [v.index for v in self.vertices]
 		index = ' '.join(str(ind) for ind in indices)
 		vcom = ' '.join(str(v.name) for v in self.vertices)
-		res_str = '{{0}} {0:s} {{1}}'\
-				'// {1:s} ({2:s})'.format(
-						index, self.name, vcom)
+		res_str = f'{{0}} {index:s} {{1}} // {self.name:s} ({vcom:s})'
 		
 		# If either vertex has not been included in any blocks the edge is meaningless
 		if None in indices:
@@ -261,9 +255,9 @@ class ArcEdge(Edge):
 		self.interVertex = interVertex
 	
 	def format(self):
-		
+		iv = self.interVertex
 		return Edge.format(self).format('arc',
-				'({0.x:f} {0.y:f} {0.z:f}) '.format(self.interVertex))
+				f'({iv.x:f} {iv.y:f} {iv.z:f}) ')
 
 
 class SplineEdge(Edge):
@@ -281,7 +275,7 @@ class SplineEdge(Edge):
 		buf.write(Edge.format(self).format('spline',''))
 		buf.write('\n     (\n')
 		for p in self.points:
-			buf.write('         '+p.format()+'\n')
+			buf.write(f'         {p.format()}\n')
 		buf.write('\n     )\n')
 		buf.write('')
 		return buf.getvalue()
@@ -294,7 +288,7 @@ class ProjectionEdge(Edge):
 	
 	def format(self):
 		return Edge.format(self).format('project',
-				'({})'.format(self.proj_geom.name))
+				f'({self.proj_geom.name})')
 
 
 class Boundary(object):
@@ -311,7 +305,7 @@ class Boundary(object):
 
 		buf.write(self.name + '\n')
 		buf.write('{\n')
-		buf.write('    type {};\n'.format(self.type_))
+		buf.write(f'    type {self.type_};\n')
 		buf.write('    faces\n')
 		buf.write('    (\n')
 		for f in self.faces:
@@ -321,6 +315,14 @@ class Boundary(object):
 		buf.write('}')
 		return buf.getvalue()
 
+def _format_section(name, secList):
+	buf = io.StringIO()
+	buf.write(f'{name}\n')
+	buf.write('(\n')
+	for item in secList:
+		buf.write(f'    {item.format()}\n')
+	buf.write(');')
+	return buf.getvalue()
 
 class BlockMeshDict(object):
 	def __init__(self):
@@ -386,42 +388,6 @@ class BlockMeshDict(object):
 
 		self.valid_vertices = valid_vertices
 	
-	def format_vertices_section(self):
-		buf = io.StringIO()
-		buf.write('vertices\n')
-		buf.write('(\n')
-		for v in self.valid_vertices:
-			buf.write('    ' + v.format() + '\n')
-		buf.write(');')
-		return buf.getvalue()
-	
-	def format_geometry_section(self):
-		buf = io.StringIO()
-		buf.write('geometry\n')
-		buf.write('{\n')
-		for g in self.geometries.values():
-			buf.write('    ' + g.format() + '\n')
-		buf.write('};')
-		return buf.getvalue()
-	
-	def format_blocks_section(self):
-		buf = io.StringIO()
-		buf.write('blocks\n')
-		buf.write('(\n')
-		for name,b in self.blocks.items():
-			buf.write('    ' + b.format() + ' b-{}\n'.format(name))
-		buf.write(');')
-		return buf.getvalue()
-	
-	def format_edges_section(self):
-		buf = io.StringIO()
-		buf.write('edges\n')
-		buf.write('(\n')
-		for e in self.edges.values():
-			buf.write('  ' + e.format() + '\n')
-		buf.write(');')
-		return buf.getvalue()
-	
 	def format_faces_section(self):
 		buf = io.StringIO()
 		buf.write('faces\n')
@@ -433,25 +399,8 @@ class BlockMeshDict(object):
 		buf.write(');')
 		return buf.getvalue()
 	
-	def format_boundary_section(self):
-		buf = io.StringIO()
-		buf.write('boundary\n')
-		buf.write('(\n')
-		for b in self.boundaries.values():
-			indent = ' ' * 4
-			s = b.format().replace('\n', '\n'+indent)
-			buf.write(indent + s + '\n')
-		buf.write(');')
-		return buf.getvalue()
-	
-	def format_mergepatchpairs_section(self):
-		return '''\
-mergePatchPairs
-(
-);'''
-	
 	def format(self):
-		template = Template(r'''/*--------------------------------*- C++ -*----------------------------------*\
+		return f'''/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  5.0.0                                 |
@@ -459,39 +408,31 @@ mergePatchPairs
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
-{
+{{
 	version     2.0;
 	format      ascii;
 	class       dictionary;
 	object      blockMeshDict;
-}
+}}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-convertToMeters $metricconvert;
+convertToMeters {self.convert_to_meters};
 
-$geometry
+{_format_section('geometry',list(self.geometries.values()))}
 
-$vertices
+{_format_section('vertices',self.valid_vertices)}
 
-$edges
+{_format_section('edges',list(self.edges.values()))}
 
-$blocks
+{_format_section('blocks',list(self.blocks.values()))}
 
-$faces
+{self.format_faces_section()}
 
-$boundary
+{_format_section('blocks',list(self.blocks.values()))}
 
-$mergepatchpairs
+mergePatchPairs
+(
+);
 
 // ************************************************************************* //
-''')
-
-		return template.substitute(
-			metricconvert=str(self.convert_to_meters),
-			geometry=self.format_geometry_section(),
-			vertices=self.format_vertices_section(),
-			edges=self.format_edges_section(),
-			blocks=self.format_blocks_section(),
-			faces=self.format_faces_section(),
-			boundary=self.format_boundary_section(),
-			mergepatchpairs=self.format_mergepatchpairs_section())
+'''
