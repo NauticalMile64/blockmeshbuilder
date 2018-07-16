@@ -181,7 +181,8 @@ class HexBlock(object):
 	def format(self):
 		index = ' '.join(str(v.index) for v in self.vertices)
 		vcom = ' '.join(v.name for v in self.vertices)
-		return f'hex ({index:s}) {self.name:s} ({cells[0]:d} {cells[1]:d} {cells[2]:d}) {self.grading.format():s}  // {self.name:s} ({vcom:s})'
+		cls = self.cells
+		return f'hex ({index:s}) {self.name:s} ({cls[0]:d} {cls[1]:d} {cls[2]:d}) {self.grading.format():s}  // {self.name:s} ({vcom:s})'
 	
 	def face(self, index, name=None):
 		"""Generate Face object
