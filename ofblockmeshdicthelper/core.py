@@ -429,7 +429,7 @@ convertToMeters {self.convert_to_meters};
 
 {self.format_faces_section()}
 
-{_format_section('blocks',list(self.blocks.values()))}
+{_format_section('boundaries',list(self.boundaries.values()))}
 
 mergePatchPairs
 (
