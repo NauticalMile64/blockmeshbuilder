@@ -293,10 +293,10 @@ class ProjectionEdge(Edge):
 
 
 class Boundary(object):
-	def __init__(self, type_, name):
+	def __init__(self, type_, name, faces=[]):
 		self.type_ = type_
 		self.name = name
-		self.faces = []
+		self.faces = faces
 	
 	def add_face(self, face):
 		self.faces.append(face)
@@ -367,8 +367,8 @@ class BlockMeshDict(object):
 	def add_edge(self, edge, name):
 		self.edges[name] = edge
 	
-	def add_boundary(self, boundary, name):
-		self.boundaries[name] = boundary
+	def add_boundary(self, boundary):
+		self.boundaries[boundary.name] = boundary
 	
 	def add_geometry(self, name, geometry):
 		self.geometries[name] = geometry
