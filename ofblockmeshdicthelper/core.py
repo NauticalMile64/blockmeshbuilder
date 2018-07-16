@@ -318,11 +318,15 @@ class Boundary(object):
 
 def _format_section(name, secList):
 	buf = io.StringIO()
-	buf.write(f'{name}\n')
-	buf.write('(\n')
-	for item in secList:
-		buf.write(f'    {item.format()}\n')
-	buf.write(');')
+	if len(secList) > 0:
+		buf.write(f'{name}\n')
+		buf.write('(\n')
+		for item in secList:
+			buf.write(f'    {item.format()}\n')
+		buf.write(');')
+	else:
+		buf.write(f'{name}();')
+	
 	return buf.getvalue()
 
 class BlockMeshDict(object):
@@ -419,17 +423,17 @@ FoamFile
 
 convertToMeters {self.convert_to_meters};
 
-{_format_section('geometry',list(self.geometries.values()))}
+{_format_section('geometry',self.geometries.values())}
 
 {_format_section('vertices',self.valid_vertices)}
 
-{_format_section('edges',list(self.edges.values()))}
+{_format_section('edges',self.edges.values())}
 
-{_format_section('blocks',list(self.blocks.values()))}
+{_format_section('blocks',self.blocks.values())}
 
 {self.format_faces_section()}
 
-{_format_section('boundaries',list(self.boundaries.values()))}
+{_format_section('boundary',self.boundaries.values())}
 
 mergePatchPairs
 (
