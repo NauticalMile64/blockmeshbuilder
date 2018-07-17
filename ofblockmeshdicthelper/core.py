@@ -25,22 +25,16 @@ class Point(object):
 
 
 class Vertex(Point):
-	def __init__(self, x, y, z, name, index=None):
+	def __init__(self, x, y, z, name=None):
 		
 		Point.__init__(self, x, y, z)
-		
 		self.name = name
-		self.alias = set([name])  # aliasname, self.name should be included
 		
 		self.index = None
 		self.proj_g = None
 	
 	def format(self):
 		com = str(self.index) + ' ' + self.name
-		if len(self.alias) > 1:
-			com += ' : '
-			com += ' '.join(self.alias)
-		
 		vertex_str = Point.format(self)
 		
 		proj_str, geom_name = '',''
@@ -351,20 +345,6 @@ class BlockMeshDict(object):
 			'Angstrom': 1e-10}
 		self.convert_to_meters = metricsym_to_conversion[metric]
 	
-	def reduce_vertex(self, name1, *names):
-		"""treat name1, name2, ... as same point.
-
-		name2.alias, name3.alias, ... are merged with name1.alias
-		the key name2, name3, ... in self.vertices are kept and mapped to
-		same Vertex instance as name1
-		"""
-		v = self.vertices[name1]
-		for n in names:
-			w = self.vertices[n]
-			v.alias.update(w.alias)
-			# replace mapping from n w by to v
-			self.vertices[n] = v
-	
 	def add_hexblock(self, block, name):
 		self.blocks[name] = block
 	
@@ -382,8 +362,8 @@ class BlockMeshDict(object):
 	
 	def assign_vertexid(self):
 		valid_vertices = []
-		i = 0
 		
+		i = 0
 		for b in self.blocks.values():
 			for v in b.vertices:
 				if v not in valid_vertices:
