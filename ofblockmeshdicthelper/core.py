@@ -357,7 +357,7 @@ class BlockMeshDict(object):
 	def add_proj_face(self, name, face, proj_geometry_name):
 		self.proj_faces[name] = {'face' : face, 'proj_geom' : proj_geometry_name}
 	
-	def assign_vertexid(self):
+	def _assign_vertexid(self):
 		valid_vertices = []
 		
 		i = 0
@@ -382,6 +382,7 @@ class BlockMeshDict(object):
 		return buf.getvalue()
 	
 	def format(self):
+		self._assign_vertexid()
 		return f'''/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
