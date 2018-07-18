@@ -316,6 +316,8 @@ def _format_section(name, secList):
 		for item in secList:
 			buf.write(f'    {item.format()}\n')
 		buf.write(');')
+	elif name == 'boundary':
+		buf.write(f'{name}\n(\n);')
 	else:
 		buf.write(f'{name}();')
 	
