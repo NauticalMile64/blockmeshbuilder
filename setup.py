@@ -14,7 +14,7 @@ setup(
 	url='https://github.com/NauticalMile64/ofblockmeshdicthelper',
 	packages=find_packages(),
 	package_dir={'ofblockmeshdicthelper': 'ofblockmeshdicthelper'},
-	install_requires=['six','future-fstrings'],
+	install_requires=['six','future-fstrings','numpy'],
 	classifiers=[
 		"Programming Language :: Python",
 		"Programming Language :: Python :: 3.4",
