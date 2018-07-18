@@ -34,7 +34,7 @@ class Vertex(Point):
 		self.proj_g = None
 	
 	def format(self):
-		com = str(self.index) + ' ' + self.name
+		com = f'{self.index} {self.name}'
 		vertex_str = Point.format(self)
 		
 		proj_str, geom_name = '',''
@@ -244,15 +244,13 @@ class Edge(object):
 		return res_str
 
 class ArcEdge(Edge):
-	def __init__(self, vertices, name, interVertex):
+	def __init__(self, vertices, name, arcMidPoint):
 		
 		Edge.__init__(self, vertices, name)
-		self.interVertex = interVertex
+		self.arcMidPoint = arcMidPoint
 	
 	def format(self):
-		iv = self.interVertex
-		return Edge.format(self).format('arc',
-				f'({iv.x:f} {iv.y:f} {iv.z:f}) ')
+		return Edge.format(self).format('arc',self.arcMidPoint.format())
 
 
 class SplineEdge(Edge):
@@ -326,7 +324,6 @@ def _format_section(name, secList):
 class BlockMeshDict(object):
 	def __init__(self):
 		self.convert_to_meters = 1.0
-		self.vertices = {}
 		self.blocks = {}
 		self.edges = {}
 		self.boundaries = {}
