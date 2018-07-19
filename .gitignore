@@ -40,6 +40,9 @@ htmlcov/
 nosetests.xml
 coverage.xml
 
+tests/OF_case/constant
+tests/OF_case/system/blockMeshDict
+
 # Translations
 *.mo
 *.pot

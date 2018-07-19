@@ -1,12 +1,12 @@
 """ example of ofblockmeshdicthelper
-try to generate wedged pype object shown at
+Reproduce the wedge shown at
 https://openfoamwiki.net/index.php/Main_ContribExamples/AxiSymmetric
 """
 
 from math import radians,sin,cos
 from ofblockmeshdicthelper import BlockMeshDict, Vertex, HexBlock, Boundary
 
-# geometries
+# wedge dimensions
 wd = radians(10.0)
 r = 0.19
 l = 1.1
@@ -40,9 +40,6 @@ bmd.add_boundary(front_bnd)
 back_bnd = Boundary('patch', 'back', faces = [block.face('n')])
 bmd.add_boundary(back_bnd)
 
-# prepare for output
-bmd.assign_vertexid()
-
 # output
-with open('blockMeshDict','w') as infile:
+with open(r'OF_case/system/blockMeshDict','w') as infile:
 	infile.write(bmd.format())
