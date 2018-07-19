@@ -25,9 +25,9 @@ class Point(object):
 
 
 class Vertex(Point):
-	def __init__(self, x, y, z, name=None):
+	def __init__(self, pts, name=None):
 		
-		Point.__init__(self, x, y, z)
+		self.pts = pts
 		self.name = name
 		
 		self.index = None
@@ -35,7 +35,7 @@ class Vertex(Point):
 	
 	def format(self):
 		com = f'{self.index} {self.name}'
-		vertex_str = Point.format(self)
+		vertex_str = f'( {self[0]:18.15g} {self[1]:18.15g} {self[2]:18.15g} )'
 		
 		proj_str, geom_name = '',''
 		if self.proj_g:
@@ -46,7 +46,9 @@ class Vertex(Point):
 	
 	def proj_geom(self, geometry):
 		self.proj_g = geometry
-
+	
+	def __getitem__(self, key):
+		return self.pts[key]
 
 class Geometry(object):
 	def __init__(self, name):
