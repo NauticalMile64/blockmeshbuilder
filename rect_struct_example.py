@@ -21,7 +21,7 @@ test_struct['vertices'][:3,-1,:,1] += 0.25
 #We can also apply this to other features of the mesh we want local control over, such as the grading
 
 #All blocks graded in the y-direction
-test_struct['grading'][:,:,:,1] = SimpleGradingElement(1.0/3)
+test_struct['grading'][...,1] = SimpleGradingElement(1.0/3)
 
 test_struct.bake_vertices() #Create the Vertex objects
 test_struct.create_blocks() #Create the HexBlock objects

@@ -21,33 +21,29 @@ class BaseBlockStruct:
 		X0,X1,X2 = np.meshgrid(x0,x1,x2,indexing='ij')
 		
 		vts = self['vertices']
-		vts[:,:,:,0] = X0
-		vts[:,:,:,1] = X1
-		vts[:,:,:,2] = X2
+		vts[...,0] = X0
+		vts[...,1] = X1
+		vts[...,2] = X2
 		
 		#Initialize number of divisions
 		ND0,ND1,ND2 = np.meshgrid(nd0,nd1,nd2,indexing='ij')
 		
 		nds = self['num_divisions']
-		nds[:,:,:,0] = ND0
-		nds[:,:,:,1] = ND1
-		nds[:,:,:,2] = ND2
+		nds[...,0] = ND0
+		nds[...,1] = ND1
+		nds[...,2] = ND2
 		
 		#Initialize grading
 		self['grading'][:] = uniformGradingElement
 		
-		#Initialize blockmask
-		self['block_mask'][:] = True
-		
 		self.name = name
 	
-	def bake_vertices(self):
-		vts = self['vertices']
+	@staticmethod
+	def _bake_vertices(vts,name):
 		vshape = vts.shape[:-1]
-		
-		self['baked_vertices'][:] = np.array([
+		return np.array([
 			Vertex(vts[ind][0],vts[ind][1],vts[ind][2],
-			f'{self.name}-{ind}') 
+			f'{name}-{ind}') 
 				for ind in np.ndindex(vshape)]).reshape(vshape)
 	
 	@staticmethod
@@ -55,7 +51,7 @@ class BaseBlockStruct:
 		
 		#Get relevant edges
 		grd_arr = np.array([
-			np.moveaxis(gt[:,:,:,s],s,0)[0].T for s in range(3)
+			np.moveaxis(gt[...,s],s,0)[0].T for s in range(3)
 		])
 		
 		#Get simplest grading type
@@ -86,20 +82,21 @@ class BaseBlockStruct:
 			for j in range(self.rshape[1]):
 				for k in range(self.rshape[2]):
 					
-					#Get subarray
-					blockData = self[i:i+2,j:j+2,k:k+2]
-					
-					gt = blockData['grading'].copy()
-					grading = self._get_grading(gt)
-					
-					nd = blockData['num_divisions'][0,0,0]
-					
-					vts = self._get_block_vertices(blockData['baked_vertices'])
-					
-					block_name = f'{self.name}-{i}-{j}-{k}'
-					
-					block = HexBlock(vts, nd, block_name, grading)
-					blockData['blocks'][0,0,0] = block
+					if not self['block_mask'][i,j,k]:
+						#Get subarray
+						blockData = self[i:i+2,j:j+2,k:k+2]
+						
+						gt = blockData['grading'].copy()
+						grading = self._get_grading(gt)
+						
+						nd = blockData['num_divisions'][0,0,0]
+						
+						vts = self._get_block_vertices(blockData['baked_vertices'])
+						
+						block_name = f'{self.name}-{i}-{j}-{k}'
+						
+						block = HexBlock(vts, nd, block_name, grading)
+						blockData['blocks'][0,0,0] = block
 	
 	def write_blocks(self,block_mesh_dict):
 		
@@ -118,4 +115,37 @@ class BaseBlockStruct:
 
 
 class CartBlockStruct(BaseBlockStruct):
-	pass
+	
+	def bake_vertices(self):
+		self['baked_vertices'][:] = self._bake_vertices(self['vertices'],self.name)
+
+
+def wrapRadians(values):
+	return values % (2*np.pi)
+
+
+class TubeBlockStruct(BaseBlockStruct):
+	
+	def __init__(self, rs, ts, zs, nr, nt, nz, name, is_complete=False):
+		
+		if is_complete and ~np.isclose(wrapRadians(ts[0]),wrapRadians(ts[-1])):
+			print(f'WARNING -- TubeBlockStruct {name} is marked as complete, while the first and last angle divisions are unequal; make sure these are separated by 2*pi')
+		
+		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, name)
+		
+		self.is_complete = is_complete
+	
+	def bake_vertices(self):
+		
+		#Convert to Cartesian coordinates
+		vts = self['vertices']
+		cyl_vts = vts.copy()
+		cyl_vts[...,0] = vts[...,0]*np.cos(vts[...,1])
+		cyl_vts[...,1] = vts[...,0]*np.sin(vts[...,1])
+		
+		baked_vts = self._bake_vertices(cyl_vts,self.name)
+		
+		if self.is_complete:
+			baked_vts[:,-1] = baked_vts[:,0]
+		
+		self['baked_vertices'][:] = baked_vts
