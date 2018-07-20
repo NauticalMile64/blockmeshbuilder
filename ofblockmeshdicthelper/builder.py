@@ -100,7 +100,7 @@ class BaseBlockStruct(object):
 		for ind in np.ndindex(self.rshape):
 			block = block_arr[ind]
 			if block:
-				block_mesh_dict.add_hexblock(block,f'{self.name} {ind}')
+				block_mesh_dict.add_hexblock(block)
 	
 	#Default to underlying structured array
 	def __getattr__(self, name):

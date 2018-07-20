@@ -33,7 +33,7 @@ block_name = 'wedge_block'
 block = HexBlock((b_vs[0],b_vs[2],b_vs[1],b_vs[0],
 					b_vs[3],b_vs[5],b_vs[4],b_vs[3]),
 					nds,block_name)
-bmd.add_hexblock(block,block_name)
+bmd.add_hexblock(block)
 
 #Front and back boundaries
 front_bnd = Boundary('patch', 'front', faces = [block.face('s')])

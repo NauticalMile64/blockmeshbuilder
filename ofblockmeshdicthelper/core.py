@@ -48,10 +48,10 @@ class Vertex(Point):
 		
 		proj_str, geom_name = '',''
 		if self.proj_g:
-			proj_str = 'project'
-			geom_name = f'({self.proj_g.name})'
+			proj_str = 'project '
+			geom_name = f'({self.proj_g.name}) '
 		
-		return f'{proj_str} {vertex_str} {geom_name} // {com:s}'
+		return f'{proj_str}{vertex_str} {geom_name}// {com:s}'
 	
 	def proj_geom(self, geometry):
 		self.proj_g = geometry
@@ -105,14 +105,24 @@ class Cylinder(Geometry):
 
 
 class Face(object):
-	def __init__(self, vertices, name):
+	def __init__(self, vertices, name=''):
 		self.vertices = vertices
 		self.name = name
+		self.proj_g = None
 	
-	def format(self, prj_geom=''):
+	def proj_geom(self, geometry):
+		self.proj_g = geometry
+	
+	def format(self):
 		index = ' '.join(str(v.index) for v in self.vertices)
 		com = ' '.join(v.name for v in self.vertices)
-		return f'({index:s}) {prj_geom} // {self.name:s} ({com:s})'
+		
+		proj_str, geom_name = '',''
+		if self.proj_g:
+			proj_str = 'project '
+			geom_name = f'({self.proj_g.name}) '
+		
+		return f'{proj_str}({index:s}) {geom_name}// {self.name:s} ({com:s})'
 
 
 class GradingElement(object):
@@ -167,7 +177,7 @@ class EdgeGrading(Grading):
 uniformGradingElement = SimpleGradingElement(1)
 uniformGrading = SimpleGrading([uniformGradingElement]*3)
 class HexBlock(object):
-	def __init__(self, vertices, cells, name, grading=uniformGrading):
+	def __init__(self, vertices, cells, name='', grading=uniformGrading):
 		"""Initialize HexBlock instance
 		vnames is the vertex names in order described in
 			http://www.openfoam.org/docs/user/mesh-description.php
@@ -186,7 +196,7 @@ class HexBlock(object):
 		cls = self.cells
 		return f'hex ({index:s}) {self.name:s} ({cls[0]:d} {cls[1]:d} {cls[2]:d}) {self.grading.format():s}  // {self.name:s} ({vcom:s})'
 	
-	def face(self, index, name=None):
+	def get_face(self, index, name=None):
 		"""Generate Face object
 		index is number or keyword to identify the face of Hex
 			0 = 'w' = 'xm' = '-100' = (0 4 7 3)
@@ -232,14 +242,13 @@ class HexBlock(object):
 
 
 class Edge(object):
-	def __init__(self, vertices, name):
+	def __init__(self, vertices, name=''):
 		#http://www.openfoam.org/docs/user/mesh-description.php
 		
 		self.vertices = vertices
 		self.name = name
 	
 	def format(self):
-		
 		indices = [v.index for v in self.vertices]
 		index = ' '.join(str(ind) for ind in indices)
 		vcom = ' '.join(str(v.name) for v in self.vertices)
@@ -252,7 +261,7 @@ class Edge(object):
 		return res_str
 
 class ArcEdge(Edge):
-	def __init__(self, vertices, name, arcMidPoint):
+	def __init__(self, vertices, name='', arcMidPoint):
 		
 		Edge.__init__(self, vertices, name)
 		self.arcMidPoint = arcMidPoint
@@ -262,7 +271,7 @@ class ArcEdge(Edge):
 
 
 class SplineEdge(Edge):
-	def __init__(self, vertices, name, points):
+	def __init__(self, vertices, name='', points):
 		"""
 		  http://www.openfoam.org/docs/user/mesh-description.php
 		"""
@@ -283,7 +292,7 @@ class SplineEdge(Edge):
 
 
 class ProjectionEdge(Edge):
-	def __init__(self, vertices, name, geom):
+	def __init__(self, vertices, geom, name=''):
 		Edge.__init__(self, vertices, name)
 		self.proj_geom = geom
 	
@@ -324,21 +333,21 @@ def _format_section(name, secList):
 		for item in secList:
 			buf.write(f'    {item.format()}\n')
 		buf.write(');')
-	elif name == 'boundary':
-		buf.write(f'{name}\n(\n);')
-	else:
+	elif name == 'geometry':
 		buf.write(f'{name}();')
+	else:
+		buf.write(f'{name}\n(\n);')
 	
 	return buf.getvalue()
 
 class BlockMeshDict(object):
 	def __init__(self):
 		self.convert_to_meters = 1.0
-		self.blocks = {}
-		self.edges = {}
-		self.boundaries = {}
-		self.geometries = {}
-		self.proj_faces = {}
+		self.blocks = []
+		self.edges = []
+		self.boundaries = []
+		self.geometries = []
+		self.faces = []
 	
 	def set_metric(self, metric):
 		metricsym_to_conversion = {
@@ -352,26 +361,26 @@ class BlockMeshDict(object):
 			'Angstrom': 1e-10}
 		self.convert_to_meters = metricsym_to_conversion[metric]
 	
-	def add_hexblock(self, block, name):
-		self.blocks[name] = block
+	def add_hexblock(self, block):
+		self.blocks.append(block)
 	
 	def add_edge(self, edge, name):
-		self.edges[name] = edge
+		self.edges.append(edge)
 	
 	def add_boundary(self, boundary):
-		self.boundaries[boundary.name] = boundary
+		self.boundaries.append(boundary)
 	
-	def add_geometry(self, name, geometry):
-		self.geometries[name] = geometry
+	def add_geometry(self, geometry):
+		self.geometries.append(geometry)
 	
-	def add_proj_face(self, name, face, proj_geometry_name):
-		self.proj_faces[name] = {'face' : face, 'proj_geom' : proj_geometry_name}
+	def add_face(self, face):
+		self.faces.append(face)
 	
 	def _assign_vertexid(self):
 		valid_vertices = []
 		
 		i = 0
-		for b in self.blocks.values():
+		for b in self.blocks:
 			for v in b.vertices:
 				if v not in valid_vertices:
 					valid_vertices.append(v)
@@ -379,17 +388,6 @@ class BlockMeshDict(object):
 					i += 1
 
 		self.valid_vertices = valid_vertices
-	
-	def format_faces_section(self):
-		buf = io.StringIO()
-		buf.write('faces\n')
-		buf.write('(\n')
-		for pFace in self.proj_faces.values():
-			buf.write(' project {0} \n'.format(
-				pFace['face'].format(pFace['proj_geom'].name)))
-		
-		buf.write(');')
-		return buf.getvalue()
 	
 	def format(self):
 		self._assign_vertexid()
@@ -411,17 +409,17 @@ FoamFile
 
 convertToMeters {self.convert_to_meters};
 
-{_format_section('geometry',self.geometries.values())}
+{_format_section('geometry',self.geometries)}
 
 {_format_section('vertices',self.valid_vertices)}
 
-{_format_section('edges',self.edges.values())}
+{_format_section('edges',self.edges)}
 
-{_format_section('blocks',self.blocks.values())}
+{_format_section('blocks',self.blocks)}
 
-{self.format_faces_section()}
+{_format_section('faces',self.faces)}
 
-{_format_section('boundary',self.boundaries.values())}
+{_format_section('boundary',self.boundaries)}
 
 mergePatchPairs
 (
