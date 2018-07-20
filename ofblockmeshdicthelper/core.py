@@ -2,17 +2,26 @@
 # for compatibility with Py2.7
 from __future__ import unicode_literals, print_function
 from six import string_types
+from math import sin,cos
 
 import io
 
+def cart_to_cart(crds):
+	return crds.copy()
+
+def cyl_to_cart(crds):
+	ncrds = crds.copy()
+	ncrds[0],ncrds[1] = crds[0]*cos(crds[1]),crds[0]*sin(crds[1])
+	return ncrds
+
 class Point(object):
-	def __init__(self, x, y, z):
-		self.x = x
-		self.y = y
-		self.z = z
+	def __init__(self, crds, conv_func=cart_to_cart):
+		self.crds = crds
+		self.conv_func = conv_func
 	
 	def format(self):
-		return f'( {self.x:18.15g} {self.y:18.15g} {self.z:18.15g} )'
+		ccrds = self.conv_func(self.crds)
+		return f'( {ccrds[0]:18.15g} {ccrds[1]:18.15g} {ccrds[2]:18.15g} )'
 	
 	def __lt__(self, rhs):
 		return (self.z, self.y, self.x) < (rhs.z, rhs.y, rhs.z)
@@ -22,20 +31,20 @@ class Point(object):
 	
 	def __sub__(self, rhs):
 		return Point(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
-
+	
+	def __getitem__(self, key):
+		return self.crds[key]
 
 class Vertex(Point):
-	def __init__(self, pts, name=None):
-		
-		self.pts = pts
+	def __init__(self, crds, conv_func=cart_to_cart, name=''):
+		Point.__init__(self, crds, conv_func)
 		self.name = name
-		
 		self.index = None
 		self.proj_g = None
 	
 	def format(self):
 		com = f'{self.index} {self.name}'
-		vertex_str = f'( {self[0]:18.15g} {self[1]:18.15g} {self[2]:18.15g} )'
+		vertex_str = Point.format(self)
 		
 		proj_str, geom_name = '',''
 		if self.proj_g:
@@ -46,9 +55,6 @@ class Vertex(Point):
 	
 	def proj_geom(self, geometry):
 		self.proj_g = geometry
-	
-	def __getitem__(self, key):
-		return self.pts[key]
 
 class Geometry(object):
 	def __init__(self, name):

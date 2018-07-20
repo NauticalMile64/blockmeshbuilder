@@ -3,8 +3,8 @@ Reproduce the wedge shown at
 https://openfoamwiki.net/index.php/Main_ContribExamples/AxiSymmetric
 """
 
-from math import radians,sin,cos
-from ofblockmeshdicthelper import BlockMeshDict, Vertex, HexBlock, Boundary
+from math import radians
+from ofblockmeshdicthelper import BlockMeshDict, Vertex, HexBlock, Boundary, cyl_to_cart
 
 # wedge dimensions
 wd = radians(10.0)
@@ -16,13 +16,15 @@ l = 1.1
 bmd = BlockMeshDict()
 
 # set metrics
-bmd.set_metric('m')
+bmd.set_metric('mm')
 
 # Base points
-b_vs = [Vertex(0.,0.,0.,'p0'),Vertex(r*cos(wd/2),r*sin(wd/2),0.,'p1'),
-						Vertex(r*cos(-wd/2),r*sin(-wd/2),0.,'p2'),
-		Vertex(0.,0.,l,'p3'),Vertex(r*cos(wd/2),r*sin(wd/2),l,'p4'),
-						Vertex(r*cos(-wd/2),r*sin(-wd/2),l,'p5')]
+b_vs = [Vertex([0.,0.,0.],cyl_to_cart,'p0'),
+		Vertex([r,wd/2,0.],cyl_to_cart,name = 'p1'),
+		Vertex([r,-wd/2,0.],cyl_to_cart,name = 'p2'),
+		Vertex([0.,0.,l],cyl_to_cart,name = 'p3'),
+		Vertex([r,wd/2,l],cyl_to_cart,name = 'p4'),
+		Vertex([r,-wd/2,l],cyl_to_cart,name = 'p5')]
 
 #Number of divisions along each direction
 nds = (10, 1, 10)

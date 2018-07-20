@@ -15,7 +15,7 @@ ndy = np.array([8,8,0])
 ndz = np.array([1,0])
 
 #Create the block structure
-test_struct = CartBlockStruct(xs,ys,zs,ndx,ndy,ndz,'ts')
+test_struct = CartBlockStruct(xs,ys,zs,ndx,ndy,ndz,name='ts')
 
 #The basic form of the structure is given by the definitions of xs,ys,zs: a rectilinear block-strucutred mesh. To make the final structure more interesting, we can use the power of numpy's slicing and indexing to make precise adjustments to the structure before it is written to the blockMeshDict.
 
@@ -42,7 +42,6 @@ test_struct['block_mask'][1,0,0] = True
 
 #The modifications are finished, so now the objects can be created.
 
-test_struct.bake_vertices() #Create the Vertex objects
 test_struct.create_blocks() #Create the HexBlock objects
 
 #Note that in more complicated cases we may also want to define blocks separately from the block_structure, and / or combine multiple block structures, so the blockmeshdict is needed to assemble everything.

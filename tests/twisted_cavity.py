@@ -14,7 +14,7 @@ ndx = np.full_like(xs,14)
 ndy = ndx.copy()
 ndz = np.array([1,0])
 
-cavity = CartBlockStruct(xs,ys,zs,ndx,ndy,ndz,'ts')
+cavity = CartBlockStruct(xs,ys,zs,ndx,ndy,ndz,name='ts')
 
 GD = cavity['grading']
 edge_grd = 4
@@ -35,7 +35,6 @@ TS[2:4,2:4,:] += np.pi/8 #Rotate innermost block by a further 22.5 degrees
 XS[:] = RS*np.cos(TS)
 YS[:] = RS*np.sin(TS)
 
-cavity.bake_vertices()
 cavity.create_blocks()
 cavity.write_blocks(bmd)
 

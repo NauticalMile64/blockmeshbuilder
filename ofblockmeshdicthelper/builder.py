@@ -9,7 +9,7 @@ struct_type = np.dtype(dtype_dict)
 
 class BaseBlockStruct:
 	
-	def __init__(self, x0, x1, x2, nd0, nd1, nd2, name):
+	def __init__(self, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, name=''):
 		#Assume x0,x1,x2 are ascending 1D numpy arrays with dtype=np.float32, minimum 2 elements each
 		#n0,n1,n2 are 1D numpy arrays of the number of divisions in each direction
 		
@@ -25,6 +25,10 @@ class BaseBlockStruct:
 		vts[...,1] = X1
 		vts[...,2] = X2
 		
+		b_vts = self['baked_vertices']
+		for ind in np.ndindex(self.shape):
+			b_vts[ind] = Vertex(vts[ind],conv_func)
+		
 		#Initialize number of divisions
 		ND0,ND1,ND2 = np.meshgrid(nd0,nd1,nd2,indexing='ij')
 		
@@ -37,14 +41,6 @@ class BaseBlockStruct:
 		self['grading'][:] = uniformGradingElement
 		
 		self.name = name
-	
-	@staticmethod
-	def _bake_vertices(vts,name):
-		vshape = vts.shape[:-1]
-		return np.array([
-			Vertex(vts[ind][0],vts[ind][1],vts[ind][2],
-			f'{name}-{ind}') 
-				for ind in np.ndindex(vshape)]).reshape(vshape)
 	
 	@staticmethod
 	def _get_grading(gt):
@@ -115,9 +111,7 @@ class BaseBlockStruct:
 
 
 class CartBlockStruct(BaseBlockStruct):
-	
-	def bake_vertices(self):
-		self['baked_vertices'][:] = self._bake_vertices(self['vertices'],self.name)
+	pass
 
 
 def wrapRadians(values):
@@ -126,26 +120,15 @@ def wrapRadians(values):
 
 class TubeBlockStruct(BaseBlockStruct):
 	
-	def __init__(self, rs, ts, zs, nr, nt, nz, name, is_complete=False):
+	def __init__(self, rs, ts, zs, nr, nt, nz, name='', is_complete=False):
 		
 		if is_complete and ~np.isclose(wrapRadians(ts[0]),wrapRadians(ts[-1])):
-			print(f'WARNING -- TubeBlockStruct {name} is marked as complete, while the first and last angle divisions are unequal; make sure these are separated by 2*pi')
+			print(f'WARNING -- TubeBlockStruct {name} is marked as complete, while the first and last angles are unequal; make sure these are separated by 2*pi')
 		
-		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, name)
+		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, cyl_to_cart, name)
+		
+		b_vts = self['baked_vertices']
+		if is_complete:
+			b_vts[:,-1] = b_vts[:,0]
 		
 		self.is_complete = is_complete
-	
-	def bake_vertices(self):
-		
-		#Convert to Cartesian coordinates
-		vts = self['vertices']
-		cyl_vts = vts.copy()
-		cyl_vts[...,0] = vts[...,0]*np.cos(vts[...,1])
-		cyl_vts[...,1] = vts[...,0]*np.sin(vts[...,1])
-		
-		baked_vts = self._bake_vertices(cyl_vts,self.name)
-		
-		if self.is_complete:
-			baked_vts[:,-1] = baked_vts[:,0]
-		
-		self['baked_vertices'][:] = baked_vts
