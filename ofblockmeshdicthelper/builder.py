@@ -7,7 +7,7 @@ formats = ['3f4','3u4','3O','O','?','O']
 dtype_dict = {'names' : headers, 'formats' : formats}
 struct_type = np.dtype(dtype_dict)
 
-class BaseBlockStruct:
+class BaseBlockStruct(object):
 	
 	def __init__(self, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, name=''):
 		#Assume x0,x1,x2 are ascending 1D numpy arrays with dtype=np.float32, minimum 2 elements each
