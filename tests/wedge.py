@@ -36,10 +36,10 @@ block = HexBlock((b_vs[0],b_vs[2],b_vs[1],b_vs[0],
 bmd.add_hexblock(block)
 
 #Front and back boundaries
-front_bnd = Boundary('patch', 'front', faces = [block.face('s')])
+front_bnd = Boundary('patch', 'front', faces = [block.get_face('s')])
 bmd.add_boundary(front_bnd)
 
-back_bnd = Boundary('patch', 'back', faces = [block.face('n')])
+back_bnd = Boundary('patch', 'back', faces = [block.get_face('n')])
 bmd.add_boundary(back_bnd)
 
 # output

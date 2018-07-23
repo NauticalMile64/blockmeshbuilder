@@ -18,7 +18,7 @@ ndz = np.full_like(zs,8)
 tube = TubeBlockStruct(rs,ts,zs,ndr,ndt,ndz,'ts',is_complete=is_complete)
 
 tube.create_blocks()
-tube.write_blocks(bmd)
+tube.write(bmd)
 
 with open(r'OF_case/system/blockMeshDict','w') as infile:
 	infile.write(bmd.format())

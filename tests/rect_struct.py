@@ -3,7 +3,9 @@
 import numpy as np
 from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, SimpleGradingElement
 
-bmd = BlockMeshDict()		#Create a container to hold the objects
+bmd = BlockMeshDict()	#Create a container to hold the objects
+
+bmd.set_metric('mm')	
 
 #Create arrays of points for the co-ordinates
 xs = np.linspace(0.,1.,4)
@@ -46,7 +48,7 @@ test_struct.create_blocks() #Create the HexBlock objects
 
 #Note that in more complicated cases we may also want to define blocks separately from the block_structure, and / or combine multiple block structures, so the blockmeshdict is needed to assemble everything.
 
-test_struct.write_blocks(bmd) #Write the blocks to the blockMeshDict
+test_struct.write(bmd) #Write the blocks to the blockMeshDict
 
 #Write to file
 with open(r'OF_case/system/blockMeshDict','w') as infile:

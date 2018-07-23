@@ -36,14 +36,19 @@ XS[:] = RS*np.cos(TS)
 YS[:] = RS*np.sin(TS)
 
 cavity.create_blocks()
-cavity.write_blocks(bmd)
+cavity.write(bmd)
 
 lid_bnd = Boundary('patch', 'lid')
-
 for block in cavity['blocks'][:-1,-2,0]:
-	lid_bnd.add_face(block.face('n'))
+	lid_bnd.add_face(block.get_face('n'))
 
 bmd.add_boundary(lid_bnd)
+
+bottom_faces = cavity['faces'][:-1,0,:-1,1]
+print(bottom_faces)
+bff = bottom_faces.flatten()
+bot_bnd = Boundary('patch', 'bottom', faces=bff)
+bmd.add_boundary(bot_bnd)
 
 with open(r'OF_case/system/blockMeshDict','w') as infile:
 	infile.write(bmd.format())

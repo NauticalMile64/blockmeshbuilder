@@ -106,6 +106,8 @@ class Cylinder(Geometry):
 
 class Face(object):
 	def __init__(self, vertices, name=''):
+		
+		#vertices is a 2x2 array
 		self.vertices = vertices
 		self.name = name
 		self.proj_g = None
@@ -113,12 +115,16 @@ class Face(object):
 	def proj_geom(self, geometry):
 		self.proj_g = geometry
 	
-	def format(self):
-		index = ' '.join(str(v.index) for v in self.vertices)
-		com = ' '.join(v.name for v in self.vertices)
+	def format(self, write_proj=True):
+		
+		v_arr = self.vertices
+		vts = [v_arr[0][0], v_arr[0][1], v_arr[1][0], v_arr[1][1]]
+		
+		index = ' '.join(str(v.index) for v in vts)
+		com = ' '.join(v.name for v in vts)
 		
 		proj_str, geom_name = '',''
-		if self.proj_g:
+		if self.proj_g and write_proj:
 			proj_str = 'project '
 			geom_name = f'({self.proj_g.name}) '
 		
@@ -216,12 +222,12 @@ class HexBlock(object):
 			'b': 4, 'zm': 4, '00-1': 4,
 			't': 5, 'zp': 5, '001': 5}
 		index_to_vertex = [
-			(0, 4, 7, 3),
-			(1, 2, 6, 5),
-			(0, 1, 5, 4),
-			(2, 3, 7, 6),
-			(0, 3, 2, 1),
-			(4, 5, 6, 7)]
+			((0, 4), (7, 3)),
+			((1, 2), (6, 5)),
+			((0, 1), (5, 4)),
+			((2, 3), (7, 6)),
+			((0, 3), (2, 1)),
+			((4, 5), (6, 7))]
 		index_to_defaultsuffix = [
 			'f-{}-w',
 			'f-{}-n',
@@ -233,7 +239,7 @@ class HexBlock(object):
 		if isinstance(index, string_types):
 			index = kw_to_index[index]
 		
-		face_vertices = tuple([self.vertices[i] for i in index_to_vertex[index]])
+		face_vertices = [[self.vertices[i] for i in row] for row in index_to_vertex[index]]
 		
 		if name is None:
 			name = index_to_defaultsuffix[index].format(self.name)
@@ -261,7 +267,7 @@ class Edge(object):
 		return res_str
 
 class ArcEdge(Edge):
-	def __init__(self, vertices, name='', arcMidPoint):
+	def __init__(self, vertices, arcMidPoint, name=''):
 		
 		Edge.__init__(self, vertices, name)
 		self.arcMidPoint = arcMidPoint
@@ -271,7 +277,7 @@ class ArcEdge(Edge):
 
 
 class SplineEdge(Edge):
-	def __init__(self, vertices, name='', points):
+	def __init__(self, vertices, points, name=''):
 		"""
 		  http://www.openfoam.org/docs/user/mesh-description.php
 		"""
@@ -319,7 +325,7 @@ class Boundary(object):
 		buf.write('    faces\n')
 		buf.write('    (\n')
 		for f in self.faces:
-			s = f.format()
+			s = f.format(False)
 			buf.write('        {}\n'.format(s))
 		buf.write('    );\n')
 		buf.write('}')

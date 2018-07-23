@@ -2,8 +2,8 @@ from .core import *
 
 import numpy as np
 
-headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'block_mask', 'blocks']
-formats = ['3f4','3u4','3O','O','?','O']
+headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'block_mask', 'blocks']
+formats = ['3f4','3u4','3O','O','3O','?','O']
 dtype_dict = {'names' : headers, 'formats' : formats}
 struct_type = np.dtype(dtype_dict)
 
@@ -15,7 +15,8 @@ class BaseBlockStruct(object):
 		
 		shape = (x0.size,x1.size,x2.size)
 		self.str_arr = np.empty(shape,dtype=struct_type)
-		self.rshape = (shape[0]-1,shape[1]-1,shape[2]-1)
+		rshape = (shape[0]-1,shape[1]-1,shape[2]-1)
+		self.rshape = rshape
 		
 		#Initialize vertices
 		X0,X1,X2 = np.meshgrid(x0,x1,x2,indexing='ij')
@@ -25,9 +26,8 @@ class BaseBlockStruct(object):
 		vts[...,1] = X1
 		vts[...,2] = X2
 		
-		b_vts = self['baked_vertices']
 		for ind in np.ndindex(self.shape):
-			b_vts[ind] = Vertex(vts[ind],conv_func)
+			self['baked_vertices'][ind] = Vertex(vts[ind],conv_func)
 		
 		#Initialize number of divisions
 		ND0,ND1,ND2 = np.meshgrid(nd0,nd1,nd2,indexing='ij')
@@ -40,7 +40,20 @@ class BaseBlockStruct(object):
 		#Initialize grading
 		self['grading'][:] = uniformGradingElement
 		
-		self.name = name
+		#Initialize faces
+		init_pos = np.arange(3)
+		for s in range(3):
+			roll_pos = np.roll(init_pos,s)
+			d_faces = np.moveaxis(self['faces'][...,s],init_pos,roll_pos)
+			d_vts = np.moveaxis(self['baked_vertices'],init_pos,roll_pos)
+			for i in range(shape[s]):
+				for j in range(rshape[(s+1)%3]):
+					for k in range(rshape[(s+2)%3]):
+						#print(i,j,k,d_vts[i,j+1,k+1])
+						#print(d_faces[i,j,k])
+						d_faces[i,j,k] = Face(d_vts[i,j:j+2,k:k+2])
+		
+		self.name = name		
 	
 	@staticmethod
 	def _get_grading(gt):
@@ -94,7 +107,7 @@ class BaseBlockStruct(object):
 						block = HexBlock(vts, nd, block_name, grading)
 						blockData['blocks'][0,0,0] = block
 	
-	def write_blocks(self,block_mesh_dict):
+	def write(self,block_mesh_dict):
 		
 		block_arr = self['blocks']
 		for ind in np.ndindex(self.rshape):
