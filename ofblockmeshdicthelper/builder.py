@@ -2,8 +2,8 @@ from .core import *
 
 import numpy as np
 
-headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'block_mask', 'blocks']
-formats = ['3f4','3u4','3O','O','3O','?','O']
+headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'block_mask']
+formats = ['3f4','3u4','3O','O','3O','?']
 dtype_dict = {'names' : headers, 'formats' : formats}
 struct_type = np.dtype(dtype_dict)
 
@@ -84,7 +84,7 @@ class BaseBlockStruct(object):
 			c_vs[0,0,1],c_vs[1,0,1],
 			c_vs[1,1,1],c_vs[0,1,1]))
 	
-	def create_blocks(self):
+	def write(self,block_mesh_dict):
 		
 		#Not very elegant right now, maybe I'll replace these loops with something more pythonic later
 		for i in range(self.rshape[0]):
@@ -103,17 +103,8 @@ class BaseBlockStruct(object):
 						vts = self._get_block_vertices(blockData['baked_vertices'])
 						
 						block_name = f'{self.name}-{i}-{j}-{k}'
-						
 						block = HexBlock(vts, nd, block_name, grading)
-						blockData['blocks'][0,0,0] = block
-	
-	def write(self,block_mesh_dict):
-		
-		block_arr = self['blocks']
-		for ind in np.ndindex(self.rshape):
-			block = block_arr[ind]
-			if block:
-				block_mesh_dict.add_hexblock(block)
+						block_mesh_dict.add_hexblock(block)
 	
 	#Default to underlying structured array
 	def __getattr__(self, name):

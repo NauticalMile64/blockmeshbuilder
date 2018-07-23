@@ -42,12 +42,6 @@ GD[2,:,:,0] = SimpleGradingElement(3.)
 #Remove the block at the (1,0,0) index. Notice 3 indices are needed, this time since blocks don't have an explicit position.
 test_struct['block_mask'][1,0,0] = True
 
-#The modifications are finished, so now the objects can be created.
-
-test_struct.create_blocks() #Create the HexBlock objects
-
-#Note that in more complicated cases we may also want to define blocks separately from the block_structure, and / or combine multiple block structures, so the blockmeshdict is needed to assemble everything.
-
 test_struct.write(bmd) #Write the blocks to the blockMeshDict
 
 #Write to file
