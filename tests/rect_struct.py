@@ -23,10 +23,10 @@ test_struct = CartBlockStruct(xs,ys,zs,ndx,ndy,ndz,name='ts')
 
 #First we'll change the y-coordinates of some of the nodes on the top face of the block structure. The first three indices index the nodes, and the 4th index specifies which component (i.e. x, y, or z) is to be changed.
 
-#Move the top nodes of the first two blocks upward
-test_struct['vertices'][:3,-1,:,1] += 0.25
+#Move the top nodes of the first block upward
+test_struct['vertices'][:2,-1,:,1] += 0.25
 
-#The above statement applies to the first three nodes in the x-direction (:3), the last nodes in the y-direction (-1), all the nodes in the z-direction (:), and the final index selects the y-component of those nodes (1). The right hand expression adds the offset value to the sliced array.
+#The above statement applies to the first two nodes in the x-direction (:2), the last nodes in the y-direction (-1), all the nodes in the z-direction (:), and the final index selects the y-component of those nodes (1). The right hand expression adds the offset value to the sliced array.
 
 #We can also apply this to other features of the mesh we want local control over, such as the grading
 GD = test_struct['grading']
@@ -40,20 +40,22 @@ GD[0,:,:,0] = SimpleGradingElement(1.0/3)
 GD[2,:,:,0] = SimpleGradingElement(3.)
 
 #Remove the block at the (1,0,0) index. Notice 3 indices are needed, this time since blocks don't have an explicit position.
-test_struct['block_mask'][1,0,0] = True
+test_struct['block_mask'][1,0,:] = True
 
 #Create a cylinder geometry along the right hand side of the block structure
 vts = test_struct['vertices'][-1]
-rad = (vts[0,-1,2] - vts[0,0,2]) / 2 #or (zs[-1] - zs[0])/2
-pt1 = Point((vts[0,0] + vts[0,-1]) / 2)
-pt2 = Point((vts[-1,0] + vts[-1,-1]) / 2)
+rad = (zs[-1] - zs[0])/2
+pt1 = Point([xs[-1],-2,zs[1]])
+pt2 = Point([xs[-1],2,zs[1]])
 
 cyl = Cylinder(pt1,pt2,rad,'cyl')
 bmd.add_geometry(cyl)
 
+vts[:,1,0] += 0.1
+
 #Now assign the geometry to the projection fields of the block structure to the cylinder
 test_struct['proj_vts'][-1] = cyl
-test_struct['proj_edges'][-1,...,-1] = cyl
+test_struct['proj_edges'][-1,...,1:] = cyl
 test_struct['proj_faces'][-1,...,-1] = cyl
 
 test_struct.write(bmd) #Write the blocks to the blockMeshDict
