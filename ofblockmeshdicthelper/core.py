@@ -27,13 +27,27 @@ class Point(object):
 		return (self.z, self.y, self.x) < (rhs.z, rhs.y, rhs.z)
 	
 	def __add__(self, rhs):
-		return Point(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+		return Point([self.x + rhs.x, self.y + rhs.y, self.z + rhs.z],self.conv_func)
 	
 	def __sub__(self, rhs):
-		return Point(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
+		return Point([self.x - rhs.x, self.y - rhs.y, self.z - rhs.z],self.conv_func)
+	
+	def __mul__(self, rhs):
+		return Point([self.x*rhs, self.y*rhs, self.z*rhs],self.conv_func)
+	
+	def __truediv__(self, rhs):
+		return Point([self.x/rhs, self.y/rhs, self.z/rhs],self.conv_func)
 	
 	def __getitem__(self, key):
 		return self.crds[key]
+	
+	def __getattr__(self, name):
+		if name == 'x':
+			return self.crds[0]
+		elif name == 'y':
+			return self.crds[1]
+		elif name == 'z':
+			return self.crds[2]
 
 class Vertex(Point):
 	def __init__(self, crds, conv_func=cart_to_cart, name=''):

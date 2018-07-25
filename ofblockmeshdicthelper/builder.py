@@ -174,3 +174,19 @@ class TubeBlockStruct(BaseBlockStruct):
 			b_vts[:,-1] = b_vts[:,0]
 		
 		self.is_complete = is_complete
+
+	def write(self, block_mesh_dict):
+		
+		shape = self.shape
+		shp = tuple((shape[0],shape[1]-1,shape[2]))
+		
+		vts = self['vertices']
+		b_vts = self['baked_vertices']
+		ang_vts = vts[...,1]
+		for ind in np.ndindex(shp):
+			end_vts = b_vts[ind[0],ind[1]:ind[1]+2,ind[2]]
+			int_pt = (end_vts[0] + end_vts[1])
+			mid_pt = int_pt/2
+			block_mesh_dict.add_edge(ArcEdge(end_vts,mid_pt))
+		
+		BaseBlockStruct.write(self, block_mesh_dict)
