@@ -1,7 +1,7 @@
 #Creates a sample structured mesh in cartesian co-ordinates
 
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, SimpleGradingElement
+from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, SimpleGradingElement, Cylinder, Point
 
 bmd = BlockMeshDict()	#Create a container to hold the objects
 
@@ -10,11 +10,11 @@ bmd.set_metric('mm')
 #Create arrays of points for the co-ordinates
 xs = np.linspace(0.,1.,4)
 ys = np.linspace(0.,1.,3)
-zs = np.linspace(0.,0.1,2)
+zs = np.linspace(0.,0.3,3)
 
 ndx = np.array([8,6,8,0])
 ndy = np.array([8,8,0])
-ndz = np.array([1,0])
+ndz = np.array([6,6,0])
 
 #Create the block structure
 test_struct = CartBlockStruct(xs,ys,zs,ndx,ndy,ndz,name='ts')
@@ -41,6 +41,20 @@ GD[2,:,:,0] = SimpleGradingElement(3.)
 
 #Remove the block at the (1,0,0) index. Notice 3 indices are needed, this time since blocks don't have an explicit position.
 test_struct['block_mask'][1,0,0] = True
+
+#Create a cylinder geometry along the right hand side of the block structure
+vts = test_struct['vertices'][-1]
+rad = (vts[0,-1,2] - vts[0,0,2]) / 2 #or (zs[-1] - zs[0])/2
+pt1 = Point((vts[0,0] + vts[0,-1]) / 2)
+pt2 = Point((vts[-1,0] + vts[-1,-1]) / 2)
+
+cyl = Cylinder(pt1,pt2,rad,'cyl')
+bmd.add_geometry(cyl)
+
+#Now assign the geometry to the projection fields of the block structure to the cylinder
+test_struct['proj_vts'][-1] = cyl
+test_struct['proj_edges'][-1,...,-1] = cyl
+test_struct['proj_faces'][-1,...,-1] = cyl
 
 test_struct.write(bmd) #Write the blocks to the blockMeshDict
 

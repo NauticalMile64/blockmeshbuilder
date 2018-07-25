@@ -75,7 +75,7 @@ class Geometry(object):
 
 
 class Sphere(Geometry):
-	def __init__(self, name, center, radius):
+	def __init__(self, center, radius, name):
 		Geometry.__init__(self, name)
 		self.center = center
 		self.radius = radius
@@ -89,7 +89,7 @@ class Sphere(Geometry):
 
 
 class Cylinder(Geometry):
-	def __init__(self, name, point1, point2, radius):
+	def __init__(self, point1, point2, radius, name):
 		Geometry.__init__(self, name)
 		self.point1 = point1
 		self.point2 = point2
@@ -325,8 +325,7 @@ class Boundary(object):
 		buf.write('    faces\n')
 		buf.write('    (\n')
 		for f in self.faces:
-			s = f.format(False)
-			buf.write('        {}\n'.format(s))
+			buf.write(f'        {f.format(False)}\n')
 		buf.write('    );\n')
 		buf.write('}')
 		return buf.getvalue()
@@ -370,7 +369,7 @@ class BlockMeshDict(object):
 	def add_hexblock(self, block):
 		self.blocks.append(block)
 	
-	def add_edge(self, edge, name):
+	def add_edge(self, edge):
 		self.edges.append(edge)
 	
 	def add_boundary(self, boundary):

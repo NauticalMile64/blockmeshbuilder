@@ -2,10 +2,9 @@ from .core import *
 
 import numpy as np
 
-headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'block_mask']
-formats = ['3f4','3u4','3O','O','3O','?']
-dtype_dict = {'names' : headers, 'formats' : formats}
-struct_type = np.dtype(dtype_dict)
+headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'proj_vts', 'proj_edges', 'proj_faces', 'block_mask']
+formats = ['3f4','3u4','3O','O','3O','O','3O','3O','?']
+struct_type = np.dtype({'names' : headers, 'formats' : formats})
 
 class BaseBlockStruct(object):
 	
@@ -49,8 +48,6 @@ class BaseBlockStruct(object):
 			for i in range(shape[s]):
 				for j in range(rshape[(s+1)%3]):
 					for k in range(rshape[(s+2)%3]):
-						#print(i,j,k,d_vts[i,j+1,k+1])
-						#print(d_faces[i,j,k])
 						d_faces[i,j,k] = Face(d_vts[i,j:j+2,k:k+2])
 		
 		self.name = name		
@@ -105,6 +102,47 @@ class BaseBlockStruct(object):
 						block_name = f'{self.name}-{i}-{j}-{k}'
 						block = HexBlock(vts, nd, block_name, grading)
 						block_mesh_dict.add_hexblock(block)
+		
+		#Project vertices, edges, and faces
+		shape = self.shape
+		
+		#Project vertices
+		proj_vts = self['proj_vts']
+		if np.any(proj_vts):
+			for ind in np.ndindex(shape):
+				if proj_vts[ind]:
+					self['baked_vertices'][ind].proj_geom(proj_vts[ind])
+		
+		#Edges and Faces
+		if not (np.any(self['proj_edges']) or np.any(self['proj_faces'])):
+			return
+		
+		rshape = self.rshape
+		init_pos = np.arange(3)
+		for s in range(3):
+			roll_pos = np.roll(init_pos,s)
+			d_pe = np.moveaxis(self['proj_edges'][...,s],init_pos,roll_pos)
+			d_pf = np.moveaxis(self['proj_faces'][...,s],init_pos,roll_pos)
+			
+			d_faces = np.moveaxis(self['faces'][...,s],init_pos,roll_pos)
+			d_vts = np.moveaxis(self['baked_vertices'],init_pos,roll_pos)
+			d_blkmsk = np.moveaxis(self['block_mask'],init_pos,roll_pos)
+			
+			#Project edges
+			for i in range(rshape[s]):
+				for j in range(shape[(s+1)%3]):
+					for k in range(shape[(s+2)%3]):
+						if d_pe[i,j,k]:
+							block_mesh_dict.add_edge(ProjectionEdge(d_vts[i:i+2,j,k],d_pe[i,j,k]))
+			
+			#Project faces
+			for i in range(shape[s]):
+				for j in range(rshape[(s+1)%3]):
+					for k in range(rshape[(s+2)%3]):
+						if d_pf[i,j,k]:
+							d_faces[i,j,k].proj_geom(d_pf[i,j,k])
+							block_mesh_dict.add_face(d_faces[i,j,k])
+									
 	
 	#Default to underlying structured array
 	def __getattr__(self, name):
