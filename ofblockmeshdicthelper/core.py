@@ -332,16 +332,16 @@ class Boundary(object):
 
 def _format_section(name, secList):
 	buf = io.StringIO()
-	if len(secList) > 0:
-		buf.write(f'{name}\n')
-		buf.write('(\n')
-		for item in secList:
-			buf.write(f'    {item.format()}\n')
-		buf.write(');')
-	elif name == 'geometry':
-		buf.write(f'{name}();')
+	if name == 'geometry':
+		brackets = ['{','}']
 	else:
-		buf.write(f'{name}\n(\n);')
+		brackets = ['(',')']
+	
+	buf.write(f'{name}\n')
+	buf.write(f'{brackets[0]}\n')
+	for item in secList:
+		buf.write(f'    {item.format()}\n')
+	buf.write(f'{brackets[1]};')
 	
 	return buf.getvalue()
 
@@ -396,13 +396,7 @@ class BlockMeshDict(object):
 	
 	def format(self):
 		self._assign_vertexid()
-		return f'''/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  5.0.0                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
+		return f'''
 FoamFile
 {{
 	version     2.0;
@@ -431,4 +425,14 @@ mergePatchPairs
 );
 
 // ************************************************************************* //
+'''
+
+'''
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  5.0.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
 '''

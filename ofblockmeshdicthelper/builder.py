@@ -50,7 +50,7 @@ class BaseBlockStruct(object):
 					for k in range(rshape[(s+2)%3]):
 						d_faces[i,j,k] = Face(d_vts[i,j:j+2,k:k+2])
 		
-		self.name = name		
+		self.name = name
 	
 	@staticmethod
 	def _get_grading(gt):
