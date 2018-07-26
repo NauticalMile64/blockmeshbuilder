@@ -213,27 +213,35 @@ class TubeBlockStruct(BaseBlockStruct):
 		
 		BaseBlockStruct.write(self, block_mesh_dict)
 
-class CylBlockStructContainer(TubeBlockStruct):
+class CylBlockStructContainer(object):
 	
-	def __init__(self, rs, ts, zs, nr, nt, nz, name='', core_frac=0.75):
+	def __init__(self, rs, ts, zs, nr, nt, nz, name='', inner_arc_comp=0.25):
 		
-		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, name+'-tube', is_complete=True)
+		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, name=name+'-tube', is_complete=True, inner_arc_comp=inner_arc_comp)
 		
-		core_dim = rs[0]*core_frac
 		Ng = ((ts.size-1) // 4) + 1 #Assume integer number of divisions
 		
-		xs = np.linspace(-core_dim/2,core_dim/2,Ng)
+		xs = np.linspace(-rs[0],rs[0],Ng)
 		ys = xs.copy()
 		
 		nx = nt[:Ng].copy()
 		ny = nt[Ng:2*Ng].copy()
 		
-		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, name+'-core')
-	
-	def write(self,block_mesh_dict):
-		
-		self.tube_struct.write(block_mesh_dict)
+		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, name=name+'-core')
 		
 		cyl_vts = np_cart_to_cyl(self.core_struct['vertices'])
-		cyl_vts[:,1] -= 5/4*np.pi
+		cyl_vts[...,1] -= 5/4*np.pi
 		self.core_struct['vertices'][:] = np_cyl_to_cart(cyl_vts)
+		
+		core_b_vts = self.core_struct['baked_vertices']
+		tube_b_vts = self.tube_struct['baked_vertices']
+		
+		#Connect the outer tube structure to the core
+		tInds = np.arange(ts.size-1).reshape(4,Ng-1)
+		
+		for s in range(4):
+			np.rot90(core_b_vts,k=-s)[:-1,0,:] = tube_b_vts[0,tInds[s],:]
+	
+	def write(self,block_mesh_dict):
+		self.tube_struct.write(block_mesh_dict)
+		self.core_struct.write(block_mesh_dict)
