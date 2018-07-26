@@ -6,6 +6,21 @@ headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'p
 formats = ['3f4','3u4','3O','O','3O','O','3O','3O','?']
 struct_type = np.dtype({'names' : headers, 'formats' : formats})
 
+def wrapRadians(values):
+	return values % (2*np.pi)
+
+def np_cyl_to_cart(crds):
+	ncrds = crds.copy()
+	ncrds[...,0] = np.multiply(crds[...,0],np.cos(crds[...,1]))
+	ncrds[...,1] = np.multiply(crds[...,0],np.sin(crds[...,1]))
+	return ncrds
+
+def np_cart_to_cyl(crds):
+	ncrds = crds.copy()
+	ncrds[...,0] = np.linalg.norm(crds[...,:-1],axis=-1)
+	ncrds[...,1] = np.arctan2(crds[...,1],crds[...,0])
+	return ncrds
+
 class BaseBlockStruct(object):
 	
 	def __init__(self, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, name=''):
@@ -156,10 +171,6 @@ class CartBlockStruct(BaseBlockStruct):
 	pass
 
 
-def wrapRadians(values):
-	return values % (2*np.pi)
-
-
 class TubeBlockStruct(BaseBlockStruct):
 	
 	def __init__(self, rs, ts, zs, nr, nt, nz, name='', is_complete=False, inner_arc_comp=0.0):
@@ -191,13 +202,38 @@ class TubeBlockStruct(BaseBlockStruct):
 			end_vts = b_vts[ind[0],ind[1]:ind[1]+2,ind[2]]
 			mid_pt = Point((end_pts[0] + end_pts[1])/2,cyl_to_cart)
 			if ind[0] == 0:
+				
 				if skip_inner_arc:
 					continue
 				
 				sweep_angle = (end_pts[1,1] - end_pts[0,1])/2
-				print(sweep_angle)
 				mid_pt.crds[0] *= iac*np.cos(sweep_angle) + (1-iac)
 			
 			block_mesh_dict.add_edge(ArcEdge(end_vts,mid_pt))
 		
 		BaseBlockStruct.write(self, block_mesh_dict)
+
+class CylBlockStructContainer(TubeBlockStruct):
+	
+	def __init__(self, rs, ts, zs, nr, nt, nz, name='', core_frac=0.75):
+		
+		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, name+'-tube', is_complete=True)
+		
+		core_dim = rs[0]*core_frac
+		Ng = ((ts.size-1) // 4) + 1 #Assume integer number of divisions
+		
+		xs = np.linspace(-core_dim/2,core_dim/2,Ng)
+		ys = xs.copy()
+		
+		nx = nt[:Ng].copy()
+		ny = nt[Ng:2*Ng].copy()
+		
+		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, name+'-core')
+	
+	def write(self,block_mesh_dict):
+		
+		self.tube_struct.write(block_mesh_dict)
+		
+		cyl_vts = np_cart_to_cyl(self.core_struct['vertices'])
+		cyl_vts[:,1] -= 5/4*np.pi
+		self.core_struct['vertices'][:] = np_cyl_to_cart(cyl_vts)

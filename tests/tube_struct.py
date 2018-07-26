@@ -1,7 +1,7 @@
 #Builds a structured tube mesh
 
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, CylBlockStructContainer
+from ofblockmeshdicthelper import BlockMeshDict, TubeBlockStruct
 
 bmd = BlockMeshDict()
 bmd.set_metric('mm')
@@ -15,7 +15,7 @@ ndr = np.full_like(rs,6)
 ndt = np.full_like(ts,5)
 ndz = np.full_like(zs,8)
 
-tube = CylBlockStructContainer(rs,ts,zs,ndr,ndt,ndz,'ts')
+tube = TubeBlockStruct(rs,ts,zs,ndr,ndt,ndz,'ts',is_complete=is_complete,inner_arc_comp=1.0)
 
 tube.write(bmd)
 
