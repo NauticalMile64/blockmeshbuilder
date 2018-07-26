@@ -162,7 +162,7 @@ def wrapRadians(values):
 
 class TubeBlockStruct(BaseBlockStruct):
 	
-	def __init__(self, rs, ts, zs, nr, nt, nz, name='', is_complete=False, inner_arc_comp=1.0):
+	def __init__(self, rs, ts, zs, nr, nt, nz, name='', is_complete=False, inner_arc_comp=0.0):
 		
 		if is_complete and ~np.isclose(wrapRadians(ts[0]),wrapRadians(ts[-1])):
 			print(f'WARNING -- TubeBlockStruct {name} is marked as complete, while the first and last angles are unequal; make sure these are separated by 2*pi')
@@ -181,6 +181,7 @@ class TubeBlockStruct(BaseBlockStruct):
 		shape = self.shape
 		shp = tuple((shape[0],shape[1]-1,shape[2]))
 		iac = self.inner_arc_comp
+		skip_inner_arc = np.isclose(iac,1.0)
 		
 		vts = self['vertices']
 		b_vts = self['baked_vertices']
@@ -190,8 +191,12 @@ class TubeBlockStruct(BaseBlockStruct):
 			end_vts = b_vts[ind[0],ind[1]:ind[1]+2,ind[2]]
 			mid_pt = Point((end_pts[0] + end_pts[1])/2,cyl_to_cart)
 			if ind[0] == 0:
+				if skip_inner_arc:
+					continue
+				
 				sweep_angle = (end_pts[1,1] - end_pts[0,1])/2
-				mid_pt[0] *= iac*np.cos(sweep_angle) + (1-iac)
+				print(sweep_angle)
+				mid_pt.crds[0] *= iac*np.cos(sweep_angle) + (1-iac)
 			
 			block_mesh_dict.add_edge(ArcEdge(end_vts,mid_pt))
 		
