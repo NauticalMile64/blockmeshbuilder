@@ -184,9 +184,9 @@ class TubeBlockStruct(BaseBlockStruct):
 		b_vts = self['baked_vertices']
 		ang_vts = vts[...,1]
 		for ind in np.ndindex(shp):
+			end_pts = vts[ind[0],ind[1]:ind[1]+2,ind[2]]
 			end_vts = b_vts[ind[0],ind[1]:ind[1]+2,ind[2]]
-			int_pt = (end_vts[0] + end_vts[1])
-			mid_pt = int_pt/2
+			mid_pt = Point((end_pts[0] + end_pts[1])/2,cyl_to_cart)
 			block_mesh_dict.add_edge(ArcEdge(end_vts,mid_pt))
 		
 		BaseBlockStruct.write(self, block_mesh_dict)
