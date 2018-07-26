@@ -142,7 +142,7 @@ class BaseBlockStruct(object):
 						if d_pf[i,j,k]:
 							d_faces[i,j,k].proj_geom(d_pf[i,j,k])
 							block_mesh_dict.add_face(d_faces[i,j,k])
-									
+	
 	
 	#Default to underlying structured array
 	def __getattr__(self, name):
@@ -162,7 +162,7 @@ def wrapRadians(values):
 
 class TubeBlockStruct(BaseBlockStruct):
 	
-	def __init__(self, rs, ts, zs, nr, nt, nz, name='', is_complete=False):
+	def __init__(self, rs, ts, zs, nr, nt, nz, name='', is_complete=False, inner_arc_comp=1.0):
 		
 		if is_complete and ~np.isclose(wrapRadians(ts[0]),wrapRadians(ts[-1])):
 			print(f'WARNING -- TubeBlockStruct {name} is marked as complete, while the first and last angles are unequal; make sure these are separated by 2*pi')
@@ -174,11 +174,13 @@ class TubeBlockStruct(BaseBlockStruct):
 			b_vts[:,-1] = b_vts[:,0]
 		
 		self.is_complete = is_complete
-
+		self.inner_arc_comp = inner_arc_comp
+	
 	def write(self, block_mesh_dict):
 		
 		shape = self.shape
 		shp = tuple((shape[0],shape[1]-1,shape[2]))
+		iac = self.inner_arc_comp
 		
 		vts = self['vertices']
 		b_vts = self['baked_vertices']
@@ -187,6 +189,10 @@ class TubeBlockStruct(BaseBlockStruct):
 			end_pts = vts[ind[0],ind[1]:ind[1]+2,ind[2]]
 			end_vts = b_vts[ind[0],ind[1]:ind[1]+2,ind[2]]
 			mid_pt = Point((end_pts[0] + end_pts[1])/2,cyl_to_cart)
+			if ind[0] == 0:
+				sweep_angle = (end_pts[1,1] - end_pts[0,1])/2
+				mid_pt[0] *= iac*np.cos(sweep_angle) + (1-iac)
+			
 			block_mesh_dict.add_edge(ArcEdge(end_vts,mid_pt))
 		
 		BaseBlockStruct.write(self, block_mesh_dict)
