@@ -1,4 +1,4 @@
-#Builds a structured tube mesh
+#Builds a structured O-grid mesh
 
 import numpy as np
 from ofblockmeshdicthelper import BlockMeshDict, CylBlockStructContainer
