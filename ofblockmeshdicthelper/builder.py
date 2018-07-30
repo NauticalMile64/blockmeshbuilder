@@ -2,8 +2,8 @@ from .core import *
 
 import numpy as np
 
-headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'proj_vts', 'proj_edges', 'proj_faces', 'block_mask']
-formats = ['3f4','3u4','3O','O','3O','O','3O','3O','?']
+headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'proj_vts', 'proj_edges', 'proj_faces', 'block_mask', 'edge_mask']
+formats = ['3f4','3u4','3O','O','3O','O','3O','3O','?','3?']
 struct_type = np.dtype({'names' : headers, 'formats' : formats})
 
 def wrapRadians(values):
@@ -147,12 +147,13 @@ class BaseBlockStruct(object):
 			d_faces = np.moveaxis(self['faces'][...,s],init_pos,roll_pos)
 			d_vts = np.moveaxis(self['baked_vertices'],init_pos,roll_pos)
 			d_blkmsk = np.moveaxis(self['block_mask'],init_pos,roll_pos)
+			d_edgemsk = np.moveaxis(self['edge_mask'][...,s],init_pos,roll_pos)
 			
 			#Project edges
 			for i in range(rshape[s]):
 				for j in range(shape[(s+1)%3]):
 					for k in range(shape[(s+2)%3]):
-						if d_pe[i,j,k]:
+						if d_pe[i,j,k] and (not d_edgemsk[i,j,k]):
 							block_mesh_dict.add_edge(ProjectionEdge(d_vts[i:i+2,j,k],geometries=d_pe[i,j,k]))
 			
 			#Project faces
@@ -203,6 +204,10 @@ class TubeBlockStruct(BaseBlockStruct):
 		
 		if not np.isclose(iac,1.0):
 			for ind in np.ndindex(shp[1:]):
+				
+				if self['edge_mask'][0,ind[0],ind[1],1]:
+					continue
+				
 				end_pts = vts[0,ind[0]:ind[0]+2,ind[1]]
 				end_vts = b_vts[0,ind[0]:ind[0]+2,ind[1]]
 				mid_pt = Point((end_pts[0] + end_pts[1])/2,cyl_to_cart)
