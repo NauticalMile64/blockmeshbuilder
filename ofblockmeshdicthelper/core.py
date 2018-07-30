@@ -49,26 +49,35 @@ class Point(object):
 		elif name == 'z':
 			return self.crds[2]
 
-class Vertex(Point):
-	def __init__(self, crds, conv_func=cart_to_cart, name=''):
+
+class Projectable(object):
+	def __init__(self, geometries=[]):
+		self.proj_g = geometries
+	
+	def proj_geom(self, geometry):
+		self.proj_g.append(geometry)
+	
+	def format_geom(self):
+		if self.proj_g:
+			geom_names = ' '.join(geom.name for geom in self.proj_g)
+			return 'project ', f'({geom_names}) '
+		else:
+			return '',''
+
+
+class Vertex(Point,Projectable):
+	def __init__(self, crds, conv_func=cart_to_cart, name='', geometries=[]):
 		Point.__init__(self, crds, conv_func)
+		Projectable.__init__(self,geometries)
 		self.name = name
 		self.index = None
-		self.proj_g = None
 	
 	def format(self):
 		com = f'{self.index} {self.name}'
 		vertex_str = Point.format(self)
-		
-		proj_str, geom_name = '',''
-		if self.proj_g:
-			proj_str = 'project '
-			geom_name = f'({self.proj_g.name}) '
-		
+		proj_str, geom_name = self.format_geom()
 		return f'{proj_str}{vertex_str} {geom_name}// {com:s}'
-	
-	def proj_geom(self, geometry):
-		self.proj_g = geometry
+
 
 class Geometry(object):
 	def __init__(self, name):
@@ -118,16 +127,12 @@ class Cylinder(Geometry):
 			})
 
 
-class Face(object):
-	def __init__(self, vertices, name=''):
-		
+class Face(Projectable):
+	def __init__(self, vertices, name='', geometries=[]):
+		Projectable.__init__(self, geometries)
 		#vertices is a 2x2 array
 		self.vertices = vertices
 		self.name = name
-		self.proj_g = None
-	
-	def proj_geom(self, geometry):
-		self.proj_g = geometry
 	
 	def format(self, write_proj=True):
 		
@@ -137,12 +142,9 @@ class Face(object):
 		index = ' '.join(str(v.index) for v in vts)
 		com = ' '.join(v.name for v in vts)
 		
-		proj_str, geom_name = '',''
-		if self.proj_g and write_proj:
-			proj_str = 'project '
-			geom_name = f'({self.proj_g.name}) '
+		proj_str, geom_names = self.format_geom()
 		
-		return f'{proj_str}({index:s}) {geom_name}// {self.name:s} ({com:s})'
+		return f'{proj_str}({index:s}) {geom_names}// {self.name:s} ({com:s})'
 
 
 class GradingElement(object):
@@ -280,6 +282,7 @@ class Edge(object):
 		
 		return res_str
 
+
 class ArcEdge(Edge):
 	def __init__(self, vertices, arcMidPoint, name=''):
 		
@@ -311,14 +314,13 @@ class SplineEdge(Edge):
 		return buf.getvalue()
 
 
-class ProjectionEdge(Edge):
-	def __init__(self, vertices, geom, name=''):
+class ProjectionEdge(Edge,Projectable):
+	def __init__(self, vertices, name='', geometries=[]):
 		Edge.__init__(self, vertices, name)
-		self.proj_geom = geom
+		Projectable.__init__(self, geometries)
 	
 	def format(self):
-		return Edge.format(self).format('project',
-				f'({self.proj_geom.name})')
+		return Edge.format(self).format(*self.format_geom())
 
 
 class Boundary(object):

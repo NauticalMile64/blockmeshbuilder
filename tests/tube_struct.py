@@ -15,7 +15,7 @@ ndr = np.full_like(rs,6)
 ndt = np.full_like(ts,5)
 ndz = np.full_like(zs,8)
 
-tube = TubeBlockStruct(rs,ts,zs,ndr,ndt,ndz,'ts',is_complete=is_complete,inner_arc_comp=1.0)
+tube = TubeBlockStruct(rs,ts,zs,ndr,ndt,ndz,'ts',is_complete=is_complete,inner_arc_comp=0.5)
 
 tube.write(bmd)
 

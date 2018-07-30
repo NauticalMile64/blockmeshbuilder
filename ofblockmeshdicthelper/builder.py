@@ -54,6 +54,11 @@ class BaseBlockStruct(object):
 		#Initialize grading
 		self['grading'][:] = uniformGradingElement
 		
+		#Initialize projection edges
+		proj_edges = self['proj_edges']
+		for ind in np.ndindex(proj_edges.shape):
+			proj_edges[ind] = []
+		
 		#Initialize faces
 		init_pos = np.arange(3)
 		for s in range(3):
@@ -192,26 +197,35 @@ class TubeBlockStruct(BaseBlockStruct):
 		shape = self.shape
 		shp = tuple((shape[0],shape[1]-1,shape[2]))
 		iac = self.inner_arc_comp
-		skip_inner_arc = np.isclose(iac,1.0)
 		
 		vts = self['vertices']
 		b_vts = self['baked_vertices']
-		ang_vts = vts[...,1]
 		for ind in np.ndindex(shp):
-			end_pts = vts[ind[0],ind[1]:ind[1]+2,ind[2]]
-			end_vts = b_vts[ind[0],ind[1]:ind[1]+2,ind[2]]
-			mid_pt = Point((end_pts[0] + end_pts[1])/2,cyl_to_cart)
-			if ind[0] == 0:
-				
-				if skip_inner_arc:
-					continue
-				
+		
+		if not np.isclose(iac,1.0):
+			for ind in np.ndindex(shp[1:]):
+				end_pts = vts[0,ind[0]:ind[0]+2,ind[1]]
+				end_vts = b_vts[0,ind[0]:ind[0]+2,ind[1]]
+				mid_pt = Point((end_pts[0] + end_pts[1])/2,cyl_to_cart)
 				sweep_angle = (end_pts[1,1] - end_pts[0,1])/2
 				mid_pt.crds[0] *= iac*np.cos(sweep_angle) + (1-iac)
-			
-			block_mesh_dict.add_edge(ArcEdge(end_vts,mid_pt))
+				block_mesh_dict.add_edge(ArcEdge(end_vts,mid_pt))
+		
+		cyls  = {}
+		s_pt = Point([0,0,vts[0,0,0,2]-0.1])
+		e_pt = Point([0,0,vts[0,0,-1,2]+0.1])
+		for i,r in np.ndenumerate(np.unique(vts[...,0])):
+			cyl = Cylinder(s_pt,e_pt,r,f'{self.name}-blockcyl-{i}')
+			cyls[r] = cyl
+			block_mesh_dict.add_geometry(cyl)
+		
+		proj_edges = self['proj_edges'][1:,...,1]
+		proj_rcrds = self['vertices'][1:,...,0]
+		for ind in np.ndindex(proj_edges.shape):
+			proj_edges[ind].append(cyls[proj_rcrds[ind]])
 		
 		BaseBlockStruct.write(self, block_mesh_dict)
+
 
 class CylBlockStructContainer(object):
 	

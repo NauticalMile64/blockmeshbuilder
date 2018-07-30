@@ -54,9 +54,12 @@ bmd.add_geometry(cyl)
 vts[:,1,0] += 0.1
 
 #Now assign the geometry to the projection fields of the block structure to the cylinder
-test_struct['proj_vts'][-1] = cyl
-test_struct['proj_edges'][-1,...,1:] = cyl
-test_struct['proj_faces'][-1,...,2] = cyl
+
+#CartBlockStruct.project_structure(test_struct,1,-1,cyl)
+
+#test_struct['proj_vts'][-1] = cyl
+#test_struct['proj_edges'][-1,...,1:] = cyl
+#test_struct['proj_faces'][-1,...,2] = cyl
 
 test_struct.write(bmd) #Write the blocks to the blockMeshDict
 
