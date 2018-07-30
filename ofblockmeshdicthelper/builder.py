@@ -153,7 +153,7 @@ class BaseBlockStruct(object):
 				for j in range(shape[(s+1)%3]):
 					for k in range(shape[(s+2)%3]):
 						if d_pe[i,j,k]:
-							block_mesh_dict.add_edge(ProjectionEdge(d_vts[i:i+2,j,k],d_pe[i,j,k]))
+							block_mesh_dict.add_edge(ProjectionEdge(d_vts[i:i+2,j,k],geometries=d_pe[i,j,k]))
 			
 			#Project faces
 			for i in range(shape[s]):
@@ -200,7 +200,6 @@ class TubeBlockStruct(BaseBlockStruct):
 		
 		vts = self['vertices']
 		b_vts = self['baked_vertices']
-		for ind in np.ndindex(shp):
 		
 		if not np.isclose(iac,1.0):
 			for ind in np.ndindex(shp[1:]):
