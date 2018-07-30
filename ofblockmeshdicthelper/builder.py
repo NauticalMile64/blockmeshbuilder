@@ -147,13 +147,12 @@ class BaseBlockStruct(object):
 			d_faces = np.moveaxis(self['faces'][...,s],init_pos,roll_pos)
 			d_vts = np.moveaxis(self['baked_vertices'],init_pos,roll_pos)
 			d_blkmsk = np.moveaxis(self['block_mask'],init_pos,roll_pos)
-			d_edgemsk = np.moveaxis(self['edge_mask'][...,s],init_pos,roll_pos)
 			
 			#Project edges
 			for i in range(rshape[s]):
 				for j in range(shape[(s+1)%3]):
 					for k in range(shape[(s+2)%3]):
-						if d_pe[i,j,k] and (not d_edgemsk[i,j,k]):
+						if d_pe[i,j,k]:
 							block_mesh_dict.add_edge(ProjectionEdge(d_vts[i:i+2,j,k],geometries=d_pe[i,j,k]))
 			
 			#Project faces
@@ -225,8 +224,10 @@ class TubeBlockStruct(BaseBlockStruct):
 		
 		proj_edges = self['proj_edges'][1:,...,1]
 		proj_rcrds = self['vertices'][1:,...,0]
+		edge_mask = self['edge_mask'][1:,...,1]
 		for ind in np.ndindex(proj_edges.shape):
-			proj_edges[ind].append(cyls[proj_rcrds[ind]])
+			if not edge_mask[ind]:
+				proj_edges[ind].append(cyls[proj_rcrds[ind]])
 		
 		BaseBlockStruct.write(self, block_mesh_dict)
 
