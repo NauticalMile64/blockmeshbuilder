@@ -52,7 +52,7 @@ class Point(object):
 
 class Projectable(object):
 	def __init__(self, geometries=[]):
-		self.proj_g = geometries
+		self.proj_g = geometries.copy()
 	
 	def proj_geom(self, geometry):
 		self.proj_g.append(geometry)
