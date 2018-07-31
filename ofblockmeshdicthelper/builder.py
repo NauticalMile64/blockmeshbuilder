@@ -2,8 +2,8 @@ from .core import *
 
 import numpy as np
 
-headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'proj_vts', 'proj_edges', 'proj_faces', 'block_mask', 'edge_mask']
-formats = ['3f4','3u4','3O','O','3O','O','3O','3O','?','3?']
+headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'proj_vts', 'proj_edges', 'proj_faces', 'block_mask', 'vertex_mask', 'edge_mask', 'face_mask']
+formats = ['3f4','3u4','3O','O','3O','O','3O','3O','?','?','3?','3?']
 struct_type = np.dtype({'names' : headers, 'formats' : formats})
 
 def wrapRadians(values):
@@ -71,6 +71,18 @@ class BaseBlockStruct(object):
 						d_faces[i,j,k] = Face(d_vts[i,j:j+2,k:k+2])
 		
 		self.name = name
+	
+	def project_structure(self,dir,face_ind,geometry):
+		
+		struct = np.roll(self.str_arr,-dir)[face_ind]
+		shape = struct.shape
+		rshape = np.roll(np.array(self.rshape),-dir)[1:]
+		
+		proj_vts = struct['proj_vts']
+		vt_mask = struct['vertex_mask']
+		for ind in np.ndindex(shape):
+			if not vt_mask[ind]:
+				proj_vts[ind].append(geometry)
 	
 	@staticmethod
 	def _get_grading(gt):
