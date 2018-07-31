@@ -127,12 +127,19 @@ class Cylinder(Geometry):
 			})
 
 
-class Face(Projectable):
-	def __init__(self, vertices, name='', geometries=[]):
-		Projectable.__init__(self, geometries)
+class Face(object):
+	def __init__(self, vertices, name=''):
+
 		#vertices is a 2x2 array
 		self.vertices = vertices
 		self.name = name
+		self.proj_g = None
+	
+	def proj_geom(geometry):
+		if self.proj_g:
+			print(f'WARNING: face-{self.name} has already been projected to {self.proj_geom.name}, over-writing with {geometry.name}.')
+		
+		self.proj_g = geometry
 	
 	def format(self, write_proj=True):
 		
@@ -142,9 +149,12 @@ class Face(Projectable):
 		index = ' '.join(str(v.index) for v in vts)
 		com = ' '.join(v.name for v in vts)
 		
-		proj_str, geom_names = self.format_geom()
+		proj_str, geom_name = '',''
+		if write_proj:
+			proj_str = 'project '
+			geom_name = self.proj_g.name
 		
-		return f'{proj_str}({index:s}) {geom_names}// {self.name:s} ({com:s})'
+		return f'{proj_str}({index:s}) {geom_name}// {self.name:s} ({com:s})'
 
 
 class GradingElement(object):
