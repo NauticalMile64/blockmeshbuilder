@@ -81,12 +81,30 @@ class BaseBlockStruct(object):
 		shape = struct.shape
 		rshape = np.roll(np.array(self.rshape),-dir)[1:]
 		
-		#Project the vertices
+		#Project vertices
 		b_vts = struct['baked_vertices']
 		vt_mask = struct['vertex_mask']
 		for ind in np.ndindex(shape):
 			if not vt_mask[ind]:
 				b_vts[ind].proj_geom(geometry)
+		
+		#Project edges
+		edges = np.roll(struct['edges'],-dir,axis=-1)[...,1:]
+		edge_mask = np.roll(struct['edge_mask'],-dir,axis=-1)[...,1:]
+		for s in range(2):
+			for j in range(shape[0]):
+				for k in range(shape[1]):
+					edge = edges[j,k,s]
+					if (not edge_mask[j,k,s]) and isinstance(edge, ProjectionEdge):
+						edge.proj_geom(geometry)
+		
+		#Project faces
+		faces = struct['faces'][...,dir]
+		face_mask = struct['face_mask'][...,dir]
+		for j in range(rshape[0]):
+			for k in range(rshape[1]):
+				if not face_mask[j,k]:
+					faces[j,k].proj_geom(geometry)
 	
 	@staticmethod
 	def _get_grading(gt):

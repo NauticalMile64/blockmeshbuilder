@@ -5,7 +5,7 @@ from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, SimpleGradingE
 
 bmd = BlockMeshDict()	#Create a container to hold the objects
 
-bmd.set_metric('mm')	
+bmd.set_metric('mm')
 
 #Create arrays of points for the co-ordinates
 xs = np.linspace(0.,1.,4)
@@ -53,15 +53,11 @@ bmd.add_geometry(cyl)
 
 vts[:,1,0] += 0.1
 
-#Now assign the geometry to the projection fields of the block structure to the cylinder
-
+#project the right side of the block structure onto the cylinder.
 CartBlockStruct.project_structure(test_struct,0,-1,cyl)
 
-#test_struct['proj_vts'][-1] = cyl
-#test_struct['proj_edges'][-1,...,1:] = cyl
-#test_struct['proj_faces'][-1,...,2] = cyl
-
-test_struct.write(bmd) #Write the blocks to the blockMeshDict
+#Write the blocks to the blockMeshDict
+test_struct.write(bmd)
 
 #Write to file
 with open(r'OF_case/system/blockMeshDict','w') as infile:
