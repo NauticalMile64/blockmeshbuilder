@@ -2,8 +2,8 @@ from .core import *
 
 import numpy as np
 
-headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'faces', 'proj_vts', 'proj_edges', 'proj_faces', 'block_mask', 'vertex_mask', 'edge_mask', 'face_mask']
-formats = ['3f4','3u4','3O','O','3O','O','3O','3O','?','?','3?','3?']
+headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces', 'block_mask', 'vertex_mask', 'edge_mask', 'face_mask']
+formats = ['3f4','3u4','3O','O','3O','3O','?','?','3?','3?']
 struct_type = np.dtype({'names' : headers, 'formats' : formats})
 
 def wrapRadians(values):
@@ -29,8 +29,7 @@ class BaseBlockStruct(object):
 		
 		shape = (x0.size,x1.size,x2.size)
 		self.str_arr = np.empty(shape,dtype=struct_type)
-		rshape = (shape[0]-1,shape[1]-1,shape[2]-1)
-		self.rshape = rshape
+		self.rshape = rshape = (shape[0]-1,shape[1]-1,shape[2]-1)
 		
 		#Initialize vertices
 		X0,X1,X2 = np.meshgrid(x0,x1,x2,indexing='ij')
@@ -54,17 +53,20 @@ class BaseBlockStruct(object):
 		#Initialize grading
 		self['grading'][:] = uniformGradingElement
 		
-		#Initialize projection edges
-		proj_edges = self['proj_edges']
-		for ind in np.ndindex(proj_edges.shape):
-			proj_edges[ind] = []
-		
-		#Initialize faces
+		#Initialize edges and faces
 		init_pos = np.arange(3)
 		for s in range(3):
 			roll_pos = np.roll(init_pos,s)
+
+			d_edges = np.moveaxis(self['edges'][...,s],init_pos,roll_pos)
 			d_faces = np.moveaxis(self['faces'][...,s],init_pos,roll_pos)
 			d_vts = np.moveaxis(self['baked_vertices'],init_pos,roll_pos)
+			
+			for i in range(rshape[s]):
+				for j in range(shape[(s+1)%3]):
+					for k in range(shape[(s+2)%3]):
+						d_edges[i,j,k] = ProjectionEdge(d_vts[i:i+2,j,k])
+			
 			for i in range(shape[s]):
 				for j in range(rshape[(s+1)%3]):
 					for k in range(rshape[(s+2)%3]):
@@ -74,15 +76,17 @@ class BaseBlockStruct(object):
 	
 	def project_structure(self,dir,face_ind,geometry):
 		
+		#Get the subarray relevant to the face being projected
 		struct = np.roll(self.str_arr,-dir)[face_ind]
 		shape = struct.shape
 		rshape = np.roll(np.array(self.rshape),-dir)[1:]
 		
-		proj_vts = struct['proj_vts']
+		#Project the vertices
+		b_vts = struct['baked_vertices']
 		vt_mask = struct['vertex_mask']
 		for ind in np.ndindex(shape):
 			if not vt_mask[ind]:
-				proj_vts[ind].append(geometry)
+				b_vts[ind].proj_geom(geometry)
 	
 	@staticmethod
 	def _get_grading(gt):
@@ -135,46 +139,30 @@ class BaseBlockStruct(object):
 						block = HexBlock(vts, nd, block_name, grading)
 						block_mesh_dict.add_hexblock(block)
 		
-		#Project vertices, edges, and faces
+		#write relevant edges and faces
 		shape = self.shape
-		
-		#Project vertices
-		proj_vts = self['proj_vts']
-		if np.any(proj_vts):
-			for ind in np.ndindex(shape):
-				if proj_vts[ind]:
-					self['baked_vertices'][ind].proj_geom(proj_vts[ind])
-		
-		#Edges and Faces
-		if not (np.any(self['proj_edges']) or np.any(self['proj_faces'])):
-			return
 		
 		rshape = self.rshape
 		init_pos = np.arange(3)
 		for s in range(3):
 			roll_pos = np.roll(init_pos,s)
-			d_pe = np.moveaxis(self['proj_edges'][...,s],init_pos,roll_pos)
-			d_pf = np.moveaxis(self['proj_faces'][...,s],init_pos,roll_pos)
 			
+			d_edges = np.moveaxis(self['edges'][...,s],init_pos,roll_pos)
 			d_faces = np.moveaxis(self['faces'][...,s],init_pos,roll_pos)
-			d_vts = np.moveaxis(self['baked_vertices'],init_pos,roll_pos)
-			d_blkmsk = np.moveaxis(self['block_mask'],init_pos,roll_pos)
 			
-			#Project edges
 			for i in range(rshape[s]):
 				for j in range(shape[(s+1)%3]):
 					for k in range(shape[(s+2)%3]):
-						if d_pe[i,j,k]:
-							block_mesh_dict.add_edge(ProjectionEdge(d_vts[i:i+2,j,k],geometries=d_pe[i,j,k]))
+						edge = d_edges[i,j,k]
+						if edge.is_relevant():
+							block_mesh_dict.add_edge(edge)
 			
-			#Project faces
 			for i in range(shape[s]):
 				for j in range(rshape[(s+1)%3]):
 					for k in range(rshape[(s+2)%3]):
-						if d_pf[i,j,k]:
-							d_faces[i,j,k].proj_geom(d_pf[i,j,k])
-							block_mesh_dict.add_face(d_faces[i,j,k])
-	
+						face = d_faces[i,j,k]
+						if face.is_projected():
+							block_mesh_dict.add_face(face)
 	
 	#Default to underlying structured array
 	def __getattr__(self, name):
@@ -234,12 +222,13 @@ class TubeBlockStruct(BaseBlockStruct):
 			cyls[r] = cyl
 			block_mesh_dict.add_geometry(cyl)
 		
-		proj_edges = self['proj_edges'][1:,...,1]
+		proj_edges = self['edges'][1:,...,1]
 		proj_rcrds = self['vertices'][1:,...,0]
 		edge_mask = self['edge_mask'][1:,...,1]
 		for ind in np.ndindex(proj_edges.shape):
-			if not edge_mask[ind]:
-				proj_edges[ind].append(cyls[proj_rcrds[ind]])
+			proj_edge = proj_edges[ind]
+			if (not edge_mask[ind]) and isinstance(proj_edge, ProjectionEdge):
+				proj_edge.proj_geom(cyls[proj_rcrds[ind]])
 		
 		BaseBlockStruct.write(self, block_mesh_dict)
 

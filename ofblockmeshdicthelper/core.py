@@ -141,6 +141,9 @@ class Face(object):
 		
 		self.proj_g = geometry
 	
+	def is_projected(self):
+		return (self.proj_g is not None)
+	
 	def format(self, write_proj=True):
 		
 		v_arr = self.vertices
@@ -280,6 +283,10 @@ class Edge(object):
 		self.vertices = vertices
 		self.name = name
 	
+	@staticmethod
+	def is_relevant():
+		return True
+	
 	def format(self):
 		indices = [v.index for v in self.vertices]
 		index = ' '.join(str(ind) for ind in indices)
@@ -328,6 +335,9 @@ class ProjectionEdge(Edge,Projectable):
 	def __init__(self, vertices, name='', geometries=[]):
 		Edge.__init__(self, vertices, name)
 		Projectable.__init__(self, geometries)
+	
+	def is_relevant(self):
+		return bool(self.proj_g)
 	
 	def format(self):
 		return Edge.format(self).format(*self.format_geom())
