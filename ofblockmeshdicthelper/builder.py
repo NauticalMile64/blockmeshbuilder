@@ -74,7 +74,7 @@ class BaseBlockStruct(object):
 		
 		self.name = name
 	
-	def project_structure(self,dir,face_ind,geometry):
+	def project_structure(self, dir, face_ind, geometry):
 		
 		#Get the subarray relevant to the face being projected
 		struct = np.roll(self.str_arr,-dir)[face_ind]
@@ -196,7 +196,7 @@ class CartBlockStruct(BaseBlockStruct):
 
 class TubeBlockStruct(BaseBlockStruct):
 	
-	def __init__(self, rs, ts, zs, nr, nt, nz, name='', is_complete=False, inner_arc_comp=0.0):
+	def __init__(self, rs, ts, zs, nr, nt, nz, name='', is_complete=False):
 		
 		if is_complete and ~np.isclose(wrapRadians(ts[0]),wrapRadians(ts[-1])):
 			print(f'WARNING -- TubeBlockStruct {name} is marked as complete, while the first and last angles are unequal; make sure these are separated by 2*pi')
@@ -208,29 +208,14 @@ class TubeBlockStruct(BaseBlockStruct):
 			b_vts[:,-1] = b_vts[:,0]
 		
 		self.is_complete = is_complete
-		self.inner_arc_comp = inner_arc_comp
 	
 	def write(self, block_mesh_dict):
 		
 		shape = self.shape
 		shp = tuple((shape[0],shape[1]-1,shape[2]))
-		iac = self.inner_arc_comp
 		
 		vts = self['vertices']
 		b_vts = self['baked_vertices']
-		
-		if not np.isclose(iac,1.0):
-			for ind in np.ndindex(shp[1:]):
-				
-				if self['edge_mask'][0,ind[0],ind[1],1]:
-					continue
-				
-				end_pts = vts[0,ind[0]:ind[0]+2,ind[1]]
-				end_vts = b_vts[0,ind[0]:ind[0]+2,ind[1]]
-				mid_pt = Point((end_pts[0] + end_pts[1])/2,cyl_to_cart)
-				sweep_angle = (end_pts[1,1] - end_pts[0,1])/2
-				mid_pt.crds[0] *= iac*np.cos(sweep_angle) + (1-iac)
-				block_mesh_dict.add_edge(ArcEdge(end_vts,mid_pt))
 		
 		cyls  = {}
 		s_pt = Point([0,0,vts[0,0,0,2]-0.1])
@@ -240,9 +225,9 @@ class TubeBlockStruct(BaseBlockStruct):
 			cyls[r] = cyl
 			block_mesh_dict.add_geometry(cyl)
 		
-		edges = self['edges'][1:,...,1]
-		proj_rcrds = self['vertices'][1:,...,0]
-		edge_mask = self['edge_mask'][1:,...,1]
+		edges = self['edges'][...,1]
+		proj_rcrds = self['vertices'][...,0]
+		edge_mask = self['edge_mask'][...,1]
 		for ind in np.ndindex(edges.shape):
 			edge = edges[ind]
 			if (not edge_mask[ind]) and isinstance(edge, ProjectionEdge):
@@ -255,8 +240,9 @@ class CylBlockStructContainer(object):
 	
 	def __init__(self, rs, ts, zs, nr, nt, nz, name='', inner_arc_comp=0.25):
 		
-		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, name=name+'-tube', is_complete=True, inner_arc_comp=inner_arc_comp)
+		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, name=name+'-tube', is_complete=True)
 		
+		self.inner_arc_comp = inner_arc_comp
 		Ng = ((ts.size-1) // 4) + 1 #Assume integer number of divisions
 		
 		xs = np.linspace(-rs[0],rs[0],Ng)
@@ -273,13 +259,40 @@ class CylBlockStructContainer(object):
 		
 		core_b_vts = self.core_struct['baked_vertices']
 		tube_b_vts = self.tube_struct['baked_vertices']
+		core_edges = self.core_struct['edges']
+		core_edges = self.core_struct['edges']
 		
 		#Connect the outer tube structure to the core
 		tInds = np.arange(ts.size-1).reshape(4,Ng-1)
 		
 		for s in range(4):
 			np.rot90(core_b_vts,k=-s)[:-1,0,:] = tube_b_vts[0,tInds[s],:]
+			np.rot90(core_b_vts,k=-s)[:-1,0,:] = tube_b_vts[0,tInds[s],:]
 	
 	def write(self,block_mesh_dict):
+		
+		iac = self.inner_arc_comp
+		if not np.isclose(iac,1.0):
+			
+			tube = self.tube_struct
+			shape = tube.shape
+			shp = tuple((shape[0],shape[1]-1,shape[2]))
+			
+			vts = tube['vertices'][0]
+			b_vts = tube['baked_vertices'][0]
+			edge_mask = tube['edge_mask'][0,...,1]
+			
+			for ind in np.ndindex(shp[1:]):
+				
+				if edge_mask[ind]:
+					continue
+				
+				end_pts = vts[ind[0]:ind[0]+2,ind[1]]
+				end_vts = b_vts[ind[0]:ind[0]+2,ind[1]]
+				mid_pt = Point((end_pts[0] + end_pts[1])/2,cyl_to_cart)
+				sweep_angle = (end_pts[1,1] - end_pts[0,1])/2
+				mid_pt.crds[0] *= iac*np.cos(sweep_angle) + (1-iac)
+				block_mesh_dict.add_edge(ArcEdge(end_vts,mid_pt))
+		
 		self.tube_struct.write(block_mesh_dict)
 		self.core_struct.write(block_mesh_dict)
