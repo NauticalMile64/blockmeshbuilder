@@ -54,7 +54,7 @@ bmd.add_geometry(cyl)
 vts[:,1,0] += 0.1
 
 #project the right side of the block structure onto the cylinder.
-CartBlockStruct.project_structure(test_struct,0,-1,cyl)
+test_struct.project_structure(0,-1,cyl)
 
 #Write the blocks to the blockMeshDict
 test_struct.write(bmd)
