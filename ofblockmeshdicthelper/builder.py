@@ -6,6 +6,8 @@ headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'f
 formats = ['3f4','3u4','3O','O','3O','3O','?','?','3?','3?']
 struct_type = np.dtype({'names' : headers, 'formats' : formats})
 
+init_pos = np.arange(3)
+
 def wrapRadians(values):
 	return values % (2*np.pi)
 
@@ -54,10 +56,9 @@ class BaseBlockStruct(object):
 		self['grading'][:] = uniformGradingElement
 		
 		#Initialize edges and faces
-		init_pos = np.arange(3)
 		for s in range(3):
 			roll_pos = np.roll(init_pos,s)
-
+			
 			d_edges = np.moveaxis(self['edges'][...,s],init_pos,roll_pos)
 			d_faces = np.moveaxis(self['faces'][...,s],init_pos,roll_pos)
 			d_vts = np.moveaxis(self['baked_vertices'],init_pos,roll_pos)
@@ -77,9 +78,10 @@ class BaseBlockStruct(object):
 	def project_structure(self, dir, face_ind, geometry):
 		
 		#Get the subarray relevant to the face being projected
-		struct = np.roll(self.str_arr,-dir)[face_ind]
-		shape = struct.shape
+		roll_pos = np.roll(init_pos,dir)
+		struct = np.moveaxis(self.str_arr,init_pos,roll_pos)[face_ind]
 		rshape = np.roll(np.array(self.rshape),-dir)[1:]
+		shape = struct.shape
 		
 		#Project vertices
 		b_vts = struct['baked_vertices']
@@ -91,9 +93,9 @@ class BaseBlockStruct(object):
 		#Project edges
 		edges = np.roll(struct['edges'],-dir,axis=-1)[...,1:]
 		edge_mask = np.roll(struct['edge_mask'],-dir,axis=-1)[...,1:]
-		for s in range(2):
-			for j in range(shape[0]):
-				for k in range(shape[1]):
+		for j in range(shape[0]):
+			for k in range(shape[1]):
+				for s in range(2):
 					edge = edges[j,k,s]
 					if (not edge_mask[j,k,s]) and isinstance(edge, ProjectionEdge):
 						edge.proj_geom(geometry)
@@ -161,7 +163,6 @@ class BaseBlockStruct(object):
 		shape = self.shape
 		
 		rshape = self.rshape
-		init_pos = np.arange(3)
 		for s in range(3):
 			roll_pos = np.roll(init_pos,s)
 			
