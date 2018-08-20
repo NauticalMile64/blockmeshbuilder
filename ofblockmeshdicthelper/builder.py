@@ -252,6 +252,8 @@ class TubeBlockStruct(BaseBlockStruct):
 		
 		BaseBlockStruct.write(self, block_mesh_dict)
 
+dummy_vertex = Vertex(0,0,0)
+dummy_proj_edge = ProjectionEdge([dummy_vertex,dummy_vertex])
 
 class CylBlockStructContainer(object):
 	
@@ -276,14 +278,11 @@ class CylBlockStructContainer(object):
 		
 		core_b_vts = self.core_struct['baked_vertices']
 		tube_b_vts = self.tube_struct['baked_vertices']
-		core_edges = self.core_struct['edges']
-		core_edges = self.core_struct['edges']
 		
 		#Connect the outer tube structure to the core
 		tInds = np.arange(ts.size-1).reshape(4,Ng-1)
 		
 		for s in range(4):
-			np.rot90(core_b_vts,k=-s)[:-1,0,:] = tube_b_vts[0,tInds[s],:]
 			np.rot90(core_b_vts,k=-s)[:-1,0,:] = tube_b_vts[0,tInds[s],:]
 	
 	def write(self,block_mesh_dict):
@@ -298,6 +297,7 @@ class CylBlockStructContainer(object):
 			vts = tube['vertices'][0]
 			b_vts = tube['baked_vertices'][0]
 			edge_mask = tube['edge_mask'][0,...,1]
+			tube['edges'][0,...,1:] = dummy_proj_edge
 			
 			for ind in np.ndindex(shp[1:]):
 				
