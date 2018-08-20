@@ -4,8 +4,6 @@ from __future__ import unicode_literals, print_function
 from six import string_types
 from math import sin,cos
 
-#This is a test comment
-
 import io
 
 def cart_to_cart(crds):
@@ -159,7 +157,13 @@ class Face(object):
 			proj_str = 'project '
 			geom_name = self.proj_g.name
 		
-		return f'{proj_str}({index:s}) {geom_name}// {self.name:s} ({com:s})'
+		res_str = f'{proj_str}({index:s}) {geom_name}// {self.name:s} ({com:s})'
+		
+		# If either vertex has not been included in any blocks the edge is meaningless
+		if 'None' in index:
+			res_str = '// ' + res_str
+		
+		return res_str
 
 
 class GradingElement(object):
