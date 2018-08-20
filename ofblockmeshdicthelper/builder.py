@@ -139,12 +139,17 @@ class BaseBlockStruct(object):
 	
 	def write(self,block_mesh_dict):
 		
-		#Not very elegant right now, maybe I'll replace these loops with something more pythonic later
+		#Reset block_mask edge
+		bmask = self['block_mask']
+		bmask[-1] = True
+		bmask[:,-1] = True
+		bmask[:,:,-1] = True
+		
 		for i in range(self.rshape[0]):
 			for j in range(self.rshape[1]):
 				for k in range(self.rshape[2]):
 					
-					if not self['block_mask'][i,j,k]:
+					if not bmask[i,j,k]:
 						#Get subarray
 						blockData = self[i:i+2,j:j+2,k:k+2]
 						
@@ -161,11 +166,12 @@ class BaseBlockStruct(object):
 		
 		#write relevant edges and faces
 		shape = self.shape
-		
 		rshape = self.rshape
+		
 		for s in range(3):
 			roll_pos = np.roll(init_pos,s)
 			
+			d_bmask = np.moveaxis(bmask,init_pos,roll_pos)
 			d_edges = np.moveaxis(self['edges'][...,s],init_pos,roll_pos)
 			d_faces = np.moveaxis(self['faces'][...,s],init_pos,roll_pos)
 			
@@ -173,14 +179,24 @@ class BaseBlockStruct(object):
 				for j in range(shape[(s+1)%3]):
 					for k in range(shape[(s+2)%3]):
 						edge = d_edges[i,j,k]
-						if edge.is_relevant():
+						
+						if not edge.is_relevant():
+							continue
+						
+						lmsk = d_bmask[i,max(j-1,0):j+1,max(k-1,0):k+1]
+						if not np.all(lmsk):
 							block_mesh_dict.add_edge(edge)
 			
 			for i in range(shape[s]):
 				for j in range(rshape[(s+1)%3]):
 					for k in range(rshape[(s+2)%3]):
 						face = d_faces[i,j,k]
-						if face.is_projected():
+						
+						if not face.is_projected():
+							continue
+						
+						lmsk = d_bmask[max(i-1,0):i+1,j,k]
+						if not np.all(lmsk):
 							block_mesh_dict.add_face(face)
 	
 	#Default to underlying structured array
