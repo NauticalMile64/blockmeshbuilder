@@ -1,7 +1,7 @@
 #Builds a structured O-grid mesh
 
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, CylBlockStructContainer
+from ofblockmeshdicthelper import BlockMeshDict, CylBlockStructContainer, Boundary
 
 bmd = BlockMeshDict()
 bmd.set_metric('mm')
@@ -14,9 +14,13 @@ ndr = np.full_like(rs,6)
 ndt = np.full_like(ts,6)
 ndz = np.full_like(zs,8)
 
-tube = CylBlockStructContainer(rs,ts,zs,ndr,ndt,ndz,'ts')
+cyl = CylBlockStructContainer(rs,ts,zs,ndr,ndt,ndz,'ts')
 
-tube.write(bmd)
+wall_faces = cyl.tube_struct['faces'][-1,:-1,:-1,0].flatten()
+wall_bnd = Boundary('patch', 'wall', faces=wall_faces)
+bmd.add_boundary(wall_bnd)
+
+cyl.write(bmd)
 
 with open(r'OF_case/system/blockMeshDict','w') as infile:
 	infile.write(bmd.format())
