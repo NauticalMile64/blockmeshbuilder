@@ -235,8 +235,8 @@ class TubeBlockStruct(BaseBlockStruct):
 		b_vts = self['baked_vertices']
 		
 		cyls  = {}
-		s_pt = Point([0,0,vts[0,0,0,2]-0.1])
-		e_pt = Point([0,0,vts[0,0,-1,2]+0.1])
+		s_pt = Point([0,0,-1e5])
+		e_pt = Point([0,0,1e5])
 		for i,r in np.ndenumerate(np.unique(vts[...,0])):
 			cyl = Cylinder(s_pt,e_pt,r,f'{self.name}-blockcyl-{i}')
 			cyls[r] = cyl
