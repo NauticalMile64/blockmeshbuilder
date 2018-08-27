@@ -3,7 +3,9 @@
 from __future__ import unicode_literals, print_function
 from six import string_types
 import numpy as np
+from numpy.linalg import norm
 from numpy import sin,cos
+import quaternion as qt
 
 import io
 
@@ -15,10 +17,14 @@ def cyl_to_cart(crds):
 	ncrds[0],ncrds[1] = crds[0]*cos(crds[1]),crds[0]*sin(crds[1])
 	return ncrds
 
+def qt_from_axis_angle(axis, angle):
+	return qt.from_rotation_vector(angle*axis/norm(axis))
+
 class Point(object):
-	def __init__(self, crds, conv_func=cart_to_cart):
+	def __init__(self, crds, conv_func=cart_to_cart, quat=None):
 		self.crds = crds if isinstance(crds,np.ndarray) else np.array(crds)
 		self.conv_func = conv_func
+		self.quat = quat
 	
 	def format(self):
 		ccrds = self.conv_func(self.crds)
