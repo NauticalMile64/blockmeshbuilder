@@ -29,6 +29,12 @@ class BaseBlockStruct(object):
 		#Assume x0,x1,x2 are ascending 1D numpy arrays with dtype=np.float32, minimum 2 elements each
 		#n0,n1,n2 are 1D numpy arrays of the number of divisions in each direction
 		
+		for x in [x0,x1,x2]:
+			less_zero = np.diff(x) < 0.0
+			if np.any(less_zero):
+				print('ERROR -- A dimension array is in non-ascending order. Blocks will be inside out.')
+				print(less_zero)
+		
 		shape = (x0.size,x1.size,x2.size)
 		self.str_arr = np.empty(shape,dtype=struct_type)
 		self.rshape = rshape = (shape[0]-1,shape[1]-1,shape[2]-1)
@@ -253,7 +259,7 @@ class TubeBlockStruct(BaseBlockStruct):
 		BaseBlockStruct.write(self, block_mesh_dict)
 
 dummy_vertex = Vertex(0,0,0)
-dummy_edge = Edge([dummy_vertex,dummy_vertex],name = 'dummy')
+dummy_edge = Edge([dummy_vertex]*2,name = 'dummy')
 
 class CylBlockStructContainer(object):
 	
