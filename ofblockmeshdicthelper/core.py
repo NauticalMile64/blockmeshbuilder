@@ -61,14 +61,6 @@ class Point(object):
 			return self.crds[1]
 		elif name == 'z':
 			return self.crds[2]
-	
-	def __setattr__(self, name, value):
-		if name == 'x':
-			self.crds[0] = value
-		elif name == 'y':
-			self.crds[1] = value
-		elif name == 'z':
-			self.crds[2] = value
 
 
 class Projectable(object):
