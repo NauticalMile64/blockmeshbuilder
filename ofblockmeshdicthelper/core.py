@@ -26,20 +26,29 @@ class Point(object):
 	def __lt__(self, rhs):
 		return (self.z, self.y, self.x) < (rhs.z, rhs.y, rhs.z)
 	
+	def __neg__(self):
+		return Point([-self.x, -self.y, -self.z], self.conv_func)
+	
 	def __add__(self, rhs):
-		return Point([self.x + rhs.x, self.y + rhs.y, self.z + rhs.z],self.conv_func)
+		return Point([self.x + rhs.x, self.y + rhs.y, self.z + rhs.z], self.conv_func)
 	
 	def __sub__(self, rhs):
-		return Point([self.x - rhs.x, self.y - rhs.y, self.z - rhs.z],self.conv_func)
+		return Point([self.x - rhs.x, self.y - rhs.y, self.z - rhs.z], self.conv_func)
 	
 	def __mul__(self, rhs):
-		return Point([self.x*rhs, self.y*rhs, self.z*rhs],self.conv_func)
+		return Point([self.x*rhs, self.y*rhs, self.z*rhs], self.conv_func)
+	
+	def __rmul__(self, lhs):
+		return self*lhs
 	
 	def __truediv__(self, rhs):
-		return Point([self.x/rhs, self.y/rhs, self.z/rhs],self.conv_func)
+		return Point([self.x/rhs, self.y/rhs, self.z/rhs], self.conv_func)
 	
 	def __getitem__(self, key):
 		return self.crds[key]
+		
+	def __setitem__(self, key, value):
+		self.crds[key] = value
 	
 	def __getattr__(self, name):
 		if name == 'x':
@@ -48,6 +57,14 @@ class Point(object):
 			return self.crds[1]
 		elif name == 'z':
 			return self.crds[2]
+	
+	def __setattr__(self, name, value):
+		if name == 'x':
+			self.crds[0] = value
+		elif name == 'y':
+			self.crds[1] = value
+		elif name == 'z':
+			self.crds[2] = value
 
 
 class Projectable(object):
