@@ -2,7 +2,8 @@
 # for compatibility with Py2.7
 from __future__ import unicode_literals, print_function
 from six import string_types
-from math import sin,cos
+import numpy as np
+from numpy import sin,cos
 
 import io
 
@@ -16,7 +17,7 @@ def cyl_to_cart(crds):
 
 class Point(object):
 	def __init__(self, crds, conv_func=cart_to_cart):
-		self.crds = crds
+		self.crds = crds if isinstance(crds,np.ndarray) else np.array(crds)
 		self.conv_func = conv_func
 	
 	def format(self):
@@ -30,22 +31,22 @@ class Point(object):
 		return lhs < self
 	
 	def __neg__(self):
-		return Point([-self.x, -self.y, -self.z], self.conv_func)
+		return Point(-self.crds, self.conv_func)
 	
 	def __add__(self, rhs):
-		return Point([self.x + rhs.x, self.y + rhs.y, self.z + rhs.z], self.conv_func)
+		return Point(self.crds + rhs.crds, self.conv_func)
 	
 	def __sub__(self, rhs):
-		return Point([self.x - rhs.x, self.y - rhs.y, self.z - rhs.z], self.conv_func)
+		return Point(self.crds - rhs.crds, self.conv_func)
 	
 	def __mul__(self, rhs):
-		return Point([self.x*rhs, self.y*rhs, self.z*rhs], self.conv_func)
+		return Point(self.crds*rhs, self.conv_func)
 	
 	def __rmul__(self, lhs):
 		return self*lhs
 	
 	def __truediv__(self, rhs):
-		return Point([self.x/rhs, self.y/rhs, self.z/rhs], self.conv_func)
+		return Point(self.crds/rhs, self.conv_func)
 	
 	def __getitem__(self, key):
 		return self.crds[key]
