@@ -26,6 +26,9 @@ class Point(object):
 	def __lt__(self, rhs):
 		return (self.z, self.y, self.x) < (rhs.z, rhs.y, rhs.z)
 	
+	def __gt__(self, lhs):
+		return lhs < self
+	
 	def __neg__(self):
 		return Point([-self.x, -self.y, -self.z], self.conv_func)
 	
