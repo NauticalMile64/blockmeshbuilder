@@ -248,9 +248,16 @@ class TubeBlockStruct(BaseBlockStruct):
 			cyls[r] = cyl
 			block_mesh_dict.add_geometry(cyl)
 		
-		edges = self['edges'][...,1]
+		b_vts = self['baked_vertices']
 		proj_rcrds = self['vertices'][...,0]
+		edges = self['edges'][...,1]
 		edge_mask = self['edge_mask'][...,1]
+		
+		for ind in np.ndindex(shp):
+			vt = b_vts[ind]
+			if vt is not None:
+				vt.proj_geom(cyls[proj_rcrds[ind]])
+		
 		for ind in np.ndindex(edges.shape):
 			edge = edges[ind]
 			if (not edge_mask[ind]) and isinstance(edge, ProjectionEdge):
