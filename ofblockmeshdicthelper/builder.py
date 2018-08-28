@@ -251,18 +251,39 @@ class TubeBlockStruct(BaseBlockStruct):
 		b_vts = self['baked_vertices']
 		vertex_mask = self['vertex_mask']
 		proj_rcrds = self['vertices'][...,0]
-		edges = self['edges'][...,1]
-		edge_mask = self['edge_mask'][...,1]
 		
 		for ind in np.ndindex(shp):
 			if not vertex_mask[ind]:
 				b_vts[ind].proj_geom(cyls[proj_rcrds[ind]])
 		
-		for ind in np.ndindex(edges.shape):
-			edge = edges[ind]
-			if (not edge_mask[ind]) and isinstance(edge, ProjectionEdge):
-				edge.proj_geom(cyls[proj_rcrds[ind]])
+		edges = self['edges']
+		edge_mask = self['edge_mask']
+		r_faces = self['faces'][...,0]
+		r_face_mask = self['face_mask'][...,0]
+		acrds = self['vertices'][...,1]
 		
+		#Test and see if the axial edges need to be projected
+		a_edges = edges[...,2]
+		a_edge_mask = edge_mask[...,2]
+		c_edges = edges[...,1]
+		c_edge_mask = edge_mask[...,1]
+		
+		for ind in np.ndindex(shape):
+			
+			a_edge = a_edges[ind]
+			if (not a_edge_mask[ind]) and isinstance(a_edge, ProjectionEdge):
+				nind = ((ind[0],ind[1],ind[2]+1))
+				if a_edge.is_relevant() or (not np.allclose(acrds[ind],acrds[nind])):
+					a_edge.proj_geom(cyls[proj_rcrds[ind]])
+			
+			r_face = r_faces[ind]
+			if r_face and (not r_face_mask[ind]) and (not r_face.is_projected()):
+				r_face.proj_geom(cyls[proj_rcrds[ind]])
+			
+			c_edge = c_edges[ind]
+			if (not c_edge_mask[ind]) and isinstance(c_edge, ProjectionEdge):
+				c_edge.proj_geom(cyls[proj_rcrds[ind]])
+			
 		BaseBlockStruct.write(self, block_mesh_dict)
 
 dummy_vertex = Vertex(0,0,0)

@@ -16,6 +16,9 @@ ndz = np.full_like(zs,8)
 
 cyl = CylBlockStructContainer(rs,ts,zs,ndr,ndt,ndz,'ts')
 
+#Twist the block structure
+cyl.tube_struct['vertices'][-1,:-1,-1,1] += 3*np.pi/16
+
 wall_faces = cyl.tube_struct['faces'][-1,:-1,:-1,0].flatten()
 wall_bnd = Boundary('patch', 'wall', faces=wall_faces)
 bmd.add_boundary(wall_bnd)
