@@ -249,14 +249,14 @@ class TubeBlockStruct(BaseBlockStruct):
 			block_mesh_dict.add_geometry(cyl)
 		
 		b_vts = self['baked_vertices']
+		vertex_mask = self['vertex_mask']
 		proj_rcrds = self['vertices'][...,0]
 		edges = self['edges'][...,1]
 		edge_mask = self['edge_mask'][...,1]
 		
 		for ind in np.ndindex(shp):
-			vt = b_vts[ind]
-			if vt is not None:
-				vt.proj_geom(cyls[proj_rcrds[ind]])
+			if not vertex_mask[ind]:
+				b_vts[ind].proj_geom(cyls[proj_rcrds[ind]])
 		
 		for ind in np.ndindex(edges.shape):
 			edge = edges[ind]
