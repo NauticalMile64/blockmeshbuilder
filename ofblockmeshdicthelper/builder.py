@@ -276,9 +276,9 @@ class TubeBlockStruct(BaseBlockStruct):
 				if a_edge.is_relevant() or (not np.allclose(acrds[ind],acrds[nind])):
 					a_edge.proj_geom(cyls[proj_rcrds[ind]])
 			
-			r_face = r_faces[ind]
-			if r_face and (not r_face_mask[ind]) and (not r_face.is_projected()):
-				r_face.proj_geom(cyls[proj_rcrds[ind]])
+			#r_face = r_faces[ind]
+			#if r_face and (not r_face_mask[ind]) and (not r_face.is_projected()):
+			#	r_face.proj_geom(cyls[proj_rcrds[ind]])
 			
 			c_edge = c_edges[ind]
 			if (not c_edge_mask[ind]) and isinstance(c_edge, ProjectionEdge):
