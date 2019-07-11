@@ -2,8 +2,8 @@ from .core import *
 
 import numpy as np
 
-headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces', 'block_mask', 'vertex_mask', 'edge_mask', 'face_mask']
-formats = ['3f4','3u4','3O','O','3O','3O','?','?','3?','3?']
+headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces', 'block_mask', 'vertex_mask', 'edge_mask', 'face_mask', 'zones']
+formats = ['3f4','3u4','3O','O','3O','3O','?','?','3?','3?','U10']
 struct_type = np.dtype({'names' : headers, 'formats' : formats})
 
 init_pos = np.arange(3)
@@ -23,9 +23,10 @@ def np_cart_to_cyl(crds):
 	ncrds[...,1] = np.arctan2(crds[...,1],crds[...,0])
 	return ncrds
 
+DEFAULT_ZONE = 'DEFAULT'
 class BaseBlockStruct(object):
 	
-	def __init__(self, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, name=''):
+	def __init__(self, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, zone=DEFAULT_ZONE):
 		#Assume x0,x1,x2 are ascending 1D numpy arrays with dtype=np.float32, minimum 2 elements each
 		#n0,n1,n2 are 1D numpy arrays of the number of divisions in each direction
 		
@@ -79,7 +80,7 @@ class BaseBlockStruct(object):
 					for k in range(rshape[(s+2)%3]):
 						d_faces[i,j,k] = Face(d_vts[i,j:j+2,k:k+2])
 		
-		self.name = name
+		self['zones'][:] = zone
 	
 	def project_structure(self, dir, face_ind, geometry):
 		
@@ -166,8 +167,9 @@ class BaseBlockStruct(object):
 						
 						vts = self._get_block_vertices(blockData['baked_vertices'])
 						
-						block_name = f'{self.name}-{i}-{j}-{k}'
-						block = HexBlock(vts, nd, block_name, grading)
+						block_zone = blockData['zones'][0,0,0]
+						
+						block = HexBlock(vts, nd, block_zone, grading)
 						block_mesh_dict.add_hexblock(block)
 		
 		#write relevant edges and faces
@@ -219,12 +221,12 @@ class CartBlockStruct(BaseBlockStruct):
 
 class TubeBlockStruct(BaseBlockStruct):
 	
-	def __init__(self, rs, ts, zs, nr, nt, nz, name='', is_complete=False):
+	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', is_complete=False):
 		
 		if is_complete and ~np.isclose(wrapRadians(ts[0]),wrapRadians(ts[-1])):
 			print(f'WARNING -- TubeBlockStruct {name} is marked as complete, while the first and last angles are unequal; make sure these are separated by 2*pi')
 		
-		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, cyl_to_cart, name)
+		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone)
 		
 		b_vts = self['baked_vertices']
 		if is_complete:
@@ -244,7 +246,7 @@ class TubeBlockStruct(BaseBlockStruct):
 		s_pt = Point([0,0,-1e5])
 		e_pt = Point([0,0,1e5])
 		for i,r in np.ndenumerate(np.unique(vts[...,0])):
-			cyl = Cylinder(s_pt,e_pt,r,f'{self.name}-blockcyl-{i}')
+			cyl = Cylinder(s_pt,e_pt,r,f'blockcyl-{i}')
 			cyls[r] = cyl
 			block_mesh_dict.add_geometry(cyl)
 		
@@ -291,9 +293,9 @@ dummy_edge = Edge([dummy_vertex]*2,name = 'dummy')
 
 class CylBlockStructContainer(object):
 	
-	def __init__(self, rs, ts, zs, nr, nt, nz, name='', inner_arc_comp=0.25):
+	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', inner_arc_comp=0.25):
 		
-		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, name=name+'-tube', is_complete=True)
+		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone=zone, is_complete=True)
 		
 		self.inner_arc_comp = inner_arc_comp
 		Ng = ((ts.size-1) // 4) + 1 #Assume integer number of divisions
@@ -304,7 +306,7 @@ class CylBlockStructContainer(object):
 		nx = nt[:Ng].copy()
 		ny = nt[Ng:2*Ng].copy()
 		
-		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, name=name+'-core')
+		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, zone=zone)
 		
 		cyl_vts = np_cart_to_cyl(self.core_struct['vertices'])
 		cyl_vts[...,1] -= 5/4*np.pi

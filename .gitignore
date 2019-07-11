@@ -41,7 +41,10 @@ nosetests.xml
 coverage.xml
 
 tests/OF_case/constant
-tests/OF_case/system/blockMeshDict
+tests/OF_case/system
+tests/OF_case/0
+tests/OF_case/fluentInterface
+tests/OF_case/.setSet
 
 # Translations
 *.mo

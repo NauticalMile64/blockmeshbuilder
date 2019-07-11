@@ -14,7 +14,7 @@ ndr = np.full_like(rs,6)
 ndt = np.full_like(ts,6)
 ndz = np.full_like(zs,8)
 
-cyl = CylBlockStructContainer(rs,ts,zs,ndr,ndt,ndz,'ts')
+cyl = CylBlockStructContainer(rs,ts,zs,ndr,ndt,ndz,zone='ts')
 
 #Twist the block structure
 cyl.tube_struct['vertices'][-1,:-1,-1,1] += 3*np.pi/16
