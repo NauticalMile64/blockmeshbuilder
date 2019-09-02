@@ -293,7 +293,7 @@ dummy_edge = Edge([dummy_vertex]*2,name = 'dummy')
 
 class CylBlockStructContainer(object):
 	
-	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', inner_arc_comp=0.25):
+	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', inner_arc_comp=0.25, eighth_twist=False):
 		
 		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone=zone, is_complete=True)
 		
@@ -309,7 +309,13 @@ class CylBlockStructContainer(object):
 		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, zone=zone)
 		
 		cyl_vts = np_cart_to_cyl(self.core_struct['vertices'])
-		cyl_vts[...,1] -= 5/4*np.pi
+		
+		#If the o-grid is to be rotated by 45 degrees
+		if eighth_twist:
+			cyl_vts[...,1] -= np.pi
+		else:
+			cyl_vts[...,1] -= 5/4*np.pi
+		
 		self.core_struct['vertices'][:] = np_cyl_to_cart(cyl_vts)
 		
 		core_b_vts = self.core_struct['baked_vertices']
@@ -318,8 +324,11 @@ class CylBlockStructContainer(object):
 		#Connect the outer tube structure to the core
 		tInds = np.arange(ts.size-1).reshape(4,Ng-1)
 		
+		if eighth_twist:
+			tInds = np.roll(tInds,-(Ng-1)//2)
+		
 		for s in range(4):
-			np.rot90(core_b_vts,k=-s)[:-1,0,:] = tube_b_vts[0,tInds[s],:]
+				np.rot90(core_b_vts,k=-s)[:-1,0,:] = tube_b_vts[0,tInds[s],:]
 	
 	def write(self,block_mesh_dict):
 		

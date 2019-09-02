@@ -7,14 +7,14 @@ bmd = BlockMeshDict()
 bmd.set_metric('mm')
 
 rs = np.array([0.3,0.6,1.0])
-ts = np.linspace(0,2*np.pi,9,endpoint=True)
+ts = np.linspace(0,2*np.pi,9,endpoint=True) #Try 8*n+1 for any positive integer n (e.g. 9,17, etc...)
 zs = np.array([0.0,0.5,1.5])
 
 ndr = np.full_like(rs,6)
 ndt = np.full_like(ts,6)
 ndz = np.full_like(zs,8)
 
-cyl = CylBlockStructContainer(rs,ts,zs,ndr,ndt,ndz,zone='ts')
+cyl = CylBlockStructContainer(rs,ts,zs,ndr,ndt,ndz,zone='ts',eighth_twist=True)
 
 #Twist the block structure
 cyl.tube_struct['vertices'][-1,:-1,-1,1] += 3*np.pi/16
