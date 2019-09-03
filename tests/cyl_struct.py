@@ -1,7 +1,7 @@
 #Builds a structured O-grid mesh
 
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, CylBlockStructContainer, Boundary
+from ofblockmeshdicthelper import BlockMeshDict, CylBlockStructContainer, Boundary, SimpleGradingElement
 
 bmd = BlockMeshDict()
 bmd.set_metric('mm')
@@ -15,6 +15,8 @@ ndt = np.full_like(ts,6)
 ndz = np.full_like(zs,8)
 
 cyl = CylBlockStructContainer(rs,ts,zs,ndr,ndt,ndz,zone='ts',eighth_twist=True)
+
+cyl.tube_struct['grading'][0,0,:,1] = SimpleGradingElement(3)
 
 #Twist the block structure
 cyl.tube_struct['vertices'][-1,:-1,-1,1] += 3*np.pi/16
