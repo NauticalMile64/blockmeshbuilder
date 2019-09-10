@@ -7,7 +7,7 @@ bmd = BlockMeshDict()
 bmd.set_metric('mm')
 
 is_complete = True
-rs = np.array([0.5,0.8,1.0])
+rs = np.array([0.,0.5,0.8,1.0])
 ts = np.linspace(0,2*np.pi,9,endpoint=is_complete)
 zs = np.array([0.0,0.5,1.5,2.0])
 

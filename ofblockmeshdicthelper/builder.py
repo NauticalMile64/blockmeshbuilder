@@ -223,8 +223,11 @@ class TubeBlockStruct(BaseBlockStruct):
 	
 	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', is_complete=False):
 		
+		if np.any(rs < 0):
+			print(f'WARNING -- Negative values detected in TubeBlockStruct rs array. This could yield unexpected results')
+		
 		if is_complete and ~np.isclose(wrapRadians(ts[0]),wrapRadians(ts[-1])):
-			print(f'WARNING -- TubeBlockStruct {name} is marked as complete, while the first and last angles are unequal; make sure these are separated by 2*pi')
+			print(f'WARNING -- TubeBlockStruct in zone {zone} is marked as complete, while the first and last angles are unequal; make sure these are separated by 2*pi')
 		
 		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone)
 		
@@ -242,10 +245,23 @@ class TubeBlockStruct(BaseBlockStruct):
 		vts = self['vertices']
 		b_vts = self['baked_vertices']
 		
-		cyls  = {}
+		isR0 = np.isclose(vts[0,...,0],0.)
+		
+		if np.all(isR0):
+			b_vts[0] = b_vts[0,0]
+			self['face_mask'][0,...,0] = True
+			self['edge_mask'][0,...,1] = True
+		elif np.any(isR0):
+			print(f'WARNING -- TubeBlockStruct in zone {self.zone} is has some but not all inner radii = 0')
+		
+		cyls = {}
 		s_pt = Point([0,0,-1e5])
 		e_pt = Point([0,0,1e5])
 		for i,r in np.ndenumerate(np.unique(vts[...,0])):
+			
+			if np.isclose(r,0.):
+				pass
+			
 			cyl = Cylinder(s_pt,e_pt,r,f'blockcyl-{i}')
 			cyls[r] = cyl
 			block_mesh_dict.add_geometry(cyl)
@@ -296,6 +312,9 @@ class CylBlockStructContainer(object):
 	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', inner_arc_comp=0.25, eighth_twist=False):
 		
 		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone=zone, is_complete=True)
+		
+		if np.isclose(rs[0],0.):
+			print(f'ERROR -- CylBlockStructContainer in zone {zone} has an inner tube radius of {rs[0]}, such that an o-grid cannot be accomodated. Consider using TubeBlockStruct instead.')
 		
 		self.inner_arc_comp = inner_arc_comp
 		Ng = ((ts.size-1) // 4) + 1 #Assume integer number of divisions
