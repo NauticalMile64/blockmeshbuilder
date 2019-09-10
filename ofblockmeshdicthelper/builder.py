@@ -328,8 +328,8 @@ class CylBlockStructContainer(object):
 			tInds = np.roll(tInds,-(Ng-1)//2)
 		
 		for s in range(4):
-				#np.rot90(core_b_vts,k=-s)[:-1,0,:] = tube_b_vts[0,tInds[s],:]
-				tube_b_vts[0,tInds[s],:] = np.rot90(core_b_vts,k=-s)[:-1,0,:]
+			np.rot90(core_b_vts,k=-s)[:-1,0,:] = tube_b_vts[0,tInds[s],:]
+			#tube_b_vts[0,tInds[s],:] = np.rot90(core_b_vts,k=-s)[:-1,0,:]
 	
 	def write(self,block_mesh_dict):
 		
