@@ -271,7 +271,7 @@ class TubeBlockStruct(BaseBlockStruct):
 		proj_rcrds = self['vertices'][...,0]
 		
 		for ind in np.ndindex(shp):
-			if not vertex_mask[ind]:
+			if not (vertex_mask[ind] or np.isclose(proj_rcrds[ind],0.)):
 				b_vts[ind].proj_geom(cyls[proj_rcrds[ind]])
 		
 		edges = self['edges']
