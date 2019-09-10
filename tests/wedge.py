@@ -2,9 +2,9 @@
 Reproduce the wedge shown at
 https://openfoamwiki.net/index.php/Main_ContribExamples/AxiSymmetric
 """
-
+import numpy as np
 from math import radians
-from ofblockmeshdicthelper import BlockMeshDict, Vertex, HexBlock, Boundary, cyl_to_cart
+from ofblockmeshdicthelper import BlockMeshDict, TubeBlockStruct, Boundary
 
 # wedge dimensions
 wd = radians(10.0)
@@ -18,29 +18,25 @@ bmd = BlockMeshDict()
 # set metrics
 bmd.set_metric('mm')
 
-# Base points
-b_vs = [Vertex([0.,0.,0.],cyl_to_cart,'p0'),
-		Vertex([r,wd/2,0.],cyl_to_cart,name = 'p1'),
-		Vertex([r,-wd/2,0.],cyl_to_cart,name = 'p2'),
-		Vertex([0.,0.,l],cyl_to_cart,name = 'p3'),
-		Vertex([r,wd/2,l],cyl_to_cart,name = 'p4'),
-		Vertex([r,-wd/2,l],cyl_to_cart,name = 'p5')]
+rs = np.array([0,r])
+ts = np.array([-wd/2,wd/2])
+zs = np.array([0,1])
 
-#Number of divisions along each direction
-nds = (10, 1, 10)
+nr = np.array([10])
+nt = np.array([1])
+nz = np.array([10])
 
-block_name = 'wedge_block'
-block = HexBlock((b_vs[0],b_vs[2],b_vs[1],b_vs[0],
-					b_vs[3],b_vs[5],b_vs[4],b_vs[3]),
-					nds,block_name)
-bmd.add_hexblock(block)
+wedge = TubeBlockStruct(rs,ts,zs,nr,nt,nz,'wedge')
+wFaces = wedge['faces']
 
 #Front and back boundaries
-front_bnd = Boundary('patch', 'front', faces = [block.get_face('s')])
+front_bnd = Boundary('patch', 'front', faces = [wFaces[0,0,0,2]])
 bmd.add_boundary(front_bnd)
 
-back_bnd = Boundary('patch', 'back', faces = [block.get_face('n')])
+back_bnd = Boundary('patch', 'back', faces = [wFaces[0,0,1,2]])
 bmd.add_boundary(back_bnd)
+
+wedge.write(bmd)
 
 # output
 with open(r'OF_case/system/blockMeshDict','w') as infile:
