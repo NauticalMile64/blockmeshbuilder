@@ -1,7 +1,7 @@
 #Creates a sample structured mesh in cartesian co-ordinates
 
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, SimpleGradingElement, Cylinder, Point
+from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, SimpleGradingElement, MultiGradingElement, getGradingInfo, Cylinder, Point
 
 bmd = BlockMeshDict()	#Create a container to hold the objects
 
@@ -12,7 +12,7 @@ xs = np.linspace(0.,1.,4)
 ys = np.linspace(0.,1.,3)
 zs = np.linspace(0.,0.3,3)
 
-ndx = np.array([8,6,8,0])
+ndx = np.array([8,12,8,0])
 ndy = np.array([8,8,0])
 ndz = np.array([6,6,0])
 
@@ -38,6 +38,20 @@ GD[:,1,:,1] = SimpleGradingElement(3.)
 #All edges in the first and third columns of blocks graded in the x-direction
 GD[0,:,:,0] = SimpleGradingElement(1.0/3)
 GD[2,:,:,0] = SimpleGradingElement(3.)
+
+#We can also add more complicated grading to the x-direction of the blocks in the second column
+
+#Divide the x-edges of the block into 3 chunks: the first chunk is the first 20% of the length, the second is the next 60%, and the last chunk is the final 20%.
+len_pcts = np.array([0.2,0.6,0.2])
+
+#Now assign the grid densities at the boundaries of each of the chunks: at the beginning, the grid is densest with a relative value of 2.5. At the end of chunk 1 (20% of the block edge length), the grid density is reduced to 1. At the end of chunk 2 (80% of the length), the grid density is still 1, so the grid density is uniform through the second chunk. Finally we increase the density again at the right edge of the block so the grid is refined towards the boundary.
+dens = np.array([2.5,1.,1.,2.])
+
+#We create a MulitGradingElement from this information, using the getGradingInfo helper function to translate this information into the length percent, cell percent, and expansion ratios expected by blockMesh
+grd_elm = MultiGradingElement(*getGradingInfo(len_pcts,dens))
+
+#Assign the grading element to the blocks in the second column and the x-direction
+GD[1,:,:,0] = grd_elm
 
 #Remove the block at the (1,0,0) index. Notice 3 indices are needed, this time since blocks don't have an explicit position.
 test_struct['block_mask'][1,0,:] = True

@@ -243,6 +243,12 @@ class EdgeGrading(Grading):
 	def format(self):
 		return Grading.format(self).format('edge')
 
+#Helper function
+def getGradingInfo(len_pcts,dens):
+	cum_lens = np.insert(np.cumsum(len_pcts),0,0.0)
+	adens = np.array([np.trapz(dens[s:s+2],cum_lens[s:s+2]) for s in range(len_pcts.size)])
+	exp_ratios = np.divide(dens[:-1],dens[1:])
+	return len_pcts, adens, exp_ratios
 
 uniformGradingElement = SimpleGradingElement(1)
 uniformGrading = SimpleGrading([uniformGradingElement]*3)
