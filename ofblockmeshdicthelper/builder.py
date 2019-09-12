@@ -232,8 +232,33 @@ class TubeBlockStruct(BaseBlockStruct):
 		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone)
 		
 		b_vts = self['baked_vertices']
+		edges = self['edges']
+		faces = self['faces']
+		rshape = self.rshape
+		
 		if is_complete:
 			b_vts[:,-1] = b_vts[:,0]
+		
+		self.is_full = np.isclose(rs[0],0.)
+		
+		#Re-assign vertices, edges, and faces at the axis of the tube
+		if self.is_full:
+			b_vts[0] = b_vts[0,0]
+			self['face_mask'][0,...,0] = True
+			self['edge_mask'][0,...,1] = True
+			
+			for j in range(rshape[1]+1):
+				for k in range(rshape[2]+1):
+					edges[0,j,k,0] = ProjectionEdge(b_vts[0:2,j,k])
+			
+			for j in range(rshape[1]+1):
+				for k in range(rshape[2]):
+					faces[0,j,k,1] = Face(b_vts[0:2,j,k:k+2])
+		
+		#Re-assign last edges and faces in the circumferential direction to be the same as the first ones
+		if is_complete:
+			edges[:,-1,:,[0,2]] = edges[:,0,:,[0,2]]
+			faces[:,-1,:,1] = faces[:,0,:,1]
 		
 		self.is_complete = is_complete
 	
@@ -247,12 +272,8 @@ class TubeBlockStruct(BaseBlockStruct):
 		
 		isR0 = np.isclose(vts[0,...,0],0.)
 		
-		if np.all(isR0):
-			b_vts[0] = b_vts[0,0]
-			self['face_mask'][0,...,0] = True
-			self['edge_mask'][0,...,1] = True
-		elif np.any(isR0):
-			print(f'WARNING -- TubeBlockStruct in zone {self.zone} is has some but not all inner radii = 0')
+		if self.is_full and not np.all(isR0):
+			print(f'WARNING -- When initialized, the inner radii in TubeBlockStruct in zone {self.zone} were set to 0, but some were changed before writing. The nodes along the centerline of the tube may not be positioned as expected.')
 		
 		cyls = {}
 		s_pt = Point([0,0,-1e5])
