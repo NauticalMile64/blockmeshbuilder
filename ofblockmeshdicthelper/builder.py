@@ -255,11 +255,6 @@ class TubeBlockStruct(BaseBlockStruct):
 				for k in range(rshape[2]):
 					faces[0,j,k,1] = Face(b_vts[0:2,j,k:k+2])
 		
-		#Re-assign last edges and faces in the circumferential direction to be the same as the first ones
-		if is_complete:
-			edges[:,-1,:,[0,2]] = edges[:,0,:,[0,2]]
-			faces[:,-1,:,1] = faces[:,0,:,1]
-		
 		self.is_complete = is_complete
 	
 	def write(self, block_mesh_dict):
@@ -286,6 +281,11 @@ class TubeBlockStruct(BaseBlockStruct):
 			cyl = Cylinder(s_pt,e_pt,r,f'blockcyl-{i}')
 			cyls[r] = cyl
 			block_mesh_dict.add_geometry(cyl)
+		
+		#Mask axial and radial edges as well as circumferential faces so no redundant edges or faces are written to file
+		if self.is_complete:
+			self['edge_mask'][:,-1,:,[0,2]] = True
+			self['face_mask'][:,-1,:,1] = True
 		
 		b_vts = self['baked_vertices']
 		vertex_mask = self['vertex_mask']
