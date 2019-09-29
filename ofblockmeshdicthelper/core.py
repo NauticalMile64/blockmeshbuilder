@@ -220,7 +220,7 @@ class MultiGradingElement(GradingElement):
 		self.exp_ratios = exp_ratios
 	
 	def format(self):
-		return '({})'.format(' '.join(f'({lp} {nc} {ex})' 
+		return '({})'.format(' '.join(f'({lp:.4f} {nc:.4f} {ex:.4f})' 
 				for lp,nc,ex in zip(self.len_pcts, self.cell_pcts, self.exp_ratios)))
 
 

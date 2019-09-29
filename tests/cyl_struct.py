@@ -1,7 +1,7 @@
 #Builds a structured O-grid mesh
 
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, CylBlockStructContainer, Boundary, SimpleGradingElement
+from ofblockmeshdicthelper import BlockMeshDict, CylBlockStructContainer, Boundary, SimpleGradingElement, MultiGradingElement, getGradingInfo
 
 bmd = BlockMeshDict()
 bmd.set_metric('mm')
@@ -20,6 +20,13 @@ cyl.tube_struct['grading'][0,0,:,1] = SimpleGradingElement(3)
 
 #Twist the block structure
 cyl.tube_struct['vertices'][-1,:-1,-1,1] += 3*np.pi/16
+
+#Attempt to reduce the o-grid inclusion angle through precise grading
+len_pcts = np.array([0.2,0.6,0.2])
+dens = np.array([2.0,1.,1.,2.0])
+grd_elm = MultiGradingElement(*getGradingInfo(len_pcts,dens))
+t_grad[0,:,:,1] = grd_elm
+c_grad[:,:,:,[0,1]] = grd_elm
 
 wall_faces = cyl.tube_struct['faces'][-1,:-1,:-1,0].flatten()
 wall_bnd = Boundary('patch', 'wall', faces=wall_faces)
