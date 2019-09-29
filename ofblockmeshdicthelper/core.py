@@ -17,6 +17,12 @@ def cyl_to_cart(crds):
 	ncrds[0],ncrds[1] = crds[0]*cos(crds[1]),crds[0]*sin(crds[1])
 	return ncrds
 
+def cart_to_cyl(crds):
+	ncrds = crds.copy()
+	ncrds[0] = np.sqrt(crds[0]**2 + crds[1]**2)
+	ncrds[1] = np.arctan2(crds[1],crds[0])
+	return ncrds
+
 def qt_from_axis_angle(axis, angle):
 	return qt.from_rotation_vector(angle*axis/norm(axis))
 

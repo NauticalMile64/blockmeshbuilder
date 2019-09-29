@@ -368,14 +368,18 @@ class CylBlockStructContainer(object):
 			tInds = np.roll(tInds,-(Ng-1)//2)
 		
 		for s in range(4):
-			np.rot90(core_b_vts,k=-s)[:-1,0,:] = tube_b_vts[0,tInds[s],:]
-			#tube_b_vts[0,tInds[s],:] = np.rot90(core_b_vts,k=-s)[:-1,0,:]
+			tube_b_vts[0,tInds[s],:] = np.rot90(core_b_vts,k=-s)[:-1,0,:]
+		
+		tube_b_vts[0,-1,:] = tube_b_vts[0,0,:]
 	
 	def write(self,block_mesh_dict):
 		
+		self.tube_struct['face_mask'][0,:,:,0] = True
+		self.tube_struct['vertex_mask'][0,:,:] = True
+		
 		iac = self.inner_arc_comp
+		
 		if not np.isclose(iac,1.0):
-			
 			tube = self.tube_struct
 			shape = tube.shape
 			shp = tuple((shape[0],shape[1]-1,shape[2]))
@@ -390,12 +394,23 @@ class CylBlockStructContainer(object):
 				if edge_mask[ind]:
 					continue
 				
-				end_pts = vts[ind[0]:ind[0]+2,ind[1]]
 				end_vts = b_vts[ind[0]:ind[0]+2,ind[1]]
-				mid_pt = Point((end_pts[0] + end_pts[1])/2,cyl_to_cart)
-				sweep_angle = (end_pts[1,1] - end_pts[0,1])/2
-				mid_pt.crds[0] *= iac*np.cos(sweep_angle) + (1-iac)
+				
+				new_pt = (end_vts[0] + end_vts[1])/2
+				mid_crds = cart_to_cyl(new_pt.crds)
+				str_crds = cart_to_cyl(end_vts[0].crds)
+				end_crds = cart_to_cyl(end_vts[1].crds)
+				
+				if str_crds[1] > end_crds[1]:
+					end_crds[1] += 2*np.pi
+				
+				sweep_angle = (end_crds[1] - str_crds[1])/2
+				mid_crds[0] = str_crds[0]*(iac*np.cos(sweep_angle) + (1-iac))
+				mid_pt = Point(mid_crds,cyl_to_cart)
 				block_mesh_dict.add_edge(ArcEdge(end_vts,mid_pt))
+		
+		else:
+			self.tube_struct['edge_mask'][0,:,:,[1,2]] = True
 		
 		self.tube_struct.write(block_mesh_dict)
 		self.core_struct.write(block_mesh_dict)
