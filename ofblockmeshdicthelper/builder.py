@@ -216,8 +216,10 @@ class BaseBlockStruct(object):
 
 
 class CartBlockStruct(BaseBlockStruct):
-	pass
-
+	
+	def __init__(self, xs, ys, zs, nx, ny, nz, zone=''):
+		
+		BaseBlockStruct.__init__(self, xs, ys ,zs, nx, ny, nz, cart_to_cart, zone)
 
 class TubeBlockStruct(BaseBlockStruct):
 	
