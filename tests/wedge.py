@@ -11,8 +11,7 @@ wd = radians(10.0)
 r = 0.19
 l = 1.1
 
-# prepare ofblockmeshdicthelper.BlockMeshDict instance to
-# gather vertices, blocks, faces and boundaries.
+# prepare ofblockmeshdicthelper.BlockMeshDict instance to gather vertices, blocks, faces and boundaries.
 bmd = BlockMeshDict()
 
 # set metrics
