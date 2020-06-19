@@ -145,7 +145,6 @@ class Sphere(Geometry):
 				'radius' : f'{self.radius:18.15g}'
 			})
 
-
 class Cylinder(Geometry):
 	def __init__(self, point1, point2, radius, name):
 		Geometry.__init__(self, name)
@@ -159,6 +158,27 @@ class Cylinder(Geometry):
 				'point1' : self.point1.format(),
 				'point2' : self.point2.format(),
 				'radius' : f'{self.radius:18.15g}'
+			})
+
+class Cone(Geometry):
+	def __init__(self, point1, point2, radius1, radius2, innerRadius1, innerRadius2, name):
+		Geometry.__init__(self, name)
+		self.point1 = point1
+		self.point2 = point2
+		self.radius1 = radius1
+		self.radius2 = radius2
+		self.innerRadius1 = innerRadius1
+		self.innerRadius2 = innerRadius2
+	
+	def format(self):
+		return Geometry.format(self,'searchableCone',
+			{
+				'point1' : self.point1.format(),
+				'point2' : self.point2.format(),
+				'radius1' : f'{self.radius1:18.15g}',
+				'radius2' : f'{self.radius2:18.15g}',
+				'innerRadius1' : f'{self.innerRadius1:18.15g}',
+				'innerRadius2' : f'{self.innerRadius2:18.15g}'
 			})
 
 
