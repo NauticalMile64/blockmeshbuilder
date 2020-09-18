@@ -45,7 +45,7 @@ cavity['zones'][2,2,0] = 'solid_zone'
 
 cavity.write(bmd)
 
-lid_faces = cavity['faces'][:-1,0,:-1,1].flatten()
+lid_faces = cavity['faces'][:-1,-1,:-1,1].flatten()
 bot_bnd = Boundary('patch', 'lid', faces=lid_faces)
 bmd.add_boundary(bot_bnd)
 
