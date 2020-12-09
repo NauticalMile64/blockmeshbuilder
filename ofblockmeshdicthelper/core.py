@@ -1,13 +1,18 @@
 # -*- coding: future_fstrings -*-
 # for compatibility with Py2.7
-from __future__ import unicode_literals, print_function
+from __future__ import print_function
+
+from sys import version_info
+if version_info[0] == 2:
+    from StringIO import StringIO
+else:
+    from io import StringIO
+
 from six import string_types
 import numpy as np
 from numpy.linalg import norm
 from numpy import sin,cos
 import quaternion as qt
-
-import io
 
 def cart_to_cart(crds):
 	return crds.copy()
@@ -87,7 +92,7 @@ class Point(object):
 
 class Projectable(object):
 	def __init__(self, geometries=[]):
-		self.proj_g = geometries.copy()
+		self.proj_g = list(geometries)
 	
 	def proj_geom(self, geometry):
 		self.proj_g.append(geometry)
@@ -120,7 +125,7 @@ class Geometry(object):
 		self.name = name
 	
 	def format(self,type,data_dict):
-		buf = io.StringIO()
+		buf = StringIO()
 		
 		buf.write(self.name)
 		buf.write('\n\t{')
@@ -387,7 +392,7 @@ class SplineEdge(Edge):
 		self.points = points
 	
 	def format(self):
-		buf = io.StringIO()
+		buf = StringIO()
 		
 		buf.write(Edge.format(self).format('spline',''))
 		buf.write('\n     (\n')
@@ -420,7 +425,7 @@ class Boundary(object):
 		self.faces.append(face)
 	
 	def format(self):
-		buf = io.StringIO()
+		buf = StringIO()
 
 		buf.write(self.name + '\n')
 		buf.write('{\n')
@@ -434,7 +439,7 @@ class Boundary(object):
 		return buf.getvalue()
 
 def _format_section(name, secList):
-	buf = io.StringIO()
+	buf = StringIO()
 	if name == 'geometry':
 		brackets = ['{','}']
 	else:
