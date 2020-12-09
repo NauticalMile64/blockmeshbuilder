@@ -13,7 +13,7 @@ blockMeshDict files contain lists of geometries, blocks, faces, etc... which all
 
 Installation
 ---
-Clone this repository and run setup.py
+Clone this repository and execute `python -m pip install .` for the regular installation, or `python -m pip install -e .` for developer mode.
 
 Example
 ---
