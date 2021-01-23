@@ -271,7 +271,6 @@ class TubeBlockStruct(BaseBlockStruct):
 		shp = tuple((shape[0], shape[1] - 1, shape[2]))
 
 		vts = self['vertices']
-		b_vts = self['baked_vertices']
 
 		isR0 = np.isclose(vts[0, ..., 0], 0.)
 
@@ -320,7 +319,7 @@ class TubeBlockStruct(BaseBlockStruct):
 
 			a_edge = a_edges[ind]
 			if (not a_edge_mask[ind]) and isinstance(a_edge, ProjectionEdge):
-				nind = ((ind[0], ind[1], ind[2] + 1))
+				nind = (ind[0], ind[1], ind[2] + 1)
 				if a_edge.is_relevant() or (not np.allclose(acrds[ind], acrds[nind])):
 					a_edge.proj_geom(cyls[proj_rcrds[ind]])
 
@@ -337,11 +336,17 @@ class TubeBlockStruct(BaseBlockStruct):
 
 dummy_vertex = Vertex(0, 0, 0)
 dummy_edge = Edge([dummy_vertex] * 2, name='dummy')
+_drt2 = 1. / np.sqrt(2)
 
 
 class CylBlockStructContainer(object):
 
-	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', inner_arc_comp=0.25, eighth_twist=False):
+	# O-grid curvature offsets for core-oriented cylinders, and tube-oriented cylinders
+	og_core_vectors = np.array([Point([0, -1, 0]), Point([1, 0, 0]), Point([0, 1, 0]), Point([-1, 0, 0])])
+	og_tube_vectors = np.array([Point([_drt2, _drt2, 0]), Point([-_drt2, _drt2, 0]),
+			Point([-_drt2, -_drt2, 0]), Point([_drt2, -_drt2, 0])])
+
+	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', inner_arc_curve=0.25, is_core_aligned=True):
 
 		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone=zone, is_complete=True)
 
@@ -349,10 +354,12 @@ class CylBlockStructContainer(object):
 			print(
 				f'ERROR -- CylBlockStructContainer in zone {zone} has an inner tube radius of {rs[0]}, such that an o-grid cannot be accomodated. Consider using TubeBlockStruct instead.')
 
-		self.inner_arc_comp = inner_arc_comp
+		self.inner_arc_curve = inner_arc_curve
+		self.is_core_aligned = is_core_aligned
+
 		Ng = ((ts.size - 1) // 4) + 1  # Assume integer number of divisions
 
-		xs = np.linspace(-rs[0], rs[0], Ng)
+		xs = np.linspace(-rs[0], rs[0], Ng) * _drt2
 		ys = xs.copy()
 
 		nx = nt[:Ng].copy()
@@ -360,27 +367,21 @@ class CylBlockStructContainer(object):
 
 		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, zone=zone)
 
-		cyl_vts = np_cart_to_cyl(self.core_struct['vertices'])
-
-		# If the o-grid is to be rotated by 45 degrees
-		if eighth_twist:
-			cyl_vts[..., 1] -= np.pi
-		else:
+		if is_core_aligned:  # Rotate the tube to match the core
+			self.tube_struct['vertices'][..., 1] -= 3 / 4 * np.pi
+		else:  # Rotate the core to match the tube
+			cyl_vts = np_cart_to_cyl(self.core_struct['vertices'])
 			cyl_vts[..., 1] -= 5 / 4 * np.pi
-
-		self.core_struct['vertices'][:] = np_cyl_to_cart(cyl_vts)
+			self.core_struct['vertices'][:] = np_cyl_to_cart(cyl_vts)
 
 		core_b_vts = self.core_struct['baked_vertices']
 		tube_b_vts = self.tube_struct['baked_vertices']
 
 		# Connect the outer tube structure to the core
-		tInds = np.arange(ts.size - 1).reshape(4, Ng - 1)
-
-		if eighth_twist:
-			tInds = np.roll(tInds, -(Ng - 1) // 2)
+		tube_indices = np.arange(ts.size - 1).reshape(4, Ng - 1)
 
 		for s in range(4):
-			tube_b_vts[0, tInds[s], :] = np.rot90(core_b_vts, k=-s)[:-1, 0, :]
+			tube_b_vts[0, tube_indices[s], :] = np.rot90(core_b_vts, k=-s)[:-1, 0, :]
 
 		tube_b_vts[0, -1, :] = tube_b_vts[0, 0, :]
 
@@ -389,37 +390,48 @@ class CylBlockStructContainer(object):
 		self.tube_struct['face_mask'][0, :, :, 0] = True
 		self.tube_struct['vertex_mask'][0, :, :] = True
 
-		iac = self.inner_arc_comp
+		iac = self.inner_arc_curve
+		og_vectors = self.og_core_vectors if self.is_core_aligned else self.og_tube_vectors
 
-		if not np.isclose(iac, 1.0):
+		if not np.isclose(iac, 0.0):
 			tube = self.tube_struct
 			shape = tube.shape
-			shp = tuple((shape[0], shape[1] - 1, shape[2]))
 
-			vts = tube['vertices'][0]
-			b_vts = tube['baked_vertices'][0]
-			edge_mask = tube['edge_mask'][0, ..., 1]
+			tube_vts = tube['vertices'][0]
 			tube['edges'][0, ..., 1:] = dummy_edge
 
-			for ind in np.ndindex(shp[1:]):
+			core = self.core_struct
 
-				if edge_mask[ind]:
-					continue
+			# Create a dictionary of cylinder geometries of the innermost vertices on the tube struct
+			cyl_dict = {}
+			s_pt = Point([0, 0, -1e5])
+			e_pt = Point([0, 0, 1e5])
+			cyl_arr = np.empty((shape[2], 4), dtype=Cylinder)
+			for k, r in np.ndenumerate(tube_vts[0, :, 0]):
+				if r not in cyl_dict:
+					u = np.arctan(iac)
+					a = r * _drt2
+					r_cyl = a / np.sin(u)
+					offset = a * (1 / iac - 1)
+					offset_axes = og_vectors * offset
+					local_cyls = np.array([Cylinder(s_pt - offset_axes[i], e_pt - offset_axes[i],
+										r_cyl, f'o-grid-cyl-{r_cyl}-{i}') for i in range(4)])
+					cyl_dict[r] = local_cyls
+					for cyl in local_cyls:
+						block_mesh_dict.add_geometry(cyl)
 
-				end_vts = b_vts[ind[0]:ind[0] + 2, ind[1]]
+				cyl_arr[k] = cyl_dict[r]
 
-				new_pt = (end_vts[0] + end_vts[1]) / 2
-				mid_crds = cart_to_cyl(new_pt.crds)
-				str_crds = cart_to_cyl(end_vts[0].crds)
-				end_crds = cart_to_cyl(end_vts[1].crds)
+			# For each edge of the O-grid square
+			for s in range(4):
+				core_side_b_vts = np.rot90(core['baked_vertices'], k=-s)[:-1, 0, :]
+				core_side_edges = np.rot90(core['edges'], k=-s)[::np.sign(3 - (2 * s)), 0, :, s % 2][:-1]
 
-				if str_crds[1] > end_crds[1]:
-					end_crds[1] += 2 * np.pi
+				for index, core_vertex in np.ndenumerate(core_side_b_vts):
+					core_vertex.proj_geom(cyl_arr[index[1], s])
 
-				sweep_angle = (end_crds[1] - str_crds[1]) / 2
-				mid_crds[0] = str_crds[0] * (iac * np.cos(sweep_angle) + (1 - iac))
-				mid_pt = Point(mid_crds, cyl_to_cart)
-				block_mesh_dict.add_edge(ArcEdge(end_vts, mid_pt))
+				for index, edge in np.ndenumerate(core_side_edges):
+					edge.proj_geom(cyl_arr[index[1], s])
 
 		else:
 			self.tube_struct['edge_mask'][0, :, :, [1, 2]] = True
