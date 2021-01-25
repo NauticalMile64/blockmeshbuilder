@@ -130,9 +130,11 @@ class Vertex(Point, Projectable):
 
 
 class Geometry(object):
-	def __init__(self, name):
-		assert (name)
-		self.name = name
+	_unique_id = 0
+
+	def __init__(self, name=''):
+		self.name = f'{name}_id-{self._unique_id}'
+		Geometry._unique_id += 1
 
 	def format(self, geom_type, data_dict):
 		buf = StringIO()
