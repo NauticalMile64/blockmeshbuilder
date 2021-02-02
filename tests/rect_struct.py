@@ -2,7 +2,7 @@
 
 import numpy as np
 from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, SimpleGradingElement, MultiGradingElement, \
-	get_grading_info, Cylinder, Point
+	get_grading_info, Cylinder, Point, PlanePointAndNormal
 
 bmd = BlockMeshDict()  # Create a container to hold the objects
 
@@ -56,6 +56,14 @@ GD[1, :, :, 0] = grd_elm
 
 # Remove the block at the (1,0,0) index. Notice 3 indices are needed, this time since blocks don't have an explicit position.
 test_struct['block_mask'][1, 0, :] = True
+
+# Project the left side to a plane
+plane_point = Point([0., 0, 0.])
+plane_normal = Point([-1., -1., 0.])
+plane = PlanePointAndNormal(plane_point, plane_normal, 'plane')
+bmd.add_geometry(plane)
+
+test_struct.project_structure(0, 0, plane)
 
 # Create a cylinder geometry along the right hand side of the block structure
 vts = test_struct['vertices'][-1]
