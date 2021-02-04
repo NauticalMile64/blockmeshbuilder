@@ -539,7 +539,7 @@ class Boundary(object):
 		return buf.getvalue()
 
 
-def _format_section(name, secList):
+def _format_section(name, section_items):
 	buf = StringIO()
 	if name == 'geometry':
 		brackets = ['{', '}']
@@ -548,7 +548,7 @@ def _format_section(name, secList):
 
 	buf.write(f'{name}\n')
 	buf.write(f'{brackets[0]}\n')
-	for item in secList:
+	for item in section_items:
 		buf.write(f'    {item.format()}\n')
 	buf.write(f'{brackets[1]};')
 
