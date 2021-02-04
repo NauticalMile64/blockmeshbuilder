@@ -2,7 +2,7 @@
 
 import numpy as np
 from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, SimpleGradingElement, MultiGradingElement, \
-	get_grading_info, Cylinder, Point, PlanePointAndNormal
+	get_grading_info, Cylinder, Point, PlanePointAndNormal, BSplineCurvedEdge
 
 bmd = BlockMeshDict()  # Create a container to hold the objects
 
@@ -64,6 +64,21 @@ plane = PlanePointAndNormal(plane_point, plane_normal, 'plane')
 bmd.add_geometry(plane)
 
 test_struct.project_structure(0, 0, plane)
+
+# Create a spline edge 'awning' to top the 'doorway'
+vertices = test_struct['vertices']
+door_x_coordinates = vertices[1:3, 1, -1, 0]
+door_x_values = np.linspace(door_x_coordinates[0], door_x_coordinates[1], 5, endpoint=True)
+door_center = np.average(door_x_coordinates)
+
+door_top_spline_coords = np.tile(vertices[1, 1, -1], (5, 1))
+door_top_spline_coords[:, 0] = door_x_values
+norm_x = (door_x_values - door_center) * 2 / np.diff(door_x_coordinates)[0]
+door_top_spline_coords[:, 2] += 0.05 * (1.1 - norm_x**4)
+door_top_spline_pts = [Point(c) for c in door_top_spline_coords]
+
+door_top_baked_vts = test_struct['edges'][1, 1, -1, 0].vertices
+test_struct['edges'][1, 1, -1, 0] = BSplineCurvedEdge(door_top_baked_vts, door_top_spline_pts)
 
 # Create a cylinder geometry along the right hand side of the block structure
 vts = test_struct['vertices'][-1]

@@ -472,23 +472,35 @@ class ArcEdge(Edge):
 		return Edge.format(self).format('arc', self.arc_mid_point.format())
 
 
-class SplineEdge(Edge):
-	def __init__(self, vertices, points, name=''):
-		# http://www.openfoam.org/docs/user/mesh-description.php
+class CurvedEdge(Edge):
+	edge_type = 'Curved Edge Base Class'
 
+	def __init__(self, vertices, points, name=''):
 		Edge.__init__(self, vertices, name)
 		self.points = points
 
 	def format(self):
 		buf = StringIO()
 
-		buf.write(Edge.format(self).format('spline', ''))
+		buf.write(Edge.format(self).format(self.edge_type, ''))
 		buf.write('\n     (\n')
 		for p in self.points:
 			buf.write(f'         {p.format()}\n')
 		buf.write('\n     )\n')
 		buf.write('')
 		return buf.getvalue()
+
+
+class SplineCurvedEdge(CurvedEdge):
+	edge_type = 'spline'
+
+
+class PolyLineCurvedEdge(CurvedEdge):
+	edge_type = 'polyLine'
+
+
+class BSplineCurvedEdge(CurvedEdge):
+	edge_type = 'BSpline'
 
 
 class ProjectionEdge(Edge, Projectable):
