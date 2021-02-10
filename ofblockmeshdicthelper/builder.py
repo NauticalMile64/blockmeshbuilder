@@ -31,7 +31,7 @@ def np_cart_to_cyl(crds):
 class BaseBlockStruct(object):
 
 	def __init__(self, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, zone=DEFAULT_ZONE):
-		# Assume x0,x1,x2 are ascending 1D numpy arrays with dtype=np.float32, minimum 2 elements each
+		# Assume x0,x1,x2 are ascending array-like objects with one axis, minimum 2 elements each
 		# n0,n1,n2 are 1D numpy arrays of the number of divisions in each direction
 
 		for x in [x0, x1, x2]:
@@ -40,7 +40,7 @@ class BaseBlockStruct(object):
 				print('ERROR -- A dimension array is in non-ascending order. Blocks will be inside out.')
 				print(less_zero)
 
-		shape = (x0.size, x1.size, x2.size)
+		shape = (len(x0), len(x1), len(x2))
 		self.str_arr = np.empty(shape, dtype=struct_type)
 		self.rshape = rshape = (shape[0] - 1, shape[1] - 1, shape[2] - 1)
 
