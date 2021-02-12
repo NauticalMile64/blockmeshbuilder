@@ -39,7 +39,7 @@ def qt_from_axis_angle(axis, angle):
 
 class Point(object):
 	def __init__(self, crds, conv_func=cart_to_cart, quat=None):
-		self.crds = crds if isinstance(crds, np.ndarray) else np.array(crds)
+		self.crds = np.asarray(crds)
 		self.conv_func = conv_func
 		self.quat = quat
 
@@ -48,7 +48,7 @@ class Point(object):
 		return f'( {ccrds[0]:18.15g} {ccrds[1]:18.15g} {ccrds[2]:18.15g} )'
 
 	def __lt__(self, rhs):
-		return (self.z, self.y, self.x) < (rhs.z, rhs.y, rhs.z)
+		return (self[0], self[1], self[2]) < (rhs[0], rhs[1], rhs[2])
 
 	def __gt__(self, lhs):
 		return lhs < self
@@ -76,24 +76,6 @@ class Point(object):
 
 	def __setitem__(self, key, value):
 		self.crds[key] = value
-
-	def __getattr__(self, name):
-		if name == 'x':
-			return self.crds[0]
-		elif name == 'y':
-			return self.crds[1]
-		elif name == 'z':
-			return self.crds[2]
-
-	def __setattr__(self, name, value):
-		if name == 'x':
-			self.crds[0] = value
-		elif name == 'y':
-			self.crds[1] = value
-		elif name == 'z':
-			self.crds[2] = value
-		else:
-			object.__setattr__(self, name, value)
 
 
 class Projectable(object):
