@@ -8,6 +8,7 @@ formats = ['3f4', '3u4', '3O', 'O', '3O', '3O', '?', '?', '3?', '3?', 'U10']
 struct_type = np.dtype({'names': headers, 'formats': formats})
 DEFAULT_ZONE = 'DEFAULT'
 init_pos = np.arange(3)
+init_pos.setflags(write=False)
 
 
 def wrap_radians(values):
@@ -342,8 +343,10 @@ _drt2 = 1. / np.sqrt(2)
 class CylBlockStructContainer(object):
 	# O-grid curvature offsets for core-oriented cylinders, and tube-oriented cylinders
 	_og_core_vectors = np.array([Point([0, -1, 0]), Point([1, 0, 0]), Point([0, 1, 0]), Point([-1, 0, 0])])
+	_og_core_vectors.setflags(write=False)
 	_og_tube_vectors = np.array([Point([_drt2, _drt2, 0]), Point([-_drt2, _drt2, 0]),
 								Point([-_drt2, -_drt2, 0]), Point([_drt2, -_drt2, 0])])
+	_og_tube_vectors.setflags(write=False)
 
 	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', inner_arc_curve=0.25, is_core_aligned=True):
 
