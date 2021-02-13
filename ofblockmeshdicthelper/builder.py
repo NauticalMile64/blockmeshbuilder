@@ -335,7 +335,7 @@ class TubeBlockStruct(BaseBlockStruct):
 		BaseBlockStruct.write(self, block_mesh_dict)
 
 
-dummy_vertex = Vertex(0, 0, 0)
+dummy_vertex = Vertex((0, 0, 0))
 dummy_edge = Edge([dummy_vertex] * 2, name='dummy')
 _drt2 = 1. / np.sqrt(2)
 
