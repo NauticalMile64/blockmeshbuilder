@@ -39,7 +39,7 @@ def qt_from_axis_angle(axis, angle):
 
 class Point(object):
 	def __init__(self, crds, conv_func=cart_to_cart, quat=None):
-		self.crds = np.asarray(crds)
+		self.crds = np.asarray(crds, dtype=np.float64)
 		self.conv_func = conv_func
 		self.quat = quat
 
@@ -47,29 +47,61 @@ class Point(object):
 		ccrds = self.conv_func(self.crds)
 		return f'( {ccrds[0]:18.15g} {ccrds[1]:18.15g} {ccrds[2]:18.15g} )'
 
+	@staticmethod
+	def _get_oth_coordinates(rhs):
+		return rhs.crds if issubclass(type(rhs), Point) else rhs
+
+	def __add__(self, rhs):
+		return type(self)(self.crds + Point._get_oth_coordinates(rhs), self.conv_func)
+
+	def __radd__(self, lhs):
+		return self + lhs
+
+	def __sub__(self, rhs):
+		return type(self)(self.crds - Point._get_oth_coordinates(rhs), self.conv_func)
+
+	def __rsub__(self, lhs):
+		return type(self)(Point._get_oth_coordinates(lhs) - self.crds, self.conv_func)
+
+	def __mul__(self, rhs):
+		return type(self)(self.crds * Point._get_oth_coordinates(rhs), self.conv_func)
+
+	def __rmul__(self, lhs):
+		return self * lhs
+
+	def __pow__(self, rhs):
+		return type(self)(self.crds ** rhs, self.conv_func)
+
+	def __truediv__(self, rhs):
+		return type(self)(self.crds / Point._get_oth_coordinates(rhs), self.conv_func)
+
+	def __isub__(self, rhs):
+		self.crds -= Point._get_oth_coordinates(rhs)
+		return self
+
+	def __iadd__(self, rhs):
+		self.crds += Point._get_oth_coordinates(rhs)
+		return self
+
+	def __imul__(self, rhs):
+		self.crds *= Point._get_oth_coordinates(rhs)
+		return self
+
+	def __itruediv__(self, rhs):
+		self.crds /= Point._get_oth_coordinates(rhs)
+		return self
+
 	def __lt__(self, rhs):
-		return (self[0], self[1], self[2]) < (rhs[0], rhs[1], rhs[2])
+		return self.crds < self._get_oth_coordinates(rhs)
 
 	def __gt__(self, lhs):
 		return lhs < self
 
 	def __neg__(self):
-		return Point(-self.crds, self.conv_func)
+		return type(self)(-self.crds, self.conv_func)
 
-	def __add__(self, rhs):
-		return Point(self.crds + rhs.crds, self.conv_func)
-
-	def __sub__(self, rhs):
-		return Point(self.crds - rhs.crds, self.conv_func)
-
-	def __mul__(self, rhs):
-		return Point(self.crds * rhs, self.conv_func)
-
-	def __rmul__(self, lhs):
-		return self * lhs
-
-	def __truediv__(self, rhs):
-		return Point(self.crds / rhs, self.conv_func)
+	def __abs__(self):
+		return abs(self.crds)
 
 	def __getitem__(self, key):
 		return self.crds[key]
