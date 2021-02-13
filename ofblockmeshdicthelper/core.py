@@ -13,7 +13,6 @@ from six import string_types
 import numpy as np
 from numpy.linalg import norm
 from numpy import sin, cos
-import quaternion as qt
 
 
 def cart_to_cart(crds):
@@ -33,15 +32,10 @@ def cart_to_cyl(crds):
 	return ncrds
 
 
-def qt_from_axis_angle(axis, angle):
-	return qt.from_rotation_vector(angle * axis / norm(axis))
-
-
 class Point(object):
-	def __init__(self, crds, conv_func=cart_to_cart, quat=None):
+	def __init__(self, crds, conv_func=cart_to_cart):
 		self.crds = np.asarray(crds, dtype=np.float64)
 		self.conv_func = conv_func
-		self.quat = quat
 
 	def format(self):
 		ccrds = self.conv_func(self.crds)
