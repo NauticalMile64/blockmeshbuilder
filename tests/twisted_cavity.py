@@ -6,7 +6,7 @@ Two variations on the traditional lid-driven cavity have been implemented here:
 2. The center block has been assigned to a different zone (representing a solid square). These zones are not automatically incorperated into the final mesh using the blockMesh command. Therefore an additional step is required: after meshing, type the command `splitMeshRegions -cellZones -overwrite`
 """
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, SimpleGradingElement, Boundary
+from blockmeshbuilder import BlockMeshDict, CartBlockStruct, SimpleGradingElement, Boundary
 
 bmd = BlockMeshDict()
 bmd.set_metric('mm')

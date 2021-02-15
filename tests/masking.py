@@ -1,7 +1,7 @@
 # Creates a sample structured mesh in cartesian co-ordinates
 
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct
+from blockmeshbuilder import BlockMeshDict, CartBlockStruct
 
 bmd = BlockMeshDict()  # Create a container to hold the objects
 
@@ -39,7 +39,7 @@ i_struct['vertices'][:, :-2, :, 1] = f_struct['vertices'][-1, 2:, :, 1][np.newax
 # Mate the structures by setting the relevant vertex objects (or 'baked_vertices') equal to one another
 i_struct['baked_vertices'][0, :-2, :] = f_struct['baked_vertices'][-1, 2:, :]
 
-# When ofblockmeshdicthelper writes this blockMeshDict, it will use the same vertices, and therefore will identify
+# When blockmeshbuilder writes this blockMeshDict, it will use the same vertices, and therefore will identify
 # common edges and faces of the mated blocks, and treat them as a contiguous structure.
 
 # After the blocks are mated, the mated vertices are only modifiable through the f_struct.

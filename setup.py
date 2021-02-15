@@ -1,19 +1,19 @@
 import os
 from setuptools import setup, find_packages
 
-ver_file = os.path.join('ofblockmeshdicthelper', 'version.py')
+ver_file = os.path.join('blockmeshbuilder', 'version.py')
 vars = {}
 exec(open(ver_file).read(), vars)
 
 setup(
-	name='ofblockmeshdicthelper',
+	name='blockmeshbuilder',
 	version=vars['__version__'],
 	description='Helper utilities for OpenFOAM blockMeshDict generation.',
 	long_description=open('README.rst', 'rt').read(),
 	author='Nolan Dyck',
-	url='https://github.com/NauticalMile64/ofblockmeshdicthelper',
+	url='https://github.com/NauticalMile64/blockmeshbuilder',
 	packages=find_packages(),
-	package_dir={'ofblockmeshdicthelper': 'ofblockmeshdicthelper'},
+	package_dir={'blockmeshbuilder': 'blockmeshbuilder'},
 	install_requires=['six','future-fstrings','numpy'],
 	classifiers=[
 		"Programming Language :: Python",

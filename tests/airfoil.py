@@ -1,6 +1,6 @@
 import numpy as np
 from airfoil_points import NACA4
-from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, Point, \
+from blockmeshbuilder import BlockMeshDict, CartBlockStruct, Point, \
 	BSplineCurvedEdge, PolyLineCurvedEdge, SimpleGradingElement, MultiGradingElement, get_grading_info, Boundary
 import shapely.geometry as shp
 

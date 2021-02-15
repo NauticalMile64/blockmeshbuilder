@@ -4,13 +4,13 @@ https://openfoamwiki.net/index.php/Main_ContribExamples/AxiSymmetric
 """
 import numpy as np
 from math import radians
-from ofblockmeshdicthelper import BlockMeshDict, TubeBlockStruct, Boundary
+from blockmeshbuilder import BlockMeshDict, TubeBlockStruct, Boundary
 
 # wedge dimensions
 wd = radians(10.0)
 r = 0.19
 
-# prepare ofblockmeshdicthelper. BlockMeshDict instance to gather vertices, blocks, faces and boundaries.
+# prepare blockmeshbuilder. BlockMeshDict instance to gather vertices, blocks, faces and boundaries.
 bmd = BlockMeshDict()
 
 # set metrics

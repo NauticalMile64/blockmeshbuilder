@@ -1,7 +1,7 @@
 # Builds a structured O-grid mesh
 
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, CylBlockStructContainer, Boundary
+from blockmeshbuilder import BlockMeshDict, CylBlockStructContainer, Boundary
 
 bmd = BlockMeshDict()
 bmd.set_metric('mm')

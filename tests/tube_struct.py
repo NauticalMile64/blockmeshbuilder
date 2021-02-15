@@ -1,7 +1,7 @@
 # Builds a structured tube mesh
 
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, TubeBlockStruct
+from blockmeshbuilder import BlockMeshDict, TubeBlockStruct
 
 bmd = BlockMeshDict()
 bmd.set_metric('mm')

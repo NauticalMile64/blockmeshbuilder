@@ -1,7 +1,7 @@
 # Creates a sample structured mesh in cartesian co-ordinates
 
 import numpy as np
-from ofblockmeshdicthelper import BlockMeshDict, CartBlockStruct, SimpleGradingElement, MultiGradingElement, \
+from blockmeshbuilder import BlockMeshDict, CartBlockStruct, SimpleGradingElement, MultiGradingElement, \
 	get_grading_info, Cylinder, Point, PlanePointAndNormal, BSplineCurvedEdge
 
 bmd = BlockMeshDict()  # Create a container to hold the objects
