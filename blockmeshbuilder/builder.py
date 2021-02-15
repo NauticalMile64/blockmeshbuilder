@@ -4,7 +4,7 @@ import numpy as np
 
 headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces',
 		   'block_mask', 'vertex_mask', 'edge_mask', 'face_mask', 'zones']
-formats = ['3f4', '3u4', '3O', 'O', '3O', '3O', '?', '?', '3?', '3?', 'U10']
+formats = ['3f8', '3u4', '3O', 'O', '3O', '3O', '?', '?', '3?', '3?', 'U10']
 struct_type = np.dtype({'names': headers, 'formats': formats})
 DEFAULT_ZONE = 'DEFAULT'
 init_pos = np.arange(3)
