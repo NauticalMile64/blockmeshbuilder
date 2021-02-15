@@ -16,12 +16,15 @@ class NACA4:
 	def calculate_camber_line(self, x):
 		x = np.asarray(x)
 		m, p = self.foil[0], self.foil[1]
-		yc = np.asarray(2 * p * x - x ** 2)
-		sel_a = x <= p
-		yc[sel_a] *= m / p ** 2
-		sel_b = np.logical_not(sel_a)
-		yc[sel_b] = m / (1 - p) ** 2 * (1 - 2 * p + yc[sel_b])
-		return yc
+		if m:
+			yc = np.asarray(2 * p * x - x ** 2)
+			sel_a = x <= p
+			yc[sel_a] *= m / p ** 2
+			sel_b = np.logical_not(sel_a)
+			yc[sel_b] = m / (1 - p) ** 2 * (1 - 2 * p + yc[sel_b])
+			return yc
+		else:
+			return np.zeros_like(x)
 
 	def calculate_surface_points(self, x):
 		x = np.asarray(x)
