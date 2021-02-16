@@ -230,7 +230,7 @@ class TubeBlockStruct(BaseBlockStruct):
 
 	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', is_complete=False):
 
-		if np.any(rs < 0):
+		if np.any(np.asarray(rs) < 0):
 			print(
 				f'WARNING -- Negative values detected in TubeBlockStruct rs array. This could yield unexpected results')
 

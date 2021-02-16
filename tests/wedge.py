@@ -2,7 +2,6 @@
 Reproduce the wedge shown at
 https://openfoamwiki.net/index.php/Main_ContribExamples/AxiSymmetric
 """
-import numpy as np
 from math import radians
 from blockmeshbuilder import BlockMeshDict, TubeBlockStruct, Boundary
 
@@ -16,13 +15,13 @@ bmd = BlockMeshDict()
 # Set metrics
 bmd.set_metric('mm')
 
-rs = np.array([0, r])
-ts = np.array([-wd / 2, wd / 2])
-zs = np.array([0, 1])
+rs = [0, r]
+ts = [-wd / 2, wd / 2]
+zs = [0, 1]
 
-nr = np.array([10])
-nt = np.array([1])
-nz = np.array([10])
+nr = [10]
+nt = [1]
+nz = [10]
 
 wedge = TubeBlockStruct(rs, ts, zs, nr, nt, nz, 'wedge')
 wFaces = wedge['faces']
