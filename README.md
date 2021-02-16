@@ -67,6 +67,8 @@ In order to run blockmeshbuilder you will need a working installation of Python 
  - [numpy](https://numpy.org/)
  - six
 
+In addition, the airfoil example above relies on [`shapely`](https://pypi.org/project/Shapely/) to produce the outer boundary layer curve.
+
 Installation
 -----------------
 Clone this repository and execute `python -m pip install .` for the regular installation, or `python -m pip install -e .` for developer mode.

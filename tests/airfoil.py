@@ -5,7 +5,7 @@ from blockmeshbuilder import BlockMeshDict, CartBlockStruct, Point, \
 import shapely.geometry as shp
 
 # Airfoil shape and dimensions
-close_trailing_edge = True
+close_trailing_edge = False
 airfoil = NACA4((4, 4, 24), close_trailing_edge=close_trailing_edge)
 chord_length = 1.0
 num_chords_upstream = 1.5
@@ -97,10 +97,9 @@ te_struct = None
 if close_trailing_edge:
 	bl_struct['baked_vertices'][-1, [-1, -2]] = bl_struct['baked_vertices'][-1, [0, 1]]
 else:
-	te_struct = CartBlockStruct([0, 1], [0, 1], zs, [1, 0], [nx_downstream, 0], ndz)
+	te_struct = CartBlockStruct([0, 1], [0, 1], zs, [3, 0], [nx_downstream, 0], ndz)
 	te_struct['baked_vertices'][0] = bl_struct['baked_vertices'][-1, :2]
 	te_struct['baked_vertices'][-1] = bl_struct['baked_vertices'][-1, -2:][::-1]
-	te_struct.write(block_mesh_dict)
 
 # Create the far-field structure
 ff_xs = np.array([-num_chords_upstream, 0., 1., 1 + num_chords_downstream])
@@ -127,27 +126,41 @@ ff_struct['grading'][0, ..., 0] = MultiGradingElement(*get_grading_info(len_pcts
 ff_struct['grading'][:, 0, :, 1] = MultiGradingElement(*get_grading_info(len_pcts, dens))
 ff_struct['grading'][:, 2, :, 1] = MultiGradingElement(*get_grading_info(len_pcts[::-1], dens[::-1]))
 
-downstream_x_grading = MultiGradingElement(*get_grading_info(len_pcts[::-1], dens[::-1]))
-# ff_struct['grading'][-2, ..., 0] = downstream_x_grading
-# bl_struct['grading'][0, 0, :, 1] = downstream_x_grading
+# Define boundaries
+inlet_faces = ff_struct['faces'][0, :-1, :-1, 0].flatten()
+inlet_boundary = Boundary('patch', 'inlet', faces=inlet_faces)
+block_mesh_dict.add_boundary(inlet_boundary)
+
+outlet_faces0 = ff_struct['faces'][-1, [0, -2], :-1, 0].flatten().tolist()
+outlet_faces1 = bl_struct['faces'][0, [0, -1], :-1, 1].flatten().tolist()
+outlet_faces = outlet_faces0 + outlet_faces1
+if te_struct:
+	outlet_faces += te_struct['faces'][:-1, 0, :-1, 1].flatten().tolist()
+outlet_boundary = Boundary('patch', 'outlet', faces=outlet_faces)
+block_mesh_dict.add_boundary(outlet_boundary)
+
+airfoil_faces = bl_struct['faces'][-1, 1:-2, :-1, 0].flatten().tolist()
+airfoil_boundary = Boundary('patch', 'airfoil', faces=airfoil_faces)
+block_mesh_dict.add_boundary(airfoil_boundary)
 
 # Write the blocks to the blockMeshDict
 bl_struct.write(block_mesh_dict)
 ff_struct.write(block_mesh_dict)
-# if te_struct:
-# 	te_struct.write((block_mesh_dict))
+if te_struct:
+	te_struct.write(block_mesh_dict)
 
 # Write to file
 with open(r'OF_case/system/blockMeshDict', 'w') as infile:
 	infile.write(block_mesh_dict.format())
 
-import matplotlib.pyplot as plt
-
-plt.plot(*s_pts.T)
-plt.plot(*bl_pts.T)
-plt.scatter(*s_pts[[u_nose_index, l_nose_index]].T)
-plt.scatter(*bl_pts[[ub_nose_index, lb_nose_index]].T)
-ax = plt.gca()
-ax.set_aspect('equal')
-
-# plt.show()
+try:
+	import matplotlib.pyplot as plt
+	plt.plot(*s_pts.T)
+	plt.plot(*bl_pts.T)
+	plt.scatter(*s_pts[[u_nose_index, l_nose_index]].T)
+	plt.scatter(*bl_pts[[ub_nose_index, lb_nose_index]].T)
+	ax = plt.gca()
+	ax.set_aspect('equal')
+	plt.show()
+except ImportError:
+	pass
