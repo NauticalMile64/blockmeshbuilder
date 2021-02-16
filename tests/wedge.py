@@ -6,14 +6,14 @@ import numpy as np
 from math import radians
 from blockmeshbuilder import BlockMeshDict, TubeBlockStruct, Boundary
 
-# wedge dimensions
+# Wedge dimensions
 wd = radians(10.0)
 r = 0.19
 
-# prepare blockmeshbuilder. BlockMeshDict instance to gather vertices, blocks, faces and boundaries.
+# Prepare blockmeshbuilder to gather projection geometries, boundary faces, and block structures.
 bmd = BlockMeshDict()
 
-# set metrics
+# Set metrics
 bmd.set_metric('mm')
 
 rs = np.array([0, r])
@@ -36,6 +36,6 @@ bmd.add_boundary(back_bnd)
 
 wedge.write(bmd)
 
-# output
+# Output
 with open(r'OF_case/system/blockMeshDict', 'w') as infile:
 	infile.write(bmd.format())
