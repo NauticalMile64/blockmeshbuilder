@@ -11,7 +11,6 @@ else:
 
 from six import string_types
 import numpy as np
-from numpy.linalg import norm
 from numpy import sin, cos
 
 
