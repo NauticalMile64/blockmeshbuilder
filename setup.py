@@ -9,7 +9,7 @@ setup(
 	name='blockmeshbuilder',
 	version=vars['__version__'],
 	description='Helper utilities for OpenFOAM blockMeshDict generation.',
-	long_description=open('README.rst', 'rt').read(),
+	long_description=open('README.md', 'rt').read(),
 	author='Nolan Dyck',
 	url='https://github.com/NauticalMile64/blockmeshbuilder',
 	packages=find_packages(),
