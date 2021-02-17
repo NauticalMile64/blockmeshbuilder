@@ -40,11 +40,11 @@ htmlcov/
 nosetests.xml
 coverage.xml
 
-tests/OF_case/constant
-tests/OF_case/system
-tests/OF_case/0
-tests/OF_case/fluentInterface
-tests/OF_case/.setSet
+examples/OF_case/constant/
+examples/OF_case/system/blockMeshDict
+examples/OF_case/0
+examples/OF_case/fluentInterface
+examples/OF_case/.setSet
 
 # Translations
 *.mo
