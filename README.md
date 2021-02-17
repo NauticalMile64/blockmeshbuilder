@@ -2,7 +2,7 @@ blockmeshbuilder
 =============================
 This module enables users to concisely define and efficiently manipulate 3D block structures, for the purposes of creating hexahedral block-structured meshes for CFD.
 
-![NACA Airfoil Example](NACA_4424_mesh.png)
+![NACA Airfoil Example](images/NACA_4424_mesh.png)
 For example, the NACA 4424 airfoil mesh shown above comprises a boundary layer block structure 'wrapped' around the airfoil, and a far-field block structure. The [NACA airfoil code example](tests/airfoil.py) can be used directly to create a similar mesh for any NACA 4-digit airfoil, or easily modified to create a mesh for any other airfoil.
 
 How does it work?
@@ -54,7 +54,7 @@ with open(r'OF_case/system/blockMeshDict', 'w') as infile:
 
 After running the above code, which writes the blockMeshDict file into the system folder of an OpenFOAM case directory, run `blockMesh` to create the mesh. The mesh can be viewed using [Paraview](https://www.paraview.org/). 
 
-![wedge example](wedge_example.png)
+![wedge example](images/wedge_example.png)
 
 How is this better than writing the blockMeshDict file myself?
 --------------------------------------------------------------------
