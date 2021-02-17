@@ -105,9 +105,7 @@ class Point(object):
 
 class Projectable(object):
 	def __init__(self, geometries=None):
-		if geometries is None:
-			geometries = []
-		self.proj_g = list(geometries)
+		self.proj_g = list(geometries) if geometries else []
 
 	def proj_geom(self, geometry):
 		self.proj_g.append(geometry)
@@ -123,8 +121,6 @@ class Projectable(object):
 class Vertex(Point, Projectable):
 	def __init__(self, crds, conv_func=cart_to_cart, name='', geometries=None):
 		Point.__init__(self, crds, conv_func)
-		if geometries is None:
-			geometries = []
 		Projectable.__init__(self, geometries)
 		self.name = name
 		self.index = None
