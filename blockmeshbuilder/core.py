@@ -559,6 +559,16 @@ def _format_section(name, section_items):
 
 
 class BlockMeshDict(object):
+	metricsym_to_conversion = {
+		'km': 1000,
+		'm': 1,
+		'cm': 0.01,
+		'mm': 0.001,
+		'um': 1e-6,
+		'nm': 1e-9,
+		'A': 1e-10,
+		'Angstrom': 1e-10}
+
 	def __init__(self):
 		self.convert_to_meters = 1.0
 		self.blocks = []
@@ -568,16 +578,7 @@ class BlockMeshDict(object):
 		self.faces = []
 
 	def set_metric(self, metric):
-		metricsym_to_conversion = {
-			'km': 1000,
-			'm': 1,
-			'cm': 0.01,
-			'mm': 0.001,
-			'um': 1e-6,
-			'nm': 1e-9,
-			'A': 1e-10,
-			'Angstrom': 1e-10}
-		self.convert_to_meters = metricsym_to_conversion[metric]
+		self.convert_to_meters = self.metricsym_to_conversion[metric]
 
 	def add_hexblock(self, block):
 		self.blocks.append(block)
