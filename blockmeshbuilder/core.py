@@ -377,8 +377,16 @@ uniformGradingElement = SimpleGradingElement(1)
 uniformGrading = SimpleGrading([uniformGradingElement] * 3)
 
 
+class ZoneTag(object):
+	def __init__(self, name):
+		self.name = name
+
+
+DEFAULT_ZONE_TAG = ZoneTag('DEFAULT')
+
+
 class HexBlock(object):
-	def __init__(self, vertices, cells, name='', grading=uniformGrading):
+	def __init__(self, vertices, cells, zone_tag=DEFAULT_ZONE_TAG, grading=uniformGrading):
 		"""Initialize HexBlock instance
 		vnames is the vertex names in order described in
 			http://www.openfoam.org/docs/user/mesh-description.php
@@ -388,14 +396,15 @@ class HexBlock(object):
 		"""
 		self.vertices = vertices
 		self.cells = cells
-		self.name = name
+		self.zone_tag = zone_tag
 		self.grading = grading
 
 	def format(self):
 		index = ' '.join(str(v.index) for v in self.vertices)
 		vcom = ' '.join(v.name for v in self.vertices)
 		cls = self.cells
-		return f'hex ({index:s}) {self.name:s} ({cls[0]:d} {cls[1]:d} {cls[2]:d}) {self.grading.format():s}  // {self.name:s} ({vcom:s})'
+		zone_name = self.zone_tag.name
+		return f'hex ({index:s}) {zone_name:s} ({cls[0]:d} {cls[1]:d} {cls[2]:d}) {self.grading.format():s}  // {zone_name:s} ({vcom:s})'
 
 	def get_face(self, index, name=None):
 		"""Generate Face object

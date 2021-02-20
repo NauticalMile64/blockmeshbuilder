@@ -3,10 +3,9 @@ from .core import *
 import numpy as np
 
 headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces',
-		   'block_mask', 'vertex_mask', 'edge_mask', 'face_mask', 'zones', 'boundary_tags']
-formats = ['3f8', '3u4', '3O', 'O', '3O', '3O', '?', '?', '3?', '3?', 'U10', '3O']
+		   'block_mask', 'vertex_mask', 'edge_mask', 'face_mask', 'zone_tags', 'boundary_tags']
+formats = ['3f8', '3u4', '3O', 'O', '3O', '3O', '?', '?', '3?', '3?', 'O', '3O']
 struct_type = np.dtype({'names': headers, 'formats': formats})
-DEFAULT_ZONE = 'DEFAULT'
 init_pos = np.arange(3)
 init_pos.setflags(write=False)
 
@@ -31,7 +30,7 @@ def np_cart_to_cyl(crds):
 
 class BaseBlockStruct(object):
 
-	def __init__(self, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, zone=DEFAULT_ZONE):
+	def __init__(self, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, zone_tag=DEFAULT_ZONE_TAG):
 		# Assume x0,x1,x2 are ascending array-like objects with one axis, minimum 2 elements each
 		# n0,n1,n2 are 1D numpy arrays of the number of divisions in each direction
 
@@ -85,7 +84,7 @@ class BaseBlockStruct(object):
 					for k in range(rshape[(s + 2) % 3]):
 						d_faces[i, j, k] = Face(d_vts[i, j:j + 2, k:k + 2])
 
-		self['zones'][:] = zone
+		self['zone_tags'][:] = zone_tag
 
 	def project_structure(self, dir, face_ind, geometry):
 
@@ -172,9 +171,9 @@ class BaseBlockStruct(object):
 
 						vts = self._get_block_vertices(blockData['baked_vertices'])
 
-						block_zone = blockData['zones'][0, 0, 0]
+						block_zone_tag = blockData['zone_tags'][0, 0, 0]
 
-						block = HexBlock(vts, nd, block_zone, grading)
+						block = HexBlock(vts, nd, block_zone_tag, grading)
 						block_mesh_dict.add_hexblock(block)
 
 		# write relevant edges and faces
@@ -229,13 +228,13 @@ class BaseBlockStruct(object):
 
 class CartBlockStruct(BaseBlockStruct):
 
-	def __init__(self, xs, ys, zs, nx, ny, nz, zone=''):
-		BaseBlockStruct.__init__(self, xs, ys, zs, nx, ny, nz, cart_to_cart, zone)
+	def __init__(self, xs, ys, zs, nx, ny, nz, zone_tag=None):
+		BaseBlockStruct.__init__(self, xs, ys, zs, nx, ny, nz, cart_to_cart, zone_tag)
 
 
 class TubeBlockStruct(BaseBlockStruct):
 
-	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', is_complete=False):
+	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=None, is_complete=False):
 
 		if np.any(np.asarray(rs) < 0):
 			print(
@@ -243,9 +242,9 @@ class TubeBlockStruct(BaseBlockStruct):
 
 		if is_complete and ~np.isclose(wrap_radians(ts[0]), wrap_radians(ts[-1])):
 			print(
-				f'WARNING -- TubeBlockStruct in zone {zone} is marked as complete, while the first and last angles are unequal; make sure these are separated by 2*pi')
+				f'WARNING -- TubeBlockStruct in zone_tag {zone_tag} is marked as complete, while the first and last angles are unequal; make sure these are separated by 2*pi')
 
-		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone)
+		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone_tag)
 
 		b_vts = self['baked_vertices']
 		edges = self['edges']
@@ -284,7 +283,7 @@ class TubeBlockStruct(BaseBlockStruct):
 
 		if self.is_full and not np.all(isR0):
 			print(
-				f'WARNING -- When initialized, the inner radii in TubeBlockStruct in zone {self.zone} were set to 0, but some were changed before writing. The nodes along the centerline of the tube may not be positioned as expected.')
+				f'WARNING -- When initialized, the inner radii in TubeBlockStruct in zone_tag {self.zone_tag} were set to 0, but some were changed before writing. The nodes along the centerline of the tube may not be positioned as expected.')
 
 		cyls = {}
 		s_pt = Point([0, 0, -1e5])
@@ -355,13 +354,13 @@ class CylBlockStructContainer(object):
 								Point([-_drt2, -_drt2, 0]), Point([_drt2, -_drt2, 0])])
 	_og_tube_vectors.setflags(write=False)
 
-	def __init__(self, rs, ts, zs, nr, nt, nz, zone='', inner_arc_curve=0.25, is_core_aligned=True):
+	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=None, inner_arc_curve=0.25, is_core_aligned=True):
 
-		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone=zone, is_complete=True)
+		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag=zone_tag, is_complete=True)
 
 		if np.isclose(rs[0], 0.):
 			print(
-				f'ERROR -- CylBlockStructContainer in zone {zone} has an inner tube radius of {rs[0]}, such that an o-grid cannot be accomodated. Consider using TubeBlockStruct instead.')
+				f'ERROR -- CylBlockStructContainer in zone_tag {zone_tag} has an inner tube radius of {rs[0]}, such that an o-grid cannot be accomodated. Consider using TubeBlockStruct instead.')
 
 		self.inner_arc_curve = inner_arc_curve
 		self.is_core_aligned = is_core_aligned
@@ -374,7 +373,7 @@ class CylBlockStructContainer(object):
 		nx = nt[:Ng].copy()
 		ny = nt[Ng:2 * Ng].copy()
 
-		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, zone=zone)
+		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, zone_tag=zone_tag)
 
 		if is_core_aligned:  # Rotate the tube to match the core
 			self.tube_struct['vertices'][..., 1] -= 3 / 4 * np.pi
