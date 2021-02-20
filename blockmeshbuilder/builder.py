@@ -3,8 +3,8 @@ from .core import *
 import numpy as np
 
 headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces',
-		   'block_mask', 'vertex_mask', 'edge_mask', 'face_mask', 'zones']
-formats = ['3f8', '3u4', '3O', 'O', '3O', '3O', '?', '?', '3?', '3?', 'U10']
+		   'block_mask', 'vertex_mask', 'edge_mask', 'face_mask', 'zones', 'boundary_tags']
+formats = ['3f8', '3u4', '3O', 'O', '3O', '3O', '?', '?', '3?', '3?', 'U10', '3O']
 struct_type = np.dtype({'names': headers, 'formats': formats})
 DEFAULT_ZONE = 'DEFAULT'
 init_pos = np.arange(3)
@@ -187,6 +187,7 @@ class BaseBlockStruct(object):
 			d_bmask = np.moveaxis(bmask, init_pos, roll_pos)
 			d_edges = np.moveaxis(self['edges'][..., s], init_pos, roll_pos)
 			d_faces = np.moveaxis(self['faces'][..., s], init_pos, roll_pos)
+			d_boundary_tags = np.moveaxis(self['boundary_tags'][..., s], init_pos, roll_pos)
 
 			for i in range(rshape[s]):
 				for j in range(shape[(s + 1) % 3]):
@@ -205,12 +206,18 @@ class BaseBlockStruct(object):
 					for k in range(rshape[(s + 2) % 3]):
 						face = d_faces[i, j, k]
 
-						if not face.is_projected():
-							continue
-
 						lmsk = d_bmask[max(i - 1, 0):i + 1, j, k]
 						if not np.all(lmsk):
-							block_mesh_dict.add_face(face)
+
+							# TO DO: use actual Warnings to instead of print statements
+							if d_boundary_tags[i, j, k]:
+								if i > 0 and lmsk.sum() == 0:
+									print('WARNING -- Attempting to specify a boundary at an interior face')
+								else:
+									block_mesh_dict.add_boundary_face(d_boundary_tags[i, j, k], face)
+
+							if face.is_projected():
+								block_mesh_dict.add_face(face)
 
 	# Default to underlying structured array
 	def __getattr__(self, name):

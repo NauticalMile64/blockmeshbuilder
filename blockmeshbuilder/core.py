@@ -518,11 +518,17 @@ class ProjectionEdge(Edge, Projectable):
 		return Edge.format(self).format(*self.format_geom())
 
 
-class Boundary(object):
-	def __init__(self, type_, name, faces=[]):
+class BoundaryTag(object):
+	def __init__(self, name, type_='patch'):
 		self.type_ = type_
 		self.name = name
-		self.faces = faces
+
+
+class _Boundary(object):
+	def __init__(self, boundary_tag):
+		assert(isinstance(boundary_tag, BoundaryTag))
+		self.boundary_tag = boundary_tag
+		self.faces = []
 
 	def add_face(self, face):
 		self.faces.append(face)
@@ -530,9 +536,9 @@ class Boundary(object):
 	def format(self):
 		buf = StringIO()
 
-		buf.write(self.name + '\n')
+		buf.write(self.boundary_tag.name + '\n')
 		buf.write('{\n')
-		buf.write(f'    type {self.type_};\n')
+		buf.write(f'    type {self.boundary_tag.type_};\n')
 		buf.write('    faces\n')
 		buf.write('    (\n')
 		for f in self.faces:
@@ -573,7 +579,7 @@ class BlockMeshDict(object):
 		self.convert_to_meters = 1.0
 		self.blocks = []
 		self.edges = []
-		self.boundaries = []
+		self.boundaries = {}
 		self.geometries = []
 		self.faces = []
 
@@ -586,8 +592,11 @@ class BlockMeshDict(object):
 	def add_edge(self, edge):
 		self.edges.append(edge)
 
-	def add_boundary(self, boundary):
-		self.boundaries.append(boundary)
+	def add_boundary_face(self, boundary_tag, face):
+		if boundary_tag not in self.boundaries:
+			self.boundaries[boundary_tag] = _Boundary(boundary_tag)
+
+		self.boundaries[boundary_tag].add_face(face)
 
 	def add_geometry(self, geometry):
 		self.geometries.append(geometry)
@@ -632,7 +641,7 @@ convertToMeters {self.convert_to_meters};
 
 {_format_section('faces', self.faces)}
 
-{_format_section('boundary', self.boundaries)}
+{_format_section('boundary', list(self.boundaries.values()))}
 
 mergePatchPairs
 (

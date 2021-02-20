@@ -1,7 +1,7 @@
 import numpy as np
 from airfoil_points import NACA4
 from blockmeshbuilder import BlockMeshDict, CartBlockStruct, Point, \
-	BSplineCurvedEdge, PolyLineCurvedEdge, SimpleGradingElement, MultiGradingElement, get_grading_info, Boundary
+	BSplineCurvedEdge, PolyLineCurvedEdge, SimpleGradingElement, MultiGradingElement, get_grading_info, BoundaryTag
 import shapely.geometry as shp
 
 # Airfoil shape and dimensions
@@ -126,22 +126,16 @@ ff_struct['grading'][0, ..., 0] = MultiGradingElement(*get_grading_info(len_pcts
 ff_struct['grading'][:, 0, :, 1] = MultiGradingElement(*get_grading_info(len_pcts, dens))
 ff_struct['grading'][:, 2, :, 1] = MultiGradingElement(*get_grading_info(len_pcts[::-1], dens[::-1]))
 
-# Define boundaries
-inlet_faces = ff_struct['faces'][0, :-1, :-1, 0].flatten()
-inlet_boundary = Boundary('patch', 'inlet', faces=inlet_faces)
-block_mesh_dict.add_boundary(inlet_boundary)
+# Define boundary_tags
+ff_struct['boundary_tags'][0, ..., 0] = BoundaryTag('inlet')
 
-outlet_faces0 = ff_struct['faces'][-1, [0, -2], :-1, 0].flatten().tolist()
-outlet_faces1 = bl_struct['faces'][0, [0, -1], :-1, 1].flatten().tolist()
-outlet_faces = outlet_faces0 + outlet_faces1
+outlet_tag = BoundaryTag('outlet')
+ff_struct['boundary_tags'][-1, [0, -2], :, 0] = outlet_tag
+bl_struct['boundary_tags'][0, [0, -1], :, 1] = outlet_tag
 if te_struct:
-	outlet_faces += te_struct['faces'][:-1, 0, :-1, 1].flatten().tolist()
-outlet_boundary = Boundary('patch', 'outlet', faces=outlet_faces)
-block_mesh_dict.add_boundary(outlet_boundary)
+	te_struct['boundary_tags'][:, 0, :, 1] = outlet_tag
 
-airfoil_faces = bl_struct['faces'][-1, 1:-2, :-1, 0].flatten().tolist()
-airfoil_boundary = Boundary('patch', 'airfoil', faces=airfoil_faces)
-block_mesh_dict.add_boundary(airfoil_boundary)
+bl_struct['boundary_tags'][-1, 1:-2, :, 0] = BoundaryTag('wall-airfoil')
 
 # Write the blocks to the blockMeshDict
 bl_struct.write(block_mesh_dict)

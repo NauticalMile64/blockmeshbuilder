@@ -3,7 +3,7 @@ Reproduce the wedge shown at
 https://openfoamwiki.net/index.php/Main_ContribExamples/AxiSymmetric
 """
 from math import radians
-from blockmeshbuilder import BlockMeshDict, TubeBlockStruct, Boundary
+from blockmeshbuilder import BlockMeshDict, TubeBlockStruct, BoundaryTag
 
 # Wedge dimensions
 wd = radians(10.0)
@@ -26,12 +26,9 @@ nz = [10]
 wedge = TubeBlockStruct(rs, ts, zs, nr, nt, nz, 'wedge')
 wFaces = wedge['faces']
 
-# Front and back boundaries
-front_bnd = Boundary('patch', 'front', faces=[wFaces[0, 0, 0, 2]])
-bmd.add_boundary(front_bnd)
-
-back_bnd = Boundary('patch', 'back', faces=[wFaces[0, 0, 1, 2]])
-bmd.add_boundary(back_bnd)
+# Tag front and back boundaries
+wedge['boundary_tags'][..., 0, 2] = BoundaryTag('front')
+wedge['boundary_tags'][..., -1, 2] = BoundaryTag('back')
 
 wedge.write(bmd)
 

@@ -1,7 +1,7 @@
 # Builds a structured O-grid mesh
 
 import numpy as np
-from blockmeshbuilder import BlockMeshDict, CylBlockStructContainer, Boundary
+from blockmeshbuilder import BlockMeshDict, CylBlockStructContainer, BoundaryTag
 
 bmd = BlockMeshDict()
 bmd.set_metric('mm')
@@ -25,9 +25,7 @@ cyl.core_struct['vertices'][:, :, 1:, [0, 1]] *= scale	# Scale core x and y co-o
 # Twist the outermost shell of the tube block structure
 cyl.tube_struct['vertices'][-1, :-1, -1, 1] += np.pi / 16
 
-wall_faces = cyl.tube_struct['faces'][-1, :-1, :-1, 0].flatten()
-wall_bnd = Boundary('patch', 'wall', faces=wall_faces)
-bmd.add_boundary(wall_bnd)
+cyl.tube_struct['boundary_tags'][-1, ..., 0] = BoundaryTag('wall')
 
 cyl.write(bmd)
 
