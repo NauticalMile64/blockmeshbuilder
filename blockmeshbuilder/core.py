@@ -135,7 +135,7 @@ class Vertex(Point, Projectable):
 def _dict_format(dict_name, data_dict, indent_level=1):
 	buf = StringIO()
 	buf.write(dict_name)
-	indent = '\t'*indent_level
+	indent = '\t' * indent_level
 	buf.write(f'\n{indent}{{')
 
 	for label, data in data_dict.items():
@@ -152,7 +152,7 @@ class Geometry(object):
 		self.name = f'{name}_id-{self._unique_id}'
 		Geometry._unique_id += 1
 
-	def format(self, data_dict):
+	def do_format(self, data_dict):
 		return _dict_format(self.name, data_dict)
 
 
@@ -163,13 +163,13 @@ class Plane(Geometry):
 	def __init__(self, name):
 		Geometry.__init__(self, name)
 
-	def format(self, plane_data):
-		return Geometry.format(self,
-					{
-						'type': 'searchablePlane',
-						'planeType': self.plane_type,
-						_dict_format(f'{self.plane_type}Dict', plane_data, indent_level=2): ''
-					})
+	def do_format(self, plane_data):
+		return Geometry.do_format(self,
+							   {
+								   'type': 'searchablePlane',
+								   'planeType': self.plane_type,
+								   _dict_format(f'{self.plane_type}Dict', plane_data, indent_level=2): ''
+							   })
 
 
 class PlanePointAndNormal(Plane):
@@ -181,11 +181,11 @@ class PlanePointAndNormal(Plane):
 		self.normal = normal
 
 	def format(self):
-		return Plane.format(self,
-					{
-						'point': self.point.format(),
-						'normal': self.normal.format()
-					})
+		return Plane.do_format(self,
+							{
+								'point': self.point.format(),
+								'normal': self.normal.format()
+							})
 
 
 class PlaneEmbeddedPoints(Plane):
@@ -196,12 +196,12 @@ class PlaneEmbeddedPoints(Plane):
 		self.points = (point1, point2, point3)
 
 	def format(self):
-		return Plane.format(self,
-					{
-						'point1': self.points[0].format(),
-						'point2': self.points[1].format(),
-						'point3': self.points[2].format()
-					})
+		return Plane.do_format(self,
+							{
+								'point1': self.points[0].format(),
+								'point2': self.points[1].format(),
+								'point3': self.points[2].format()
+							})
 
 
 class PlaneEquation(Plane):
@@ -212,13 +212,13 @@ class PlaneEquation(Plane):
 		self.equation_coeffs = (a, b, c, d)
 
 	def format(self):
-		return Plane.format(self,
-					{
-						'a': f'{self.equation_coeffs[0]:18.15g}',
-						'b': f'{self.equation_coeffs[1]:18.15g}',
-						'c': f'{self.equation_coeffs[2]:18.15g}',
-						'd': f'{self.equation_coeffs[3]:18.15g}',
-					})
+		return Plane.do_format(self,
+							{
+								'a': f'{self.equation_coeffs[0]:18.15g}',
+								'b': f'{self.equation_coeffs[1]:18.15g}',
+								'c': f'{self.equation_coeffs[2]:18.15g}',
+								'd': f'{self.equation_coeffs[3]:18.15g}',
+							})
 
 
 class Sphere(Geometry):
@@ -228,12 +228,12 @@ class Sphere(Geometry):
 		self.radius = radius
 
 	def format(self):
-		return Geometry.format(self,
-							{
-								'type': 'searchableSphere',
-								'centre': self.center.format(),
-								'radius': f'{self.radius:18.15g}'
-							})
+		return Geometry.do_format(self,
+							   {
+								   'type': 'searchableSphere',
+								   'centre': self.center.format(),
+								   'radius': f'{self.radius:18.15g}'
+							   })
 
 
 class Cylinder(Geometry):
@@ -244,13 +244,13 @@ class Cylinder(Geometry):
 		self.radius = radius
 
 	def format(self):
-		return Geometry.format(self,
-							{
-								'type': 'searchableCylinder',
-								'point1': self.point1.format(),
-								'point2': self.point2.format(),
-								'radius': f'{self.radius:18.15g}'
-							})
+		return Geometry.do_format(self,
+							   {
+								   'type': 'searchableCylinder',
+								   'point1': self.point1.format(),
+								   'point2': self.point2.format(),
+								   'radius': f'{self.radius:18.15g}'
+							   })
 
 
 class Cone(Geometry):
@@ -264,16 +264,16 @@ class Cone(Geometry):
 		self.innerRadius2 = innerRadius2
 
 	def format(self):
-		return Geometry.format(self,
-							{
-								'type': 'searchableCone',
-								'point1': self.point1.format(),
-								'point2': self.point2.format(),
-								'radius1': f'{self.radius1:18.15g}',
-								'radius2': f'{self.radius2:18.15g}',
-								'innerRadius1': f'{self.innerRadius1:18.15g}',
-								'innerRadius2': f'{self.innerRadius2:18.15g}'
-							})
+		return Geometry.do_format(self,
+							   {
+								   'type': 'searchableCone',
+								   'point1': self.point1.format(),
+								   'point2': self.point2.format(),
+								   'radius1': f'{self.radius1:18.15g}',
+								   'radius2': f'{self.radius2:18.15g}',
+								   'innerRadius1': f'{self.innerRadius1:18.15g}',
+								   'innerRadius2': f'{self.innerRadius2:18.15g}'
+							   })
 
 
 class Face(object):
@@ -336,7 +336,7 @@ class MultiGradingElement(GradingElement):
 
 	def format(self):
 		return '({})'.format(' '.join(f'({lp:.4f} {nc:.4f} {ex:.4f})'
-									for lp, nc, ex in zip(self.len_pcts, self.cell_pcts, self.exp_ratios)))
+									  for lp, nc, ex in zip(self.len_pcts, self.cell_pcts, self.exp_ratios)))
 
 
 class Grading(object):
@@ -526,7 +526,7 @@ class BoundaryTag(object):
 
 class _Boundary(object):
 	def __init__(self, boundary_tag):
-		assert(isinstance(boundary_tag, BoundaryTag))
+		assert (isinstance(boundary_tag, BoundaryTag))
 		self.boundary_tag = boundary_tag
 		self.faces = []
 
