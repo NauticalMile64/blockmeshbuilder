@@ -1,7 +1,7 @@
 # Builds a structured tube mesh
 
 import numpy as np
-from blockmeshbuilder import BlockMeshDict, TubeBlockStruct
+from blockmeshbuilder import BlockMeshDict, TubeBlockStruct, ZoneTag
 
 bmd = BlockMeshDict()
 bmd.set_metric('mm')
@@ -15,7 +15,7 @@ ndr = np.full_like(rs, 6)
 ndt = np.full_like(ts, 5)
 ndz = np.full_like(zs, 8)
 
-tube = TubeBlockStruct(rs, ts, zs, ndr, ndt, ndz, 'ts', is_complete=is_complete)
+tube = TubeBlockStruct(rs, ts, zs, ndr, ndt, ndz, ZoneTag('ts'), is_complete=is_complete)
 
 tube['edge_mask'][1:, 1::2, 2:, 1] = True
 tube['vertices'][-1, :-1, 0, 1] += np.pi / 16
