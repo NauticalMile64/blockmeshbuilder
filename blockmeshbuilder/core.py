@@ -105,10 +105,10 @@ class Point(object):
 
 class Projectable(object):
 	def __init__(self, geometries=None):
-		self.proj_g = list(geometries) if geometries else []
+		self.proj_g = set(geometries) if geometries else set()
 
 	def proj_geom(self, geometry):
-		self.proj_g.append(geometry)
+		self.proj_g.add(geometry)
 
 	def format_geom(self):
 		if self.proj_g:
@@ -290,9 +290,6 @@ class Face(object):
 				f'WARNING: face-{self.name} has already been projected to {self.proj_g.name}, over-writing with {geometry.name}.')
 
 		self.proj_g = geometry
-
-	def is_projected(self):
-		return self.proj_g is not None
 
 	def format(self, write_proj=True):
 
@@ -589,7 +586,7 @@ class BlockMeshDict(object):
 		self.blocks = []
 		self.edges = []
 		self.boundaries = {}
-		self.geometries = []
+		self.geometries = set()
 		self.faces = []
 
 	def set_metric(self, metric):
@@ -607,8 +604,8 @@ class BlockMeshDict(object):
 
 		self.boundaries[boundary_tag].add_face(face)
 
-	def add_geometry(self, geometry):
-		self.geometries.append(geometry)
+	def add_geometries(self, other_geometries):
+		self.geometries.update(other_geometries)
 
 	def add_face(self, face):
 		self.faces.append(face)

@@ -61,7 +61,6 @@ test_struct['block_mask'][1, 0, :] = True
 plane_point = Point([0., 0, 0.])
 plane_normal = Point([-1., -1., 0.])
 plane = PlanePointAndNormal(plane_point, plane_normal, 'plane')
-bmd.add_geometry(plane)
 
 test_struct.project_structure(0, 0, plane)
 
@@ -87,7 +86,6 @@ pt1 = Point([xs[-1], -2, zs[1]])
 pt2 = Point([xs[-1], 2, zs[1]])
 
 cyl = Cylinder(pt1, pt2, rad, 'cyl')
-bmd.add_geometry(cyl)
 
 vts[:, 1, 0] += 0.1
 

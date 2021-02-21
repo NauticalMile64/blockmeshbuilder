@@ -156,6 +156,7 @@ class BaseBlockStruct(object):
 		bmask[:, -1] = True
 		bmask[:, :, -1] = True
 
+		# TO DO: See if numpy moving_window function will help here
 		for i in range(self.rshape[0]):
 			for j in range(self.rshape[1]):
 				for k in range(self.rshape[2]):
@@ -176,10 +177,14 @@ class BaseBlockStruct(object):
 						block = HexBlock(vts, nd, block_zone_tag, grading)
 						block_mesh_dict.add_hexblock(block)
 
-		# write relevant edges and faces
 		shape = self.shape
 		rshape = self.rshape
 
+		b_vts = self['baked_vertices']
+		for index in np.ndindex(shape):
+			block_mesh_dict.add_geometries(b_vts[index].proj_g)
+
+		# write relevant edges and faces
 		for s in range(3):
 			roll_pos = np.roll(init_pos, s)
 
@@ -199,6 +204,8 @@ class BaseBlockStruct(object):
 						lmsk = d_bmask[i, max(j - 1, 0):j + 1, max(k - 1, 0):k + 1]
 						if not np.all(lmsk):
 							block_mesh_dict.add_edge(edge)
+							if isinstance(edge, ProjectionEdge):
+								block_mesh_dict.add_geometries(edge.proj_g)
 
 			for i in range(shape[s]):
 				for j in range(rshape[(s + 1) % 3]):
@@ -215,8 +222,9 @@ class BaseBlockStruct(object):
 								else:
 									block_mesh_dict.add_boundary_face(d_boundary_tags[i, j, k], face)
 
-							if face.is_projected():
+							if face.proj_g:
 								block_mesh_dict.add_face(face)
+								block_mesh_dict.add_geometries((face.proj_g,))
 
 	# Default to underlying structured array
 	def __getattr__(self, name):
@@ -293,9 +301,7 @@ class TubeBlockStruct(BaseBlockStruct):
 			if np.isclose(r, 0.):
 				pass
 
-			cyl = Cylinder(s_pt, e_pt, r, f'blockcyl-{i}')
-			cyls[r] = cyl
-			block_mesh_dict.add_geometry(cyl)
+			cyls[r] = Cylinder(s_pt, e_pt, r, f'blockcyl-{i}')
 
 		# Mask axial and radial edges as well as circumferential faces so no redundant edges or faces are written to file
 		if self.is_complete:
@@ -425,8 +431,6 @@ class CylBlockStructContainer(object):
 					local_cyls = np.array([Cylinder(s_pt - offset_axes[i], e_pt - offset_axes[i],
 										r_cyl, f'o-grid-cyl-{r_cyl}-{i}') for i in range(4)])
 					cyl_dict[r] = local_cyls
-					for cyl in local_cyls:
-						block_mesh_dict.add_geometry(cyl)
 
 				cyl_arr[k] = cyl_dict[r]
 
