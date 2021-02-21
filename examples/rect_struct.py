@@ -2,7 +2,7 @@
 
 import numpy as np
 from blockmeshbuilder import BlockMeshDict, CartBlockStruct, SimpleGradingElement, MultiGradingElement, \
-	get_grading_info, Cylinder, Point, PlanePointAndNormal, BSplineCurvedEdge
+	get_grading_info, Cylinder, Point, PlanePointAndNormal, BSplineCurvedEdge, ZoneTag
 
 bmd = BlockMeshDict()  # Create a container to hold the objects
 
@@ -18,7 +18,7 @@ ndy = np.array([8, 8, 0])
 ndz = np.array([6, 6, 0])
 
 # Create the block structure
-test_struct = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone='ts')
+test_struct = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone_tag=ZoneTag('ts'))
 
 # The basic form of the structure is given by the definitions of xs,ys,zs: a rectilinear block-strucutred mesh. To make the final structure more interesting, we can use the power of numpy's slicing and indexing to make precise adjustments to the structure before it is written to the blockMeshDict.
 

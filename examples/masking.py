@@ -1,7 +1,7 @@
 # Creates a sample structured mesh in cartesian co-ordinates
 
 import numpy as np
-from blockmeshbuilder import BlockMeshDict, CartBlockStruct
+from blockmeshbuilder import BlockMeshDict, CartBlockStruct, ZoneTag
 
 bmd = BlockMeshDict()  # Create a container to hold the objects
 
@@ -18,7 +18,7 @@ ndy = np.array([8, 8, 8, 8, 8, 0])
 ndz = np.array([8, 8, 0])
 
 # Create the block structure
-f_struct = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone='ts')
+f_struct = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone_tag=ZoneTag('ts'))
 
 # Mask structure
 f_struct['block_mask'][:-1, :-1, :] = np.array(
@@ -30,7 +30,7 @@ f_struct['block_mask'][:-1, :-1, :] = np.array(
 
 ixs = np.linspace(1., 1.5, 2) + 0.1
 ind_x = np.array([8, 0])
-i_struct = CartBlockStruct(ixs, ys + 0.5, zs, ind_x, ndy, ndz, zone='ts')
+i_struct = CartBlockStruct(ixs, ys + 0.5, zs, ind_x, ndy, ndz, zone_tag=ZoneTag('ts'))
 
 # Align the x and y co-ordinates of the relevant i_struct blocks with the f_struct prior to mating
 i_struct['vertices'][..., 0] -= 0.1  # x co-ordinates
