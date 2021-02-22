@@ -299,7 +299,7 @@ class TubeBlockStruct(BaseBlockStruct):
 		for i, r in np.ndenumerate(np.unique(vts[..., 0])):
 
 			if np.isclose(r, 0.):
-				pass
+				continue
 
 			cyls[r] = Cylinder(s_pt, e_pt, r, f'blockcyl-{i}')
 
