@@ -236,13 +236,13 @@ class BaseBlockStruct(object):
 
 class CartBlockStruct(BaseBlockStruct):
 
-	def __init__(self, xs, ys, zs, nx, ny, nz, zone_tag=None):
+	def __init__(self, xs, ys, zs, nx, ny, nz, zone_tag=DEFAULT_ZONE_TAG):
 		BaseBlockStruct.__init__(self, xs, ys, zs, nx, ny, nz, cart_to_cart, zone_tag)
 
 
 class TubeBlockStruct(BaseBlockStruct):
 
-	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=None, is_complete=False):
+	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, is_complete=False):
 
 		if np.any(np.asarray(rs) < 0):
 			print(
@@ -364,7 +364,7 @@ class CylBlockStructContainer(object):
 								Point([-_drt2, -_drt2, 0]), Point([_drt2, -_drt2, 0])])
 	_og_tube_vectors.setflags(write=False)
 
-	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=None, inner_arc_curve=0.25, is_core_aligned=True):
+	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, inner_arc_curve=0.25, is_core_aligned=True):
 
 		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag=zone_tag, is_complete=True)
 
