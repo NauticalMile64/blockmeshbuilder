@@ -27,10 +27,6 @@ n_nose = 22
 spine_points = 100
 spline_res = 1
 
-# Create the blockMeshDict object
-block_mesh_dict = BlockMeshDict()
-block_mesh_dict.set_metric('mm')
-
 # Create boundary layer struct
 bl_ys_positive = np.array([0.05, 1.0, num_chords_downstream + 1])
 bl_ys = np.concatenate((-bl_ys_positive[::-1], bl_ys_positive))
@@ -138,14 +134,12 @@ if te_struct:
 bl_struct['boundary_tags'][-1, 1:-2, :, 0] = BoundaryTag('wall-airfoil')
 
 # Write the blocks to the blockMeshDict
+block_mesh_dict = BlockMeshDict(metric='mm')
 bl_struct.write(block_mesh_dict)
 ff_struct.write(block_mesh_dict)
 if te_struct:
 	te_struct.write(block_mesh_dict)
-
-# Write to file
-with open(r'OF_case/system/blockMeshDict', 'w') as infile:
-	infile.write(block_mesh_dict.format())
+block_mesh_dict.write_file('OF_case/system/')
 
 try:
 	import matplotlib.pyplot as plt

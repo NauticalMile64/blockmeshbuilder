@@ -595,21 +595,18 @@ class BlockMeshDict(object):
 		}
 	}
 
-	def __init__(self, of_dist='.org'):
+	def __init__(self, metric='m', of_dist='.org'):
 		if of_dist not in self._of_geometries:
 			warnings.warn(f'Unknown OpenFOAM distribution {of_dist}. The available options are {self._of_geometries.keys()}. Switching to .org distribution.')
 			of_dist = '.org'
 		self.of_dist = of_dist
 		self.of_available_geometries = self._of_geometries[of_dist]
-		self.convert_to_meters = 1.0
+		self.convert_to_meters = self.metricsym_to_conversion[metric]
 		self.blocks = set()
 		self.edges = set()
 		self.boundaries = {}
 		self.geometries = set()
 		self.faces = set()
-
-	def set_metric(self, metric):
-		self.convert_to_meters = self.metricsym_to_conversion[metric]
 
 	def add_hexblock(self, block):
 		self.blocks.add(block)
@@ -679,6 +676,11 @@ mergePatchPairs
 // ************************************************************************* //
 '''
 
+	def write_file(self, of_case_path):
+		if of_case_path[-1] in r"/\\":  # Test whether a directory or the full file path is specified
+			of_case_path += 'blockMeshDict'
+		with open(of_case_path, 'w') as infile:
+			infile.write(self.format())
 
 '''
 /*--------------------------------*- C++ -*----------------------------------*\

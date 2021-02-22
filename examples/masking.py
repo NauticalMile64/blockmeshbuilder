@@ -3,10 +3,6 @@
 import numpy as np
 from blockmeshbuilder import BlockMeshDict, CartBlockStruct, ZoneTag
 
-bmd = BlockMeshDict()  # Create a container to hold the objects
-
-bmd.set_metric('mm')
-
 # Create arrays of points for the co-ordinates
 xs = np.linspace(0., 1., 4)
 ys = np.linspace(0., 1 + 0.5, 6)
@@ -46,10 +42,8 @@ i_struct['baked_vertices'][0, :-2, :] = f_struct['baked_vertices'][-1, 2:, :]
 f_struct['vertices'][-1, 2:, :, 1] += 0.1  # This line moves the mated vertices up
 i_struct['vertices'][0, :-2, :, 1] -= 0.2  # This line does nothing
 
-# Write the blocks to the blockMeshDict
-f_struct.write(bmd)
-i_struct.write(bmd)
-
 # Write to file
-with open(r'OF_case/system/blockMeshDict', 'w') as infile:
-	infile.write(bmd.format())
+block_mesh_dict = BlockMeshDict(metric='mm')
+f_struct.write(block_mesh_dict)
+i_struct.write(block_mesh_dict)
+block_mesh_dict.write_file('OF_case/system/')

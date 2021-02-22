@@ -8,9 +8,6 @@ Two variations on the traditional lid-driven cavity have been implemented here:
 import numpy as np
 from blockmeshbuilder import BlockMeshDict, CartBlockStruct, SimpleGradingElement, BoundaryTag, ZoneTag
 
-bmd = BlockMeshDict()
-bmd.set_metric('mm')
-
 xs = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) - 0.5
 ys = xs.copy()
 zs = np.array([0.0, 0.01])
@@ -46,7 +43,6 @@ cavity['zone_tags'][2, 2, 0] = ZoneTag('solid_zone')
 # Label the lid
 cavity['boundary_tags'][:, -1, :, 1] = BoundaryTag('lid')
 
-cavity.write(bmd)
-
-with open(r'OF_case/system/blockMeshDict', 'w') as infile:
-	infile.write(bmd.format())
+block_mesh_dict = BlockMeshDict(metric='mm')
+cavity.write(block_mesh_dict)
+block_mesh_dict.write_file('OF_case/system/')
