@@ -255,14 +255,16 @@ class Cylinder(Geometry):
 
 
 class Cone(Geometry):
-	def __init__(self, point1, point2, radius1, radius2, innerRadius1, innerRadius2, name):
+	small_value = np.finfo(np.float64).eps
+
+	def __init__(self, point1, point2, radius1, radius2, name, inner_radius1=small_value, inner_radius2=small_value):
 		Geometry.__init__(self, name)
 		self.point1 = point1
 		self.point2 = point2
 		self.radius1 = radius1
 		self.radius2 = radius2
-		self.innerRadius1 = innerRadius1
-		self.innerRadius2 = innerRadius2
+		self.inner_radius1 = inner_radius1
+		self.inner_radius2 = inner_radius2
 
 	def format(self):
 		return Geometry.do_format(self,
@@ -272,8 +274,8 @@ class Cone(Geometry):
 								   'point2': self.point2.format(),
 								   'radius1': f'{self.radius1:18.15g}',
 								   'radius2': f'{self.radius2:18.15g}',
-								   'innerRadius1': f'{self.innerRadius1:18.15g}',
-								   'innerRadius2': f'{self.innerRadius2:18.15g}'
+								   'inner_radius1': f'{self.inner_radius1:18.15g}',
+								   'inner_radius2': f'{self.inner_radius2:18.15g}'
 							   })
 
 
