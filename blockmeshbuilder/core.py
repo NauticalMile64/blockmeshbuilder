@@ -537,10 +537,10 @@ class _Boundary(object):
 	def __init__(self, boundary_tag):
 		assert (isinstance(boundary_tag, BoundaryTag))
 		self.boundary_tag = boundary_tag
-		self.faces = []
+		self.faces = set()
 
 	def add_face(self, face):
-		self.faces.append(face)
+		self.faces.add(face)
 
 	def format(self):
 		buf = StringIO()
@@ -602,20 +602,20 @@ class BlockMeshDict(object):
 		self.of_dist = of_dist
 		self.of_available_geometries = self._of_geometries[of_dist]
 		self.convert_to_meters = 1.0
-		self.blocks = []
-		self.edges = []
+		self.blocks = set()
+		self.edges = set()
 		self.boundaries = {}
 		self.geometries = set()
-		self.faces = []
+		self.faces = set()
 
 	def set_metric(self, metric):
 		self.convert_to_meters = self.metricsym_to_conversion[metric]
 
 	def add_hexblock(self, block):
-		self.blocks.append(block)
+		self.blocks.add(block)
 
 	def add_edge(self, edge):
-		self.edges.append(edge)
+		self.edges.add(edge)
 
 	def add_boundary_face(self, boundary_tag, face):
 		if boundary_tag not in self.boundaries:
@@ -631,7 +631,7 @@ class BlockMeshDict(object):
 		self.geometries.update(other_geometries)
 
 	def add_face(self, face):
-		self.faces.append(face)
+		self.faces.add(face)
 
 	def _assign_vertexid(self):
 		valid_vertices = []
