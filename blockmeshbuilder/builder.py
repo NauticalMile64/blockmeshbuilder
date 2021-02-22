@@ -297,7 +297,6 @@ class TubeBlockStruct(BaseBlockStruct):
 		s_pt = Point([0, 0, -1e5])
 		e_pt = Point([0, 0, 1e5])
 		for i, r in np.ndenumerate(np.unique(vts[..., 0])):
-
 			if np.isclose(r, 0.):
 				continue
 
@@ -318,15 +317,16 @@ class TubeBlockStruct(BaseBlockStruct):
 
 		edges = self['edges']
 		edge_mask = self['edge_mask']
-		r_faces = self['faces'][..., 0]
-		r_face_mask = self['face_mask'][..., 0]
 		acrds = self['vertices'][..., 1]
 
-		# Test and see if the axial edges need to be projected
+		# Test and see if the circumferential edges or axial edges need to be projected
 		a_edges = edges[..., 2]
 		a_edge_mask = edge_mask[..., 2]
 		c_edges = edges[..., 1]
 		c_edge_mask = edge_mask[..., 1]
+
+		cones = {}
+		are_cones = Cone in block_mesh_dict.of_available_geometries
 
 		for ind in np.ndindex(shape):
 
@@ -334,11 +334,15 @@ class TubeBlockStruct(BaseBlockStruct):
 			if (not a_edge_mask[ind]) and isinstance(a_edge, ProjectionEdge):
 				nind = (ind[0], ind[1], ind[2] + 1)
 				if a_edge.is_relevant() or (not np.allclose(acrds[ind], acrds[nind])):
-					a_edge.proj_geom(cyls[proj_rcrds[ind]])
-
-			# r_face = r_faces[ind]
-			# if r_face and (not r_face_mask[ind]) and (not r_face.is_projected()):
-			#	r_face.proj_geom(cyls[proj_rcrds[ind]])
+					if not np.allclose(proj_rcrds[ind], proj_rcrds[nind]):
+						if are_cones:
+							cone_tuple = (proj_rcrds[ind], proj_rcrds[nind], acrds[ind], acrds[nind])
+							if cone_tuple not in cones:
+								cones[cone_tuple] = Cone(Point((0, 0, acrds[ind])), Point((0, 0, acrds[nind])),
+														proj_rcrds[ind], proj_rcrds[nind], 'block_cone')
+							a_edge.proj_geom(cones[cone_tuple])
+					else:
+						a_edge.proj_geom(cyls[proj_rcrds[ind]])
 
 			c_edge = c_edges[ind]
 			if (not c_edge_mask[ind]) and isinstance(c_edge, ProjectionEdge):

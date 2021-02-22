@@ -12,6 +12,7 @@ else:
 from six import string_types
 import numpy as np
 from numpy import sin, cos
+import warnings
 
 
 def cart_to_cart(crds):
@@ -581,7 +582,23 @@ class BlockMeshDict(object):
 		'A': 1e-10,
 		'Angstrom': 1e-10}
 
-	def __init__(self):
+	_of_geometries = {
+		'.org': {
+			PlanePointAndNormal, PlaneEmbeddedPoints, PlaneEquation, Cylinder, Sphere,
+			# closedTriSurfaceMesh, Box, Disc, ExtrudedCircle, Plate, SurfaceCollection, SurfaceWithGaps, triSurfaceMesh
+		},
+		'.com': {
+			PlanePointAndNormal, PlaneEmbeddedPoints, PlaneEquation, Cylinder, Sphere, Cone
+			# distributedTriSurfaceMesh, Box, Disc, ExtrudedCircle, Plate, SurfaceCollection, SurfaceWithGaps, triSurfaceMesh
+		}
+	}
+
+	def __init__(self, of_dist='.org'):
+		if of_dist not in self._of_geometries:
+			warnings.warn(f'Unknown OpenFOAM distribution {of_dist}. The available options are {self._of_geometries.keys()}. Switching to .org distribution.')
+			of_dist = '.org'
+		self.of_dist = of_dist
+		self.of_available_geometries = self._of_geometries[of_dist]
 		self.convert_to_meters = 1.0
 		self.blocks = []
 		self.edges = []
@@ -605,6 +622,10 @@ class BlockMeshDict(object):
 		self.boundaries[boundary_tag].add_face(face)
 
 	def add_geometries(self, other_geometries):
+		for geometry in other_geometries:
+			if type(geometry) not in self.of_available_geometries:
+				raise TypeError(f'Geometry of type {type(geometry)} is not implemented in the {self.of_dist} distribution.')
+
 		self.geometries.update(other_geometries)
 
 	def add_face(self, face):
