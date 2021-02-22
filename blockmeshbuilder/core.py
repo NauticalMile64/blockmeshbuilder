@@ -387,13 +387,6 @@ DEFAULT_ZONE_TAG = ZoneTag('DEFAULT')
 
 class HexBlock(object):
 	def __init__(self, vertices, cells, zone_tag=DEFAULT_ZONE_TAG, grading=uniformGrading):
-		"""Initialize HexBlock instance
-		vnames is the vertex names in order described in
-			http://www.openfoam.org/docs/user/mesh-description.php
-		cells is number of cells devied into in each direction
-		name is the unique name of the block
-		grading is grading method.
-		"""
 		self.vertices = vertices
 		self.cells = cells
 		self.zone_tag = zone_tag
@@ -595,7 +588,7 @@ class BlockMeshDict(object):
 		}
 	}
 
-	def __init__(self, metric='m', of_dist='.org'):
+	def __init__(self, metric='m', of_dist='.org', block_structure_only=False):
 		if of_dist not in self._of_geometries:
 			warnings.warn(f'Unknown OpenFOAM distribution {of_dist}. The available options are {self._of_geometries.keys()}. Switching to .org distribution.')
 			of_dist = '.org'
@@ -607,6 +600,7 @@ class BlockMeshDict(object):
 		self.boundaries = {}
 		self.geometries = set()
 		self.faces = set()
+		self.block_structure_only = block_structure_only
 
 	def add_hexblock(self, block):
 		self.blocks.add(block)
@@ -643,7 +637,11 @@ class BlockMeshDict(object):
 
 		self.valid_vertices = valid_vertices
 
-	def format(self):
+	def format(self, block_structure_only=False):
+		if block_structure_only or self.block_structure_only:
+			for block in self.blocks:
+				block.cells = (1, 1, 1)
+
 		self._assign_vertexid()
 		return f'''
 FoamFile
@@ -676,11 +674,11 @@ mergePatchPairs
 // ************************************************************************* //
 '''
 
-	def write_file(self, of_case_path):
+	def write_file(self, of_case_path, block_structure_only=False):
 		if of_case_path[-1] in r"/\\":  # Test whether a directory or the full file path is specified
 			of_case_path += 'blockMeshDict'
 		with open(of_case_path, 'w') as infile:
-			infile.write(self.format())
+			infile.write(self.format(block_structure_only))
 
 '''
 /*--------------------------------*- C++ -*----------------------------------*\

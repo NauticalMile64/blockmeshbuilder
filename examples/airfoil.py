@@ -139,7 +139,7 @@ bl_struct.write(block_mesh_dict)
 ff_struct.write(block_mesh_dict)
 if te_struct:
 	te_struct.write(block_mesh_dict)
-block_mesh_dict.write_file('OF_case/system/')
+block_mesh_dict.write_file('OF_case/system/')  # Try adding block_structure_only=True here
 
 try:
 	import matplotlib.pyplot as plt
