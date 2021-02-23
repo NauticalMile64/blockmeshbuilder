@@ -289,8 +289,7 @@ class Face(object):
 
 	def proj_geom(self, geometry):
 		if self.proj_g:
-			print(
-				f'WARNING: face-{self.name} has already been projected to {self.proj_g.name}, over-writing with {geometry.name}.')
+			warnings.warn(f'Face-{self.name} has already been projected to {self.proj_g.name}; over-writing with {geometry.name}.')
 
 		self.proj_g = geometry
 

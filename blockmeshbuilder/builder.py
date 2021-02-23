@@ -1,6 +1,12 @@
 # -*- coding: future_fstrings -*-
 from .core import *
 import numpy as np
+import warnings
+
+from sys import version_info
+
+if version_info[0] == 2:
+	from itertools import izip as zip
 
 headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces',
 		   'block_mask', 'vertex_mask', 'edge_mask', 'face_mask', 'zone_tags', 'boundary_tags']
@@ -31,14 +37,53 @@ def np_cart_to_cyl(crds):
 class BaseBlockStruct(object):
 
 	def __init__(self, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, zone_tag=DEFAULT_ZONE_TAG):
-		# Assume x0,x1,x2 are ascending array-like objects with one axis, minimum 2 elements each
-		# n0,n1,n2 are 1D numpy arrays of the number of divisions in each direction
+		x0 = np.asarray(x0)
+		x1 = np.asarray(x1)
+		x2 = np.asarray(x2)
 
-		for x in [x0, x1, x2]:
-			less_zero = np.diff(x) < 0.0
-			if np.any(less_zero):
-				print('ERROR -- A dimension array is in non-ascending order. Blocks will be inside out.')
-				print(less_zero)
+		nd0 = np.asarray(nd0)
+		nd1 = np.asarray(nd1)
+		nd2 = np.asarray(nd2)
+
+		# Error Checking
+		dim_array_error_msg = 'Dimension arrays must be 1D arrays of floating points/integers, ' \
+							  'listed in ascending order, with a minimum of 2 elements.'
+		nd_array_error_msg = 'Number of cell divisions arrays must be 1D arrays of positive integers, having lengths ' \
+							 'equal to or one less than the corresponding dimension array.'
+		# nd0, nd1, and nd2 are 1D arrays of positive integers, having lengths equal to or 1 less
+		# than the corresponding x
+		for x, nd, arr_order in zip((x0, x1, x2), (nd0, nd1, nd2), ('first', 'second', 'third')):
+			if not (np.issubdtype(x.dtype, np.integer) or np.issubdtype(x.dtype, np.floating)):
+				raise TypeError(f'The values contained in the {arr_order} dimension array '
+								f'are not integer or floating point numeric values. {dim_array_error_msg}')
+
+			if x.ndim != 1:
+				raise IndexError(f'The {arr_order} dimension array is not 1D. {dim_array_error_msg} '
+								 f'See examples for moving vertices after block structure creation.')
+
+			if x.size < 2:
+				raise IndexError(f'The {arr_order} dimension array has fewer than 2 elements. '
+								 f'At least two coordinates are needed for each dimension array to define the end '
+								 f'points of a block. {dim_array_error_msg}')
+
+			if np.any(np.diff(x) < 0.0):
+				raise ValueError(f'The {arr_order} dimension array is in non-ascending order. {dim_array_error_msg}')
+
+			if not np.issubdtype(nd.dtype, np.integer):
+				raise TypeError(f'The {arr_order} number of cell divisions array contains'
+								f'values that cannot be cast to integers. {nd_array_error_msg}')
+
+			if nd.ndim != 1:
+				raise IndexError(f'The {arr_order} number of cell divisions array has two or more dimensions.'
+								 f'{nd_array_error_msg}')
+
+			if not (x.size - 1 <= nd.size <= x.size):
+				raise IndexError(f'The length of the number of cell divisions array is invalid. It must be equal to or '
+								 f'one element shorter than the corresponding dimension array. {nd_array_error_msg}')
+
+			if np.any(nd <= 0):
+				raise ValueError(f'The {arr_order} number of cell divisions array contains '
+								 f'a non-positive integer. {nd_array_error_msg}')
 
 		shape = (len(x0), len(x1), len(x2))
 		self.str_arr = np.empty(shape, dtype=struct_type)
@@ -215,10 +260,11 @@ class BaseBlockStruct(object):
 						lmsk = d_bmask[max(i - 1, 0):i + 1, j, k]
 						if not np.all(lmsk):
 
-							# TO DO: use actual Warnings to instead of print statements
 							if d_boundary_tags[i, j, k]:
 								if i > 0 and lmsk.sum() == 0:
-									print('WARNING -- Attempting to specify a boundary at an interior face')
+									warnings.warn(
+										f'Attempting to specify a boundary at an interior face. '
+										f'Please check boundary_tags')
 								else:
 									block_mesh_dict.add_boundary_face(d_boundary_tags[i, j, k], face)
 
@@ -245,12 +291,20 @@ class TubeBlockStruct(BaseBlockStruct):
 	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, is_complete=False):
 
 		if np.any(np.asarray(rs) < 0):
-			print(
-				f'WARNING -- Negative values detected in TubeBlockStruct rs array. This could yield unexpected results')
+			raise ValueError('Negative values supplied to array of radial values in TubeBlockStruct.')
 
-		if is_complete and ~np.isclose(wrap_radians(ts[0]), wrap_radians(ts[-1])):
-			print(
-				f'WARNING -- TubeBlockStruct in zone_tag {zone_tag} is marked as complete, while the first and last angles are unequal; make sure these are separated by 2*pi')
+		are_first_and_last_close = np.isclose(wrap_radians(ts[0]), wrap_radians(ts[-1]))
+		if is_complete and ~are_first_and_last_close:
+			warnings.warn(f'TubeBlockStruct in zone_tag {zone_tag} had the is_complete flag raised, while the '
+						  f'first and last angles are unequal; make sure these are separated by 2*pi. '
+						  f'Setting is_complete=False')
+			is_complete = False
+
+		if not is_complete and are_first_and_last_close:
+			warnings.warn(f'TubeBlockStruct in zone_tag {zone_tag} had the is_complete flag down, while the '
+						  f'first and last angles are equal or nearly equal; separated by a value less than 2*pi. '
+						  f'The resulting tube struct may visually appear closed, but a circumferential \'wall\' '
+						  f'will be present at theta={ts[0]}.')
 
 		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone_tag)
 
@@ -290,8 +344,9 @@ class TubeBlockStruct(BaseBlockStruct):
 		isR0 = np.isclose(vts[0, ..., 0], 0.)
 
 		if self.is_full and not np.all(isR0):
-			print(
-				f'WARNING -- When initialized, the inner radii in TubeBlockStruct in zone_tag {self.zone_tag} were set to 0, but some were changed before writing. The nodes along the centerline of the tube may not be positioned as expected.')
+			warnings.warn('When initialized, the inner radii in TubeBlockStruct in zone_tag {self.zone_tag} were '
+						  f'set to 0, but some were changed before writing. The nodes along the centerline of '
+						  f'the tube may not be positioned as expected.')
 
 		cyls = {}
 		s_pt = Point([0, 0, -1e5])
@@ -302,7 +357,8 @@ class TubeBlockStruct(BaseBlockStruct):
 
 			cyls[r] = Cylinder(s_pt, e_pt, r, f'blockcyl-{i}')
 
-		# Mask axial and radial edges as well as circumferential faces so no redundant edges or faces are written to file
+		# Mask axial and radial edges as well as circumferential faces so
+		# no redundant edges or faces are written to file
 		if self.is_complete:
 			self['edge_mask'][:, -1, :, [0, 2]] = True
 			self['face_mask'][:, -1, :, 1] = True
@@ -339,7 +395,7 @@ class TubeBlockStruct(BaseBlockStruct):
 							cone_tuple = (proj_rcrds[ind], proj_rcrds[nind], acrds[ind], acrds[nind])
 							if cone_tuple not in cones:
 								cones[cone_tuple] = Cone(Point((0, 0, acrds[ind])), Point((0, 0, acrds[nind])),
-														proj_rcrds[ind], proj_rcrds[nind], 'block_cone')
+														 proj_rcrds[ind], proj_rcrds[nind], 'block_cone')
 							a_edge.proj_geom(cones[cone_tuple])
 					else:
 						a_edge.proj_geom(cyls[proj_rcrds[ind]])
@@ -361,7 +417,7 @@ class CylBlockStructContainer(object):
 	_og_core_vectors = np.array([Point([0, -1, 0]), Point([1, 0, 0]), Point([0, 1, 0]), Point([-1, 0, 0])])
 	_og_core_vectors.setflags(write=False)
 	_og_tube_vectors = np.array([Point([_drt2, _drt2, 0]), Point([-_drt2, _drt2, 0]),
-								Point([-_drt2, -_drt2, 0]), Point([_drt2, -_drt2, 0])])
+								 Point([-_drt2, -_drt2, 0]), Point([_drt2, -_drt2, 0])])
 	_og_tube_vectors.setflags(write=False)
 
 	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, inner_arc_curve=0.25, is_core_aligned=True):
@@ -369,8 +425,9 @@ class CylBlockStructContainer(object):
 		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag=zone_tag, is_complete=True)
 
 		if np.isclose(rs[0], 0.):
-			print(
-				f'ERROR -- CylBlockStructContainer in zone_tag {zone_tag} has an inner tube radius of {rs[0]}, such that an o-grid cannot be accomodated. Consider using TubeBlockStruct instead.')
+			raise ValueError(f'CylBlockStructContainer in zone_tag {zone_tag} has an inner tube radius of {rs[0]}, '
+							 f'which is too close to 0, such that an o-grid cannot be accomodated. '
+							 f'Consider using TubeBlockStruct instead.')
 
 		self.inner_arc_curve = inner_arc_curve
 		self.is_core_aligned = is_core_aligned
@@ -433,7 +490,7 @@ class CylBlockStructContainer(object):
 					offset = a * (1 / iac - 1)
 					offset_axes = og_vectors * offset
 					local_cyls = np.array([Cylinder(s_pt - offset_axes[i], e_pt - offset_axes[i],
-										r_cyl, f'o-grid-cyl-{r_cyl}-{i}') for i in range(4)])
+													r_cyl, f'o-grid-cyl-{r_cyl}-{i}') for i in range(4)])
 					cyl_dict[r] = local_cyls
 
 				cyl_arr[k] = cyl_dict[r]
