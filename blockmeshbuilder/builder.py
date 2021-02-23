@@ -11,7 +11,7 @@ if version_info[0] == 2:
 headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces',
 		   'block_mask', 'vertex_mask', 'edge_mask', 'face_mask', 'zone_tags', 'boundary_tags']
 formats = ['3f8', '3u4', '3O', 'O', '3O', '3O', '?', '?', '3?', '3?', 'O', '3O']
-struct_type = np.dtype({'names': headers, 'formats': formats})
+block_struct_dtype = np.dtype({'names': headers, 'formats': formats})
 init_pos = np.arange(3)
 init_pos.setflags(write=False)
 
@@ -41,52 +41,51 @@ class BaseBlockStruct(object):
 		x1 = np.asarray(x1)
 		x2 = np.asarray(x2)
 
-		nd0 = np.asarray(nd0)
-		nd1 = np.asarray(nd1)
-		nd2 = np.asarray(nd2)
+		nd0 = np.asarray(nd0, dtype=np.int32)
+		nd1 = np.asarray(nd1, dtype=np.int32)
+		nd2 = np.asarray(nd2, dtype=np.int32)
 
 		# Error Checking
-		dim_array_error_msg = 'Dimension arrays must be 1D arrays of floating points/integers, ' \
-							  'listed in ascending order, with a minimum of 2 elements.'
-		nd_array_error_msg = 'Number of cell divisions arrays must be 1D arrays of positive integers, having lengths ' \
-							 'equal to or one less than the corresponding dimension array.'
-		# nd0, nd1, and nd2 are 1D arrays of positive integers, having lengths equal to or 1 less
-		# than the corresponding x
+		dim_array_error_msg = '\nDimension arrays must be 1D arrays of floating points/integers, ' \
+							  '\nlisted in ascending order, with a minimum of 2 elements.'
+		nd_array_error_msg = '\nThe number of cell divisions parameters must be positive integers or 1D arrays thereof, ' \
+							 '\nhaving lengths equal to or one less than the corresponding dimension array.'
 		for x, nd, arr_order in zip((x0, x1, x2), (nd0, nd1, nd2), ('first', 'second', 'third')):
-			if not (np.issubdtype(x.dtype, np.integer) or np.issubdtype(x.dtype, np.floating)):
+			if not (np.issubdtype(x.dtype, np.floating) or np.issubdtype(x.dtype, np.integer)):
 				raise TypeError(f'The values contained in the {arr_order} dimension array '
-								f'are not integer or floating point numeric values. {dim_array_error_msg}')
+								f'are not floating point or integer numeric values. {dim_array_error_msg}')
 
 			if x.ndim != 1:
 				raise IndexError(f'The {arr_order} dimension array is not 1D. {dim_array_error_msg} '
-								 f'See examples for moving vertices after block structure creation.')
+								 f'\nSee examples for moving vertices after block structure creation.')
 
 			if x.size < 2:
 				raise IndexError(f'The {arr_order} dimension array has fewer than 2 elements. '
-								 f'At least two coordinates are needed for each dimension array to define the end '
+								 f'\nAt least two coordinates are needed for each dimension array to define the end '
 								 f'points of a block. {dim_array_error_msg}')
 
 			if np.any(np.diff(x) < 0.0):
 				raise ValueError(f'The {arr_order} dimension array is in non-ascending order. {dim_array_error_msg}')
 
-			if not np.issubdtype(nd.dtype, np.integer):
-				raise TypeError(f'The {arr_order} number of cell divisions array contains'
-								f'values that cannot be cast to integers. {nd_array_error_msg}')
-
-			if nd.ndim != 1:
+			if nd.ndim > 1:
 				raise IndexError(f'The {arr_order} number of cell divisions array has two or more dimensions.'
 								 f'{nd_array_error_msg}')
 
-			if not (x.size - 1 <= nd.size <= x.size):
+			if nd.ndim == 1 and not (x.size - 1 <= nd.size <= x.size):
 				raise IndexError(f'The length of the number of cell divisions array is invalid. It must be equal to or '
-								 f'one element shorter than the corresponding dimension array. {nd_array_error_msg}')
+								 f'\none element shorter than the corresponding dimension array. {nd_array_error_msg}')
 
 			if np.any(nd <= 0):
 				raise ValueError(f'The {arr_order} number of cell divisions array contains '
 								 f'a non-positive integer. {nd_array_error_msg}')
 
-		shape = (len(x0), len(x1), len(x2))
-		self.str_arr = np.empty(shape, dtype=struct_type)
+		# Adjust number of divisions arrays if necessary
+		nd0 = nd0 if (nd0.ndim == 0 or nd0.size == x0.size) else np.append(nd0, 0)
+		nd1 = nd1 if (nd1.ndim == 0 or nd1.size == x1.size) else np.append(nd1, 0)
+		nd2 = nd2 if (nd2.ndim == 0 or nd2.size == x2.size) else np.append(nd2, 0)
+
+		shape = (x0.size, x1.size, x2.size)
+		self.str_arr = np.empty(shape, dtype=block_struct_dtype)
 		self.rshape = rshape = (shape[0] - 1, shape[1] - 1, shape[2] - 1)
 
 		# Initialize vertices

@@ -34,9 +34,9 @@ bl_xs = np.array([0., num_chords_bl_thickness]) - 0.5
 zs = np.array([-0.5, 0.5]) * num_chords_span
 
 bl_ndy_positive = [nx_chord, nx_downstream]
-bl_ndy = np.array(bl_ndy_positive[::-1] + [n_nose] + bl_ndy_positive + [0])
-bl_ndx = np.array([n_bl, 0])
-ndz = np.array([nz_span, 0])
+bl_ndy = np.array(bl_ndy_positive[::-1] + [n_nose] + bl_ndy_positive)
+bl_ndx = n_bl
+ndz = nz_span
 
 bl_struct = CartBlockStruct(bl_xs, bl_ys, zs, bl_ndx, bl_ndy, ndz, zone_tag=ZoneTag('boundary_layer'))
 
@@ -93,7 +93,7 @@ te_struct = None
 if close_trailing_edge:
 	bl_struct['baked_vertices'][-1, [-1, -2]] = bl_struct['baked_vertices'][-1, [0, 1]]
 else:
-	te_struct = CartBlockStruct([0, 1], [0, 1], zs, [3, 0], [nx_downstream, 0], ndz)
+	te_struct = CartBlockStruct([0, 1], [0, 1], zs, 3, nx_downstream, ndz)
 	te_struct['baked_vertices'][0] = bl_struct['baked_vertices'][-1, :2]
 	te_struct['baked_vertices'][-1] = bl_struct['baked_vertices'][-1, -2:][::-1]
 
@@ -102,8 +102,8 @@ ff_xs = np.array([-num_chords_upstream, 0., 1., 1 + num_chords_downstream])
 ff_ys_positive = np.array([num_chords_bl_thickness, num_chords_normal])
 ff_ys = np.concatenate((-ff_ys_positive[::-1], ff_ys_positive))
 
-ff_ndx = np.array([nx_upstream, nx_chord, nx_downstream, 0])
-ff_ndy = np.array([ny_wall_normal, n_nose, ny_wall_normal, 0])
+ff_ndx = np.array([nx_upstream, nx_chord, nx_downstream])
+ff_ndy = np.array([ny_wall_normal, n_nose, ny_wall_normal])
 ff_struct = CartBlockStruct(ff_xs, ff_ys, zs, ff_ndx, ff_ndy, ndz, zone_tag=ZoneTag('far_field'))
 
 # Cut out the center of the far-field struct for the boundary layer struct to fit

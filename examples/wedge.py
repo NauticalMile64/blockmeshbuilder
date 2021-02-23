@@ -15,9 +15,9 @@ ts = [-wedge_angle / 2, wedge_angle / 2]
 zs = [0, 1]
 
 # Number of cell divisions of the block in each direction
-nr = [10]
-nt = [1]
-nz = [10]
+nr = 10
+nt = 1
+nz = 10
 
 # Create the block structure
 wedge = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag=ZoneTag('wedge'))

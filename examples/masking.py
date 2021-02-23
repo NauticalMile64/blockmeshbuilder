@@ -8,10 +8,7 @@ xs = np.linspace(0., 1., 4)
 ys = np.linspace(0., 1 + 0.5, 6)
 zs = np.linspace(0., 0.3, 3)
 
-nElms = 8
-ndx = np.array([8, 8, 8, 0])
-ndy = np.array([8, 8, 8, 8, 8, 0])
-ndz = np.array([8, 8, 0])
+ndx = ndy = ndz = 8
 
 # Create the block structure
 f_struct = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone_tag=ZoneTag('ts'))
@@ -25,8 +22,7 @@ f_struct['block_mask'][:-1, :-1, :] = np.array(
 	 [0, 1, 1]]).T[:, ::-1, np.newaxis]
 
 ixs = np.linspace(1., 1.5, 2) + 0.1
-ind_x = np.array([8, 0])
-i_struct = CartBlockStruct(ixs, ys + 0.5, zs, ind_x, ndy, ndz, zone_tag=ZoneTag('ts'))
+i_struct = CartBlockStruct(ixs, ys + 0.5, zs, ndx, ndy, ndz, zone_tag=ZoneTag('ts'))
 
 # Align the x and y co-ordinates of the relevant i_struct blocks with the f_struct prior to mating
 i_struct['vertices'][..., 0] -= 0.1  # x co-ordinates

@@ -8,13 +8,11 @@ Two variations on the traditional lid-driven cavity have been implemented here:
 import numpy as np
 from blockmeshbuilder import BlockMeshDict, CartBlockStruct, SimpleGradingElement, BoundaryTag, ZoneTag
 
-xs = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) - 0.5
-ys = xs.copy()
+xs = ys = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) - 0.5
 zs = np.array([0.0, 0.01])
 
-ndx = np.full_like(xs, 14)
-ndy = ndx.copy()
-ndz = np.array([1, 0])
+ndx = ndy = 14
+ndz = 1
 
 cavity = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone_tag=ZoneTag('fluid_zone'))
 
