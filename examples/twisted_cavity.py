@@ -1,9 +1,15 @@
 """
-This example generates a blockMeshDict to build a square cavity mesh which can be used for running a lid-driven-cavity CFD problem
+This example generates a blockMeshDict to build a square cavity mesh which can be used for running a lid-driven-cavity
+CFD problem.
 
 Two variations on the traditional lid-driven cavity have been implemented here:
 1. The inner blocks have been twisted, so the mesh is no longer rectilinear
-2. The center block has been assigned to a different zone (representing a solid square). These zones are not automatically incorperated into the final mesh using the blockMesh command. Therefore an additional step is required: after meshing, type the command `splitMeshRegions -cellZones -overwrite`
+2. The center block has been assigned to a different zone (representing a solid square).
+These zones are not automatically incorporated into the final mesh using the blockMesh command.
+Therefore an additional step is required: after meshing, type the command `splitMeshRegions -cellZones -overwrite`.
+
+If you wish to simply omit the center block from the mesh instead of writing it, change the 'block_mask' of the 2,2,0
+block to True instead of editing the 'zone_tags' array.
 """
 import numpy as np
 from blockmeshbuilder import BlockMeshDict, CartBlockStruct, SimpleGradingElement, BoundaryTag, ZoneTag
