@@ -1,7 +1,7 @@
 # Creates a sample structured mesh in cartesian co-ordinates
 import numpy as np
 from blockmeshbuilder import BlockMeshDict, CartBlockStruct, SimpleGradingElement, MultiGradingElement, \
-	get_grading_info, Cylinder, Point, PlanePointAndNormal, BSplineCurvedEdge, ZoneTag
+	get_grading_info, Cylinder, Point, PlanePointAndNormal, BSplineCurvedEdge
 
 # Create arrays of points for the co-ordinates
 xs = np.linspace(0., 1., 4)
@@ -13,7 +13,7 @@ ndy = 8
 ndz = 6
 
 # Create the block structure
-rect_struct = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone_tag=ZoneTag('ts'))
+rect_struct = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone_tag='test_zone')
 
 # The basic form of the structure is given by the definitions of xs,ys,zs: a rectilinear block-structured mesh.
 # To make the final structure more interesting, we can use the power of Numpy's slicing and indexing to make

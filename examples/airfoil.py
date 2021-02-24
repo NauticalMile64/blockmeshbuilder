@@ -38,7 +38,7 @@ bl_ndy = np.array(bl_ndy_positive[::-1] + [n_nose] + bl_ndy_positive)
 bl_ndx = n_bl
 ndz = nz_span
 
-bl_struct = CartBlockStruct(bl_xs, bl_ys, zs, bl_ndx, bl_ndy, ndz, zone_tag=ZoneTag('boundary_layer'))
+bl_struct = CartBlockStruct(bl_xs, bl_ys, zs, bl_ndx, bl_ndy, ndz, zone_tag='boundary_layer')
 
 # Get airfoil surface points using cosine spacing: http://airfoiltools.com/airfoil/naca4digit
 x = (1 - np.cos(np.linspace(0, np.pi, spine_points))) / 2
@@ -89,11 +89,13 @@ bl_struct['vertices'][0, 0, :, 1] = -num_chords_bl_thickness
 bl_struct['vertices'][-1, [0, -1], :, 1] = bl_struct['vertices'][-1, [1, -2], :, 1]
 bl_struct['vertices'][0, -1, :, 1] = num_chords_bl_thickness
 
+# Construct trailing edge block if necessary
+far_field_zone_tag = ZoneTag('far_field')
 te_struct = None
 if close_trailing_edge:
 	bl_struct['baked_vertices'][-1, [-1, -2]] = bl_struct['baked_vertices'][-1, [0, 1]]
 else:
-	te_struct = CartBlockStruct([0, 1], [0, 1], zs, 3, nx_downstream, ndz)
+	te_struct = CartBlockStruct([0, 1], [0, 1], zs, 3, nx_downstream, ndz, zone_tag=far_field_zone_tag)
 	te_struct['baked_vertices'][0] = bl_struct['baked_vertices'][-1, :2]
 	te_struct['baked_vertices'][-1] = bl_struct['baked_vertices'][-1, -2:][::-1]
 
@@ -104,7 +106,7 @@ ff_ys = np.concatenate((-ff_ys_positive[::-1], ff_ys_positive))
 
 ff_ndx = np.array([nx_upstream, nx_chord, nx_downstream])
 ff_ndy = np.array([ny_wall_normal, n_nose, ny_wall_normal])
-ff_struct = CartBlockStruct(ff_xs, ff_ys, zs, ff_ndx, ff_ndy, ndz, zone_tag=ZoneTag('far_field'))
+ff_struct = CartBlockStruct(ff_xs, ff_ys, zs, ff_ndx, ff_ndy, ndz, zone_tag=far_field_zone_tag)
 
 # Cut out the center of the far-field struct for the boundary layer struct to fit
 ff_struct['block_mask'][1:, 1, :] = True

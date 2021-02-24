@@ -1,7 +1,7 @@
 # Builds a structured O-grid mesh
 
 import numpy as np
-from blockmeshbuilder import BlockMeshDict, CylBlockStructContainer, BoundaryTag, ZoneTag
+from blockmeshbuilder import BlockMeshDict, CylBlockStructContainer, BoundaryTag
 
 rs = np.array([0.3, 0.6, 1.0])
 ts = np.linspace(0, 2 * np.pi, 13, endpoint=True)  # Try any 4*n+1, where n is a positive int.
@@ -12,7 +12,7 @@ ndt = 6
 ndz = 8
 
 iac = 0.45
-cyl = CylBlockStructContainer(rs, ts, zs, ndr, ndt, ndz, zone_tag=ZoneTag('ts'), is_core_aligned=True, inner_arc_curve=iac)
+cyl = CylBlockStructContainer(rs, ts, zs, ndr, ndt, ndz, zone_tag='ts', is_core_aligned=True, inner_arc_curve=iac)
 
 # Increase size of back half
 scale = 1.15

@@ -15,7 +15,7 @@ Below is the [wedge.py](tests/wedge.py) example which generate wedge model shown
 
 ```python
 from math import radians
-from blockmeshbuilder import BlockMeshDict, TubeBlockStruct, BoundaryTag, ZoneTag
+from blockmeshbuilder import BlockMeshDict, TubeBlockStruct, BoundaryTag
 
 # Wedge dimensions
 wedge_angle = radians(10.0)
@@ -32,7 +32,7 @@ nt = 1
 nz = 10
 
 # Create the block structure
-wedge = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag=ZoneTag('wedge'))
+wedge = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag='wedge')
 
 # Tag front and back boundaries
 wedge['boundary_tags'][..., 0, 2] = BoundaryTag('front')

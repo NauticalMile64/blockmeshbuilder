@@ -1,7 +1,7 @@
 # Builds a structured tube mesh
 
 import numpy as np
-from blockmeshbuilder import BlockMeshDict, TubeBlockStruct, ZoneTag
+from blockmeshbuilder import BlockMeshDict, TubeBlockStruct
 
 is_complete = True
 rs = np.array([0., 0.5, 0.8, 1.0])
@@ -12,7 +12,7 @@ ndr = 6
 ndt = 5
 ndz = 8
 
-tube = TubeBlockStruct(rs, ts, zs, ndr, ndt, ndz, ZoneTag('ts'), is_complete=is_complete)
+tube = TubeBlockStruct(rs, ts, zs, ndr, ndt, ndz, zone_tag='tube', is_complete=is_complete)
 
 alternate_blocks = tube[1:, 1::2, 3:]
 alternate_blocks['edge_mask'][..., 1:, 1] = True
