@@ -286,7 +286,7 @@ CartBlockStruct = BaseBlockStruct
 
 class TubeBlockStruct(BaseBlockStruct):
 
-	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, is_complete=False):
+	def __new__(cls, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, is_complete=False):
 
 		if np.any(np.asarray(rs) < 0):
 			raise ValueError('Negative values supplied to array of radial values in TubeBlockStruct.')
@@ -304,23 +304,23 @@ class TubeBlockStruct(BaseBlockStruct):
 						  f'The resulting tube struct may visually appear closed, but a circumferential \'wall\' '
 						  f'will be present at theta={ts[0]}.')
 
-		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone_tag)
+		block_structure = super(TubeBlockStruct, cls).__new__(cls, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone_tag)
 
-		b_vts = self.baked_vertices
-		edges = self.edges
-		faces = self.faces
-		rshape = self.rshape
+		b_vts = block_structure.baked_vertices
+		edges = block_structure.edges
+		faces = block_structure.faces
+		rshape = np.array(block_structure.shape) - 1
 
 		if is_complete:
 			b_vts[:, -1] = b_vts[:, 0]
 
-		self.is_full = np.isclose(rs[0], 0.)
+		block_structure.is_full = np.isclose(rs[0], 0.)
 
 		# Re-assign vertices, edges, and faces at the axis of the tube
-		if self.is_full:
+		if block_structure.is_full:
 			b_vts[0] = b_vts[0, 0]
-			self.face_mask[0, ..., 0] = True
-			self.edge_mask[0, ..., 1] = True
+			block_structure.face_mask[0, ..., 0] = True
+			block_structure.edge_mask[0, ..., 1] = True
 
 			for j in range(rshape[1] + 1):
 				for k in range(rshape[2] + 1):
@@ -330,7 +330,9 @@ class TubeBlockStruct(BaseBlockStruct):
 				for k in range(rshape[2]):
 					faces[0, j, k, 1] = Face(b_vts[0:2, j, k:k + 2])
 
-		self.is_complete = is_complete
+		block_structure.is_complete = is_complete
+
+		return block_structure
 
 	def write(self, block_mesh_dict):
 
