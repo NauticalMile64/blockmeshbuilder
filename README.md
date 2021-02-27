@@ -35,8 +35,8 @@ nz = 10
 wedge = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag='wedge')
 
 # Tag front and back boundaries
-wedge['boundary_tags'][..., 0, 2] = BoundaryTag('front')
-wedge['boundary_tags'][..., -1, 2] = BoundaryTag('back')
+wedge.boundary_tags[..., 0, 2] = BoundaryTag('front')
+wedge.boundary_tags[..., -1, 2] = BoundaryTag('back')
 
 # Initialize blockmeshbuilder to gather block structures.
 block_mesh_dict = BlockMeshDict(metric='mm', of_dist='.org')

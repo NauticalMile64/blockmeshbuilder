@@ -24,14 +24,14 @@ rect_struct = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone_tag='test_zone')
 # is to be changed.
 
 # Move the top nodes of the first block upward
-rect_struct['vertices'][:2, -1, :, 1] += 0.25
+rect_struct.vertices[:2, -1, :, 1] += 0.25
 
 # The above statement applies to the first two nodes in the x-direction (:2), the last nodes in the y-direction (-1),
 # all the nodes in the z-direction (:), and the final index selects the y-component of those nodes (1).
 # The right hand expression adds the offset value to the sliced array.
 
 # We can also apply this to other features of the mesh we want local control over, such as the grading:
-GD = rect_struct['grading']
+GD = rect_struct.grading
 
 # All edges on the first two rows of blocks graded in the y-direction
 GD[:, 0, :, 1] = SimpleGradingElement(1.0 / 3)
@@ -64,17 +64,17 @@ GD[1, :, :, 0] = grd_elm
 
 # Remove the block at the (1,0,0) index. Notice 3 indices are needed
 # this time since blocks don't have an explicit position.
-rect_struct['block_mask'][1, 0, :] = True
+rect_struct.block_mask[1, 0, :] = True
 
 # Project the left side to a plane
 plane_point = Point([0., 0, 0.])
 plane_normal = Point([-1., -1., 0.])
 plane = PlanePointAndNormal(plane_point, plane_normal, 'plane')
 
-rect_struct.project_structure(0, 0, plane)
+rect_struct.project_structure(0, plane)
 
 # Create a spline edge 'awning' to top the 'doorway'
-vertices = rect_struct['vertices']
+vertices = rect_struct.vertices
 door_x_coordinates = vertices[1:3, 1, -1, 0]
 door_x_values = np.linspace(door_x_coordinates[0], door_x_coordinates[1], 5, endpoint=True)
 door_center = np.average(door_x_coordinates)
@@ -85,11 +85,11 @@ norm_x = (door_x_values - door_center) * 2 / np.diff(door_x_coordinates)[0]
 door_top_spline_coords[:, 2] += 0.05 * (1.1 - norm_x**4)
 door_top_spline_pts = [Point(c) for c in door_top_spline_coords]
 
-door_top_baked_vts = rect_struct['edges'][1, 1, -1, 0].vertices
-rect_struct['edges'][1, 1, -1, 0] = BSplineCurvedEdge(door_top_baked_vts, door_top_spline_pts)
+door_top_baked_vts = rect_struct.edges[1, 1, -1, 0].vertices
+rect_struct.edges[1, 1, -1, 0] = BSplineCurvedEdge(door_top_baked_vts, door_top_spline_pts)
 
 # Create a cylinder geometry along the right hand side of the block structure
-vts = rect_struct['vertices'][-1]
+vts = rect_struct.vertices[-1]
 rad = (zs[-1] - zs[0]) / 2
 pt1 = Point([xs[-1], -2, zs[1]])
 pt2 = Point([xs[-1], 2, zs[1]])
@@ -99,7 +99,7 @@ cyl = Cylinder(pt1, pt2, rad, 'cyl')
 vts[:, 1, 0] += 0.1
 
 # project the right side of the block structure onto the cylinder.
-rect_struct.project_structure(0, -1, cyl)
+rect_struct.project_structure(0, cyl, -1)
 
 # Write the blocks to the blockMeshDict
 block_mesh_dict = BlockMeshDict(metric='mm')

@@ -16,13 +16,13 @@ cyl = CylBlockStructContainer(rs, ts, zs, ndr, ndt, ndz, zone_tag='ts', is_core_
 
 # Increase size of back half
 scale = 1.15
-cyl.tube_struct['vertices'][:, :, 1:, 0] *= scale		# Scale tube radii
-cyl.core_struct['vertices'][:, :, 1:, [0, 1]] *= scale	# Scale core x and y co-ordinates
+cyl.tube_struct.vertices[:, :, 1:, 0] *= scale		# Scale tube radii
+cyl.core_struct.vertices[:, :, 1:, [0, 1]] *= scale	# Scale core x and y co-ordinates
 
 # Twist the outermost shell of the tube block structure
-cyl.tube_struct['vertices'][-1, :-1, -1, 1] += np.pi / 16
+cyl.tube_struct.vertices[-1, :-1, -1, 1] += np.pi / 16
 
-cyl.tube_struct['boundary_tags'][-1, ..., 0] = BoundaryTag('wall')
+cyl.tube_struct.boundary_tags[-1, ..., 0] = BoundaryTag('wall')
 
 block_mesh_dict = BlockMeshDict(metric='mm')
 cyl.write(block_mesh_dict)
