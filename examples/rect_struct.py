@@ -71,7 +71,7 @@ plane_point = Point([0., 0, 0.])
 plane_normal = Point([-1., -1., 0.])
 plane = PlanePointAndNormal(plane_point, plane_normal, 'plane')
 
-rect_struct.project_structure(0, plane)
+rect_struct.project_structure(0, plane, 0)
 
 # Create a spline edge 'awning' to top the 'doorway'
 vertices = rect_struct.vertices

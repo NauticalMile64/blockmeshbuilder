@@ -138,13 +138,13 @@ class BaseBlockStruct(np.recarray):
 		return block_structure
 
 
-	def project_structure(self, dir, face_ind, geometry):
+	def project_structure(self, direction, geometry, face_ind):
 
 		# Get the subarray relevant to the face being projected
-		roll_pos = np.roll(init_pos, dir)
-		struct = np.moveaxis(self.str_arr, init_pos, roll_pos)[face_ind]
-		rshape = np.roll(np.array(self.rshape), -dir)[1:]
+		roll_pos = np.roll(init_pos, direction)
+		struct = np.moveaxis(self, init_pos, roll_pos)[face_ind]
 		shape = struct.shape
+		rshape = np.roll(np.array(self.shape) - 1, -direction)[1:]
 
 		# Project vertices
 		b_vts = struct.baked_vertices
@@ -154,8 +154,8 @@ class BaseBlockStruct(np.recarray):
 				b_vts[ind].proj_geom(geometry)
 
 		# Project edges
-		edges = np.roll(struct.edges, -dir, axis=-1)[..., 1:]
-		edge_mask = np.roll(struct.edge_mask, -dir, axis=-1)[..., 1:]
+		edges = np.roll(struct.edges, -direction, axis=-1)[..., 1:]
+		edge_mask = np.roll(struct.edge_mask, -direction, axis=-1)[..., 1:]
 		for j in range(shape[0]):
 			for k in range(shape[1]):
 				for s in range(2):
@@ -164,8 +164,8 @@ class BaseBlockStruct(np.recarray):
 						edge.proj_geom(geometry)
 
 		# Project faces
-		faces = struct.faces[..., dir]
-		face_mask = struct.face_mask[..., dir]
+		faces = struct.faces[..., direction]
+		face_mask = struct.face_mask[..., direction]
 		for j in range(rshape[0]):
 			for k in range(rshape[1]):
 				if not face_mask[j, k]:
