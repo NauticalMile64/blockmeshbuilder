@@ -34,9 +34,9 @@ def np_cart_to_cyl(crds):
 	return ncrds
 
 
-class BaseBlockStruct(object):
+class BaseBlockStruct(np.recarray):
 
-	def __init__(self, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, zone_tag=DEFAULT_ZONE_TAG):
+	def __new__(cls, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, zone_tag=DEFAULT_ZONE_TAG):
 		x0 = np.asarray(x0)
 		x1 = np.asarray(x1)
 		x2 = np.asarray(x2)
@@ -90,38 +90,38 @@ class BaseBlockStruct(object):
 			raise TypeError(f'The zone_tag parameter was neither a string nor a ZoneTag.')
 
 		shape = (x0.size, x1.size, x2.size)
-		self.str_arr = np.empty(shape, dtype=block_struct_dtype)
-		self.rshape = rshape = (shape[0] - 1, shape[1] - 1, shape[2] - 1)
+		block_structure = super(BaseBlockStruct, cls).__new__(cls, shape, dtype=block_struct_dtype)
+		rshape = (shape[0] - 1, shape[1] - 1, shape[2] - 1)
 
 		# Initialize vertices
 		X0, X1, X2 = np.meshgrid(x0, x1, x2, indexing='ij')
 
-		vts = self['vertices']
+		vts = block_structure.vertices
 		vts[..., 0] = X0
 		vts[..., 1] = X1
 		vts[..., 2] = X2
 
-		for ind in np.ndindex(self.shape):
-			self['baked_vertices'][ind] = Vertex(vts[ind], conv_func)
+		for ind in np.ndindex(shape):
+			block_structure.baked_vertices[ind] = Vertex(vts[ind], conv_func)
 
 		# Initialize number of divisions
 		ND0, ND1, ND2 = np.meshgrid(nd0, nd1, nd2, indexing='ij')
 
-		nds = self['num_divisions']
+		nds = block_structure.num_divisions
 		nds[..., 0] = ND0
 		nds[..., 1] = ND1
 		nds[..., 2] = ND2
 
 		# Initialize grading
-		self['grading'][:] = uniformGradingElement
+		block_structure.grading[:] = uniformGradingElement
 
 		# Initialize edges and faces
 		for s in range(3):
 			roll_pos = np.roll(init_pos, s)
 
-			d_edges = np.moveaxis(self['edges'][..., s], init_pos, roll_pos)
-			d_faces = np.moveaxis(self['faces'][..., s], init_pos, roll_pos)
-			d_vts = np.moveaxis(self['baked_vertices'], init_pos, roll_pos)
+			d_edges = np.moveaxis(block_structure.edges[..., s], init_pos, roll_pos)
+			d_faces = np.moveaxis(block_structure.faces[..., s], init_pos, roll_pos)
+			d_vts = np.moveaxis(block_structure.baked_vertices, init_pos, roll_pos)
 
 			for i in range(rshape[s]):
 				for j in range(shape[(s + 1) % 3]):
@@ -133,26 +133,28 @@ class BaseBlockStruct(object):
 					for k in range(rshape[(s + 2) % 3]):
 						d_faces[i, j, k] = Face(d_vts[i, j:j + 2, k:k + 2])
 
-		self['zone_tags'][:] = zone_tag
+		block_structure.zone_tags[:] = zone_tag
 
-	def project_structure(self, dir, face_ind, geometry):
+		return block_structure
+
+	def project_structure(self, direction, geometry, face_ind):
 
 		# Get the subarray relevant to the face being projected
-		roll_pos = np.roll(init_pos, dir)
-		struct = np.moveaxis(self.str_arr, init_pos, roll_pos)[face_ind]
-		rshape = np.roll(np.array(self.rshape), -dir)[1:]
+		roll_pos = np.roll(init_pos, direction)
+		struct = np.moveaxis(self, init_pos, roll_pos)[face_ind]
 		shape = struct.shape
+		rshape = np.roll(np.array(self.shape) - 1, -direction)[1:]
 
 		# Project vertices
-		b_vts = struct['baked_vertices']
-		vt_mask = struct['vertex_mask']
+		b_vts = struct.baked_vertices
+		vt_mask = struct.vertex_mask
 		for ind in np.ndindex(shape):
 			if not vt_mask[ind]:
 				b_vts[ind].proj_geom(geometry)
 
 		# Project edges
-		edges = np.roll(struct['edges'], -dir, axis=-1)[..., 1:]
-		edge_mask = np.roll(struct['edge_mask'], -dir, axis=-1)[..., 1:]
+		edges = np.roll(struct.edges, -direction, axis=-1)[..., 1:]
+		edge_mask = np.roll(struct.edge_mask, -direction, axis=-1)[..., 1:]
 		for j in range(shape[0]):
 			for k in range(shape[1]):
 				for s in range(2):
@@ -161,8 +163,8 @@ class BaseBlockStruct(object):
 						edge.proj_geom(geometry)
 
 		# Project faces
-		faces = struct['faces'][..., dir]
-		face_mask = struct['face_mask'][..., dir]
+		faces = struct.faces[..., direction]
+		face_mask = struct.face_mask[..., direction]
 		for j in range(rshape[0]):
 			for k in range(rshape[1]):
 				if not face_mask[j, k]:
@@ -200,36 +202,36 @@ class BaseBlockStruct(object):
 	def write(self, block_mesh_dict):
 
 		# Reset block_mask edge
-		bmask = self['block_mask']
+		bmask = self.block_mask
 		bmask[-1] = True
 		bmask[:, -1] = True
 		bmask[:, :, -1] = True
 
+		shape = self.shape
+		rshape = (shape[0] - 1, shape[1] - 1, shape[2] - 1)
+
 		# TO DO: See if numpy moving_window function will help here
-		for i in range(self.rshape[0]):
-			for j in range(self.rshape[1]):
-				for k in range(self.rshape[2]):
+		for i in range(rshape[0]):
+			for j in range(rshape[1]):
+				for k in range(rshape[2]):
 
 					if not bmask[i, j, k]:
 						# Get sub-array
 						blockData = self[i:i + 2, j:j + 2, k:k + 2]
 
-						gt = blockData['grading'].copy()
+						gt = blockData.grading.copy()
 						grading = self._get_grading(gt)
 
-						nd = blockData['num_divisions'][0, 0, 0]
+						nd = blockData.num_divisions[0, 0, 0]
 
-						vts = self._get_block_vertices(blockData['baked_vertices'])
+						vts = self._get_block_vertices(blockData.baked_vertices)
 
-						block_zone_tag = blockData['zone_tags'][0, 0, 0]
+						block_zone_tag = blockData.zone_tags[0, 0, 0]
 
 						block = HexBlock(vts, nd, block_zone_tag, grading)
 						block_mesh_dict.add_hexblock(block)
 
-		shape = self.shape
-		rshape = self.rshape
-
-		b_vts = self['baked_vertices']
+		b_vts = self.baked_vertices
 		for index in np.ndindex(shape):
 			block_mesh_dict.add_geometries(b_vts[index].proj_g)
 
@@ -238,9 +240,9 @@ class BaseBlockStruct(object):
 			roll_pos = np.roll(init_pos, s)
 
 			d_bmask = np.moveaxis(bmask, init_pos, roll_pos)
-			d_edges = np.moveaxis(self['edges'][..., s], init_pos, roll_pos)
-			d_faces = np.moveaxis(self['faces'][..., s], init_pos, roll_pos)
-			d_boundary_tags = np.moveaxis(self['boundary_tags'][..., s], init_pos, roll_pos)
+			d_edges = np.moveaxis(self.edges[..., s], init_pos, roll_pos)
+			d_faces = np.moveaxis(self.faces[..., s], init_pos, roll_pos)
+			d_boundary_tags = np.moveaxis(self.boundary_tags[..., s], init_pos, roll_pos)
 
 			for i in range(rshape[s]):
 				for j in range(shape[(s + 1) % 3]):
@@ -268,7 +270,7 @@ class BaseBlockStruct(object):
 								if i > 0 and lmsk.sum() == 0:
 									warnings.warn(
 										f'Attempting to specify a boundary at an interior face. '
-										f'Please check boundary_tags')
+										f'Please check assignment to boundary_tags.')
 								else:
 									block_mesh_dict.add_boundary_face(d_boundary_tags[i, j, k], face)
 
@@ -276,23 +278,14 @@ class BaseBlockStruct(object):
 								block_mesh_dict.add_face(face)
 								block_mesh_dict.add_geometries((face.proj_g,))
 
-	# Default to underlying structured array
-	def __getattr__(self, name):
-		return getattr(self.str_arr, name)
 
-	def __getitem__(self, key):
-		return self.str_arr[key]
-
-
-class CartBlockStruct(BaseBlockStruct):
-
-	def __init__(self, xs, ys, zs, nx, ny, nz, zone_tag=DEFAULT_ZONE_TAG):
-		BaseBlockStruct.__init__(self, xs, ys, zs, nx, ny, nz, cart_to_cart, zone_tag)
+# There is truly no need to subclass the BaseBlockStruct into CartBlockStruct
+CartBlockStruct = BaseBlockStruct
 
 
 class TubeBlockStruct(BaseBlockStruct):
 
-	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, is_complete=False):
+	def __new__(cls, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, is_complete=False):
 
 		if np.any(np.asarray(rs) < 0):
 			raise ValueError('Negative values supplied to array of radial values in TubeBlockStruct.')
@@ -310,23 +303,23 @@ class TubeBlockStruct(BaseBlockStruct):
 						  f'The resulting tube struct may visually appear closed, but a circumferential \'wall\' '
 						  f'will be present at theta={ts[0]}.')
 
-		BaseBlockStruct.__init__(self, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone_tag)
+		block_structure = super(TubeBlockStruct, cls).__new__(cls, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone_tag)
 
-		b_vts = self['baked_vertices']
-		edges = self['edges']
-		faces = self['faces']
-		rshape = self.rshape
+		b_vts = block_structure.baked_vertices
+		edges = block_structure.edges
+		faces = block_structure.faces
+		rshape = np.array(block_structure.shape) - 1
 
 		if is_complete:
 			b_vts[:, -1] = b_vts[:, 0]
 
-		self.is_full = np.isclose(rs[0], 0.)
+		block_structure.is_full = np.isclose(rs[0], 0.)
 
 		# Re-assign vertices, edges, and faces at the axis of the tube
-		if self.is_full:
+		if block_structure.is_full:
 			b_vts[0] = b_vts[0, 0]
-			self['face_mask'][0, ..., 0] = True
-			self['edge_mask'][0, ..., 1] = True
+			block_structure.face_mask[0, ..., 0] = True
+			block_structure.edge_mask[0, ..., 1] = True
 
 			for j in range(rshape[1] + 1):
 				for k in range(rshape[2] + 1):
@@ -336,14 +329,30 @@ class TubeBlockStruct(BaseBlockStruct):
 				for k in range(rshape[2]):
 					faces[0, j, k, 1] = Face(b_vts[0:2, j, k:k + 2])
 
-		self.is_complete = is_complete
+		block_structure.is_complete = is_complete
+
+		return block_structure
+
+	def __array_finalize__(self, other_block_structure):
+		if (other_block_structure is None) or (self.dtype is not other_block_structure.dtype):
+			return
+
+		# Right now this function gets called 3 times after slicing by recarray internals,
+		# but it shouldn't impact the user
+
+		# Assume index ordering hasn't been changed using a function such as np.moveaxis
+		self.is_complete = other_block_structure.is_complete and \
+						   np.all(self.baked_vertices[:, 0] == self.baked_vertices[:, -1])
+
+		self.is_full = other_block_structure.is_full and \
+					   np.all(np.isin(self.baked_vertices[0], other_block_structure.baked_vertices[0]))
 
 	def write(self, block_mesh_dict):
 
 		shape = self.shape
 		shp = tuple((shape[0], shape[1] - 1, shape[2]))
 
-		vts = self['vertices']
+		vts = self.vertices
 
 		isR0 = np.isclose(vts[0, ..., 0], 0.)
 
@@ -364,20 +373,20 @@ class TubeBlockStruct(BaseBlockStruct):
 		# Mask axial and radial edges as well as circumferential faces so
 		# no redundant edges or faces are written to file
 		if self.is_complete:
-			self['edge_mask'][:, -1, :, [0, 2]] = True
-			self['face_mask'][:, -1, :, 1] = True
+			self.edge_mask[:, -1, :, [0, 2]] = True
+			self.face_mask[:, -1, :, 1] = True
 
-		b_vts = self['baked_vertices']
-		vertex_mask = self['vertex_mask']
-		proj_rcrds = self['vertices'][..., 0]
+		b_vts = self.baked_vertices
+		vertex_mask = self.vertex_mask
+		proj_rcrds = self.vertices[..., 0]
 
 		for ind in np.ndindex(shp):
 			if not (vertex_mask[ind] or np.isclose(proj_rcrds[ind], 0.)):
 				b_vts[ind].proj_geom(cyls[proj_rcrds[ind]])
 
-		edges = self['edges']
-		edge_mask = self['edge_mask']
-		acrds = self['vertices'][..., 1]
+		edges = self.edges
+		edge_mask = self.edge_mask
+		acrds = self.vertices[..., 1]
 
 		# Test and see if the circumferential edges or axial edges need to be projected
 		a_edges = edges[..., 2]
@@ -433,33 +442,37 @@ class CylBlockStructContainer(object):
 							 f'which is too close to 0, such that an o-grid cannot be accomodated. '
 							 f'Consider using TubeBlockStruct instead.')
 
+		if (len(ts) - 1) % 4 > 0:
+			raise ValueError(f'The ts array length provided to CylBlockStructContainer is invalid. In order to make '
+							 f'sure the o-grid is properly formed, the number of divisions must be `4*n+1`, where `n` '
+							 f'is any positive integer.')
+
 		self.inner_arc_curve = inner_arc_curve
 		self.is_core_aligned = is_core_aligned
 
-		Ng = ((ts.size - 1) // 4) + 1  # Assume integer number of divisions
-
-		xs = ys = np.linspace(-rs[0], rs[0], Ng) * _drt2
+		num_side_blocks = (len(ts) - 1) // 4
+		xs = ys = np.linspace(-rs[0], rs[0], num_side_blocks + 1) * _drt2
 
 		if isinstance(nt, int):
 			nx = ny = nt
 		else:
-			nx = nt[:Ng].copy()
-			ny = nt[Ng:2 * Ng].copy()
+			nx = nt[:num_side_blocks]
+			ny = nt[num_side_blocks:2 * num_side_blocks]
 
 		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, zone_tag=zone_tag)
 
 		if is_core_aligned:  # Rotate the tube to match the core
-			self.tube_struct['vertices'][..., 1] -= 3 / 4 * np.pi
+			self.tube_struct.vertices[..., 1] -= 3 / 4 * np.pi
 		else:  # Rotate the core to match the tube
-			cyl_vts = np_cart_to_cyl(self.core_struct['vertices'])
+			cyl_vts = np_cart_to_cyl(self.core_struct.vertices)
 			cyl_vts[..., 1] -= 5 / 4 * np.pi
-			self.core_struct['vertices'][:] = np_cyl_to_cart(cyl_vts)
+			self.core_struct.vertices[:] = np_cyl_to_cart(cyl_vts)
 
-		core_b_vts = self.core_struct['baked_vertices']
-		tube_b_vts = self.tube_struct['baked_vertices']
+		core_b_vts = self.core_struct.baked_vertices
+		tube_b_vts = self.tube_struct.baked_vertices
 
 		# Connect the outer tube structure to the core
-		tube_indices = np.arange(ts.size - 1).reshape(4, Ng - 1)
+		tube_indices = np.arange(ts.size - 1).reshape(4, num_side_blocks)
 
 		for s in range(4):
 			tube_b_vts[0, tube_indices[s], :] = np.rot90(core_b_vts, k=-s)[:-1, 0, :]
@@ -468,8 +481,8 @@ class CylBlockStructContainer(object):
 
 	def write(self, block_mesh_dict):
 
-		self.tube_struct['face_mask'][0, :, :, 0] = True
-		self.tube_struct['vertex_mask'][0, :, :] = True
+		self.tube_struct.face_mask[0, :, :, 0] = True
+		self.tube_struct.vertex_mask[0, :, :] = True
 
 		iac = self.inner_arc_curve
 		og_vectors = self._og_core_vectors if self.is_core_aligned else self._og_tube_vectors
@@ -478,8 +491,8 @@ class CylBlockStructContainer(object):
 			tube = self.tube_struct
 			shape = tube.shape
 
-			tube_vts = tube['vertices'][0]
-			tube['edges'][0, ..., 1:] = dummy_edge
+			tube_vts = tube.vertices[0]
+			tube.edges[0, ..., 1:] = dummy_edge
 
 			core = self.core_struct
 
@@ -503,8 +516,8 @@ class CylBlockStructContainer(object):
 
 			# For each edge of the O-grid square
 			for s in range(4):
-				core_side_b_vts = np.rot90(core['baked_vertices'], k=-s)[:-1, 0, :]
-				core_side_edges = np.rot90(core['edges'], k=-s)[::np.sign(3 - (2 * s)), 0, :, s % 2][:-1]
+				core_side_b_vts = np.rot90(core.baked_vertices, k=-s)[:-1, 0, :]
+				core_side_edges = np.rot90(core.edges, k=-s)[::np.sign(3 - (2 * s)), 0, :, s % 2][:-1]
 
 				for index, core_vertex in np.ndenumerate(core_side_b_vts):
 					core_vertex.proj_geom(cyl_arr[index[1], s])
@@ -513,7 +526,7 @@ class CylBlockStructContainer(object):
 					edge.proj_geom(cyl_arr[index[1], s])
 
 		else:
-			self.tube_struct['edge_mask'][0, :, :, [1, 2]] = True
+			self.tube_struct.edge_mask[0, :, :, [1, 2]] = True
 
 		self.tube_struct.write(block_mesh_dict)
 		self.core_struct.write(block_mesh_dict)

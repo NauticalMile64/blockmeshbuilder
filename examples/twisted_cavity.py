@@ -22,7 +22,7 @@ ndz = 1
 
 cavity = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone_tag=ZoneTag('fluid_zone'))
 
-GD = cavity['grading']
+GD = cavity.grading
 edge_grd = 4
 GD[:, 0, :, 1] = SimpleGradingElement(edge_grd)  # bottom
 GD[:, -2, :, 1] = SimpleGradingElement(1 / edge_grd)  # top
@@ -30,7 +30,7 @@ GD[0, :, :, 0] = SimpleGradingElement(edge_grd)  # left
 GD[-2, :, :, 0] = SimpleGradingElement(1 / edge_grd)  # right
 
 # Rotate vertices
-vts = cavity['vertices']
+vts = cavity.vertices
 XS, YS = vts[:, :, :, 0], vts[:, :, :, 1]
 RS = np.sqrt(XS ** 2 + YS ** 2)
 TS = np.arctan2(YS, XS)
@@ -42,10 +42,10 @@ XS[:] = RS * np.cos(TS)
 YS[:] = RS * np.sin(TS)
 
 # Set middle block to solid
-cavity['zone_tags'][2, 2, 0] = ZoneTag('solid_zone')
+cavity.zone_tags[2, 2, 0] = ZoneTag('solid_zone')
 
 # Label the lid
-cavity['boundary_tags'][:, -1, :, 1] = BoundaryTag('lid')
+cavity.boundary_tags[:, -1, :, 1] = BoundaryTag('lid')
 
 block_mesh_dict = BlockMeshDict(metric='mm')
 cavity.write(block_mesh_dict)

@@ -69,11 +69,11 @@ lb_nose_index = (np.abs(bl_slope - m_slope)).argmin()
 sb_idx = [0, l_nose_index, u_nose_index, -1]
 bb_idx = [0, lb_nose_index, ub_nose_index, -1]
 
-bl_struct['vertices'][-1, 1:5, :, :2] = s_pts[sb_idx][:, np.newaxis]
-bl_struct['vertices'][0, 1:5, :, :2] = bl_pts[bb_idx][:, np.newaxis]
+bl_struct.vertices[-1, 1:5, :, :2] = s_pts[sb_idx][:, np.newaxis]
+bl_struct.vertices[0, 1:5, :, :2] = bl_pts[bb_idx][:, np.newaxis]
 
-bl_edges = bl_struct['edges']
-bl_b_vts = bl_struct['baked_vertices']
+bl_edges = bl_struct.edges
+bl_b_vts = bl_struct.baked_vertices
 
 for j in range(1, 4):
 	for k in range(zs.size):
@@ -84,20 +84,19 @@ for j in range(1, 4):
 		bl_edges[-1, j, k, 1] = PolyLineCurvedEdge(bl_b_vts[-1, j:j + 2, k], pts)
 
 # Align downstream boundary layer block structure
-bl_struct['vertices'][:, [0, -1], :, 0] = 1 + num_chords_downstream
-bl_struct['vertices'][0, 0, :, 1] = -num_chords_bl_thickness
-bl_struct['vertices'][-1, [0, -1], :, 1] = bl_struct['vertices'][-1, [1, -2], :, 1]
-bl_struct['vertices'][0, -1, :, 1] = num_chords_bl_thickness
+bl_struct.vertices[:, [0, -1], :, 0] = 1 + num_chords_downstream
+bl_struct.vertices[0, 0, :, 1] = -num_chords_bl_thickness
+bl_struct.vertices[-1, [0, -1], :, 1] = bl_struct.vertices[-1, [1, -2], :, 1]
+bl_struct.vertices[0, -1, :, 1] = num_chords_bl_thickness
 
 # Construct trailing edge block if necessary
 far_field_zone_tag = ZoneTag('far_field')
-te_struct = None
 if close_trailing_edge:
-	bl_struct['baked_vertices'][-1, [-1, -2]] = bl_struct['baked_vertices'][-1, [0, 1]]
+	bl_struct.baked_vertices[-1, [-1, -2]] = bl_struct.baked_vertices[-1, [0, 1]]
 else:
 	te_struct = CartBlockStruct([0, 1], [0, 1], zs, 3, nx_downstream, ndz, zone_tag=far_field_zone_tag)
-	te_struct['baked_vertices'][0] = bl_struct['baked_vertices'][-1, :2]
-	te_struct['baked_vertices'][-1] = bl_struct['baked_vertices'][-1, -2:][::-1]
+	te_struct.baked_vertices[0] = bl_struct.baked_vertices[-1, :2]
+	te_struct.baked_vertices[-1] = bl_struct.baked_vertices[-1, -2:][::-1]
 
 # Create the far-field structure
 ff_xs = np.array([-num_chords_upstream, 0., 1., 1 + num_chords_downstream])
@@ -109,37 +108,37 @@ ff_ndy = np.array([ny_wall_normal, n_nose, ny_wall_normal])
 ff_struct = CartBlockStruct(ff_xs, ff_ys, zs, ff_ndx, ff_ndy, ndz, zone_tag=far_field_zone_tag)
 
 # Cut out the center of the far-field struct for the boundary layer struct to fit
-ff_struct['block_mask'][1:, 1, :] = True
+ff_struct.block_mask[1:, 1, :] = True
 
 # Mate far-field structure to boundary layer structure
-ff_struct['baked_vertices'][1:, 1] = bl_struct['baked_vertices'][0, 2::-1]
-ff_struct['baked_vertices'][1:, 2] = bl_struct['baked_vertices'][0, 3:]
+ff_struct.baked_vertices[1:, 1] = bl_struct.baked_vertices[0, 2::-1]
+ff_struct.baked_vertices[1:, 2] = bl_struct.baked_vertices[0, 3:]
 
 # Mesh tuning
-bl_struct['grading'][0, ..., 0] = SimpleGradingElement(1./2)
+bl_struct.grading[0, ..., 0] = SimpleGradingElement(1./2)
 
 len_pcts = np.array([0.8, 0.2])
 dens = np.array([1., 1., 3.])
-ff_struct['grading'][0, ..., 0] = MultiGradingElement(*get_grading_info(len_pcts, dens))
-ff_struct['grading'][:, 0, :, 1] = MultiGradingElement(*get_grading_info(len_pcts, dens))
-ff_struct['grading'][:, 2, :, 1] = MultiGradingElement(*get_grading_info(len_pcts[::-1], dens[::-1]))
+ff_struct.grading[0, ..., 0] = MultiGradingElement(*get_grading_info(len_pcts, dens))
+ff_struct.grading[:, 0, :, 1] = MultiGradingElement(*get_grading_info(len_pcts, dens))
+ff_struct.grading[:, 2, :, 1] = MultiGradingElement(*get_grading_info(len_pcts[::-1], dens[::-1]))
 
 # Define boundary_tags
-ff_struct['boundary_tags'][0, ..., 0] = BoundaryTag('inlet')
+ff_struct.boundary_tags[0, ..., 0] = BoundaryTag('inlet')
 
 outlet_tag = BoundaryTag('outlet')
-ff_struct['boundary_tags'][-1, [0, -2], :, 0] = outlet_tag
-bl_struct['boundary_tags'][0, [0, -1], :, 1] = outlet_tag
-if te_struct:
-	te_struct['boundary_tags'][:, 0, :, 1] = outlet_tag
+ff_struct.boundary_tags[-1, [0, -2], :, 0] = outlet_tag
+bl_struct.boundary_tags[0, [0, -1], :, 1] = outlet_tag
+if not close_trailing_edge:
+	te_struct.boundary_tags[:, 0, :, 1] = outlet_tag
 
-bl_struct['boundary_tags'][-1, 1:-2, :, 0] = BoundaryTag('wall-airfoil')
+bl_struct.boundary_tags[-1, 1:-2, :, 0] = BoundaryTag('wall-airfoil')
 
 # Write the blocks to the blockMeshDict
 block_mesh_dict = BlockMeshDict(metric='mm')
 bl_struct.write(block_mesh_dict)
 ff_struct.write(block_mesh_dict)
-if te_struct:
+if not close_trailing_edge:
 	te_struct.write(block_mesh_dict)
 block_mesh_dict.write_file('OF_case/system/')  # Try adding block_structure_only=True here
 
