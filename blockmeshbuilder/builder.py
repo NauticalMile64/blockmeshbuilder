@@ -137,7 +137,6 @@ class BaseBlockStruct(np.recarray):
 
 		return block_structure
 
-
 	def project_structure(self, direction, geometry, face_ind):
 
 		# Get the subarray relevant to the face being projected
@@ -333,6 +332,20 @@ class TubeBlockStruct(BaseBlockStruct):
 		block_structure.is_complete = is_complete
 
 		return block_structure
+
+	def __array_finalize__(self, other_block_structure):
+		if (other_block_structure is None) or (self.dtype is not other_block_structure.dtype):
+			return
+
+		# Right now this function gets called 3 times after slicing by recarray internals,
+		# but it shouldn't impact the user
+
+		# Assume index ordering hasn't been changed using a function such as np.moveaxis
+		self.is_complete = other_block_structure.is_complete and \
+						   np.all(self.baked_vertices[:, 0] == self.baked_vertices[:, -1])
+
+		self.is_full = other_block_structure.is_full and \
+					   np.all(np.isin(self.baked_vertices[0], other_block_structure.baked_vertices[0]))
 
 	def write(self, block_mesh_dict):
 
