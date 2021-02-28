@@ -447,11 +447,13 @@ class CylBlockStructContainer(object):
 
 		Ng = ((ts.size - 1) // 4) + 1  # Assume integer number of divisions
 
-		xs = np.linspace(-rs[0], rs[0], Ng) * _drt2
-		ys = xs.copy()
+		xs = ys = np.linspace(-rs[0], rs[0], Ng) * _drt2
 
-		nx = nt[:Ng].copy()
-		ny = nt[Ng:2 * Ng].copy()
+		if isinstance(nt, int):
+			nx = ny = nt
+		else:
+			nx = nt[:Ng].copy()
+			ny = nt[Ng:2 * Ng].copy()
 
 		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, zone_tag=zone_tag)
 
