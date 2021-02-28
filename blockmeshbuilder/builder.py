@@ -442,18 +442,22 @@ class CylBlockStructContainer(object):
 							 f'which is too close to 0, such that an o-grid cannot be accomodated. '
 							 f'Consider using TubeBlockStruct instead.')
 
+		if (len(ts) - 1) % 4 > 0:
+			raise ValueError(f'The ts array length provided to CylBlockStructContainer is invalid. In order to make '
+							 f'sure the o-grid is properly formed, the number of divisions must be `4*n+1`, where `n` '
+							 f'is any positive integer.')
+
 		self.inner_arc_curve = inner_arc_curve
 		self.is_core_aligned = is_core_aligned
 
-		Ng = ((ts.size - 1) // 4) + 1  # Assume integer number of divisions
-
-		xs = ys = np.linspace(-rs[0], rs[0], Ng) * _drt2
+		num_side_blocks = (len(ts) - 1) // 4
+		xs = ys = np.linspace(-rs[0], rs[0], num_side_blocks + 1) * _drt2
 
 		if isinstance(nt, int):
 			nx = ny = nt
 		else:
-			nx = nt[:Ng].copy()
-			ny = nt[Ng:2 * Ng].copy()
+			nx = nt[:num_side_blocks]
+			ny = nt[num_side_blocks:2 * num_side_blocks]
 
 		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, zone_tag=zone_tag)
 
@@ -468,7 +472,7 @@ class CylBlockStructContainer(object):
 		tube_b_vts = self.tube_struct.baked_vertices
 
 		# Connect the outer tube structure to the core
-		tube_indices = np.arange(ts.size - 1).reshape(4, Ng - 1)
+		tube_indices = np.arange(ts.size - 1).reshape(4, num_side_blocks)
 
 		for s in range(4):
 			tube_b_vts[0, tube_indices[s], :] = np.rot90(core_b_vts, k=-s)[:-1, 0, :]
