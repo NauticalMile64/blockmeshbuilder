@@ -91,7 +91,6 @@ bl_struct.vertices[0, -1, :, 1] = num_chords_bl_thickness
 
 # Construct trailing edge block if necessary
 far_field_zone_tag = ZoneTag('far_field')
-te_struct = None
 if close_trailing_edge:
 	bl_struct.baked_vertices[-1, [-1, -2]] = bl_struct.baked_vertices[-1, [0, 1]]
 else:
@@ -130,7 +129,7 @@ ff_struct.boundary_tags[0, ..., 0] = BoundaryTag('inlet')
 outlet_tag = BoundaryTag('outlet')
 ff_struct.boundary_tags[-1, [0, -2], :, 0] = outlet_tag
 bl_struct.boundary_tags[0, [0, -1], :, 1] = outlet_tag
-if te_struct:
+if not close_trailing_edge:
 	te_struct.boundary_tags[:, 0, :, 1] = outlet_tag
 
 bl_struct.boundary_tags[-1, 1:-2, :, 0] = BoundaryTag('wall-airfoil')
@@ -139,7 +138,7 @@ bl_struct.boundary_tags[-1, 1:-2, :, 0] = BoundaryTag('wall-airfoil')
 block_mesh_dict = BlockMeshDict(metric='mm')
 bl_struct.write(block_mesh_dict)
 ff_struct.write(block_mesh_dict)
-if te_struct:
+if not close_trailing_edge:
 	te_struct.write(block_mesh_dict)
 block_mesh_dict.write_file('OF_case/system/')  # Try adding block_structure_only=True here
 
