@@ -7,11 +7,11 @@ For example, the NACA 4424 airfoil mesh shown above comprises a boundary layer b
 
 How does it work?
 -----------------
-The user writes a Python script using blockmeshbuilder to create a clear, descriptive representation of the desired block structure(s). After creation, elements of these block structures (i.e. vertices, edges, and faces) can be manipulated, projected to simple geometries, or mated to other block structures. At the end of the python script, the data are written into a blockMeshDict file with a single line of code. Then the user can run [OpenFOAM's `blockMesh` tool](https://cfd.direct/openfoam/user-guide/v8-blockMesh/) to generate the mesh.
+The user writes a Python script using blockmeshbuilder to create a clear, descriptive representation of the desired block structure(s). After creation, elements of these block structures (i.e. vertices, edges, and faces) can be manipulated, projected to simple geometries, or mated to other block structures. At the end of the python script, the data are written to a blockMeshDict file with a single line of code. Then the user can run [OpenFOAM's `blockMesh` tool](https://cfd.direct/openfoam/user-guide/v8-blockMesh/) to generate the mesh.
 
 Simple Example
 -----------------
-Below is the [wedge.py](tests/wedge.py) example which generate wedge model shown [here](https://openfoamwiki.net/index.php/Main_ContribExamples/AxiSymmetric).
+Below is the [wedge.py](tests/wedge.py) example which generates the wedge model described [here](https://openfoamwiki.net/index.php/Main_ContribExamples/AxiSymmetric).
 
 ```python
 from math import radians
@@ -60,17 +60,17 @@ There are many other issues related to the required duplication of commands. For
 
 Dependencies
 -----------------
-In order to run blockmeshbuilder you will need a working installation of Python 2.7 or 3, along with the following modules
+In order to run blockmeshbuilder you will need a working installation of Python 2.7 or 3, along with the following modules:
 
  - [future-fstrings](https://pypi.org/project/future-fstrings/)
  - [numpy](https://numpy.org/)
- - six
+ - [six](https://pypi.org/project/six/)
 
-In addition, the airfoil example above relies on [`shapely`](https://pypi.org/project/Shapely/) to produce the outer boundary layer curve.
+In addition, the airfoil example above relies on [shapely](https://pypi.org/project/Shapely/) to produce the outer boundary layer curve.
 
 Installation
 -----------------
-Clone this repository and execute `python -m pip install .` for the regular installation, or `python -m pip install -e .` for developer mode.
+Fork or clone this repository and execute `python -m pip install .` for the regular installation, or `python -m pip install -e .` for developer mode.
 
 History
 -----------------
