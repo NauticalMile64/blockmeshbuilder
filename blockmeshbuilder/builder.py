@@ -217,16 +217,16 @@ class BaseBlockStruct(np.recarray):
 
 					if not bmask[i, j, k]:
 						# Get sub-array
-						blockData = self[i:i + 2, j:j + 2, k:k + 2]
+						block_data = self[i:i + 2, j:j + 2, k:k + 2]
 
-						gt = blockData.grading.copy()
+						gt = block_data.grading.copy()
 						grading = self._get_grading(gt)
 
-						nd = blockData.num_divisions[0, 0, 0]
+						nd = block_data.num_divisions[0, 0, 0]
 
-						vts = self._get_block_vertices(blockData.baked_vertices)
+						vts = self._get_block_vertices(block_data.baked_vertices)
 
-						block_zone_tag = blockData.zone_tags[0, 0, 0]
+						block_zone_tag = block_data.zone_tags[0, 0, 0]
 
 						block = HexBlock(vts, nd, block_zone_tag, grading)
 						block_mesh_dict.add_hexblock(block)
