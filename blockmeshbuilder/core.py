@@ -166,11 +166,11 @@ class Plane(Geometry):
 
 	def do_format(self, plane_data):
 		return Geometry.do_format(self,
-							   {
-								   'type': 'searchablePlane',
-								   'planeType': self.plane_type,
-								   _dict_format(f'{self.plane_type}Dict', plane_data, indent_level=2): ''
-							   })
+								  {
+									  'type': 'searchablePlane',
+									  'planeType': self.plane_type,
+									  _dict_format(f'{self.plane_type}Dict', plane_data, indent_level=2): ''
+								  })
 
 
 class PlanePointAndNormal(Plane):
@@ -183,10 +183,10 @@ class PlanePointAndNormal(Plane):
 
 	def format(self):
 		return Plane.do_format(self,
-							{
-								'point': self.point.format(),
-								'normal': self.normal.format()
-							})
+							   {
+								   'point': self.point.format(),
+								   'normal': self.normal.format()
+							   })
 
 
 class PlaneEmbeddedPoints(Plane):
@@ -198,11 +198,11 @@ class PlaneEmbeddedPoints(Plane):
 
 	def format(self):
 		return Plane.do_format(self,
-							{
-								'point1': self.points[0].format(),
-								'point2': self.points[1].format(),
-								'point3': self.points[2].format()
-							})
+							   {
+								   'point1': self.points[0].format(),
+								   'point2': self.points[1].format(),
+								   'point3': self.points[2].format()
+							   })
 
 
 class PlaneEquation(Plane):
@@ -214,12 +214,12 @@ class PlaneEquation(Plane):
 
 	def format(self):
 		return Plane.do_format(self,
-							{
-								'a': f'{self.equation_coeffs[0]:18.15g}',
-								'b': f'{self.equation_coeffs[1]:18.15g}',
-								'c': f'{self.equation_coeffs[2]:18.15g}',
-								'd': f'{self.equation_coeffs[3]:18.15g}',
-							})
+							   {
+								   'a': f'{self.equation_coeffs[0]:18.15g}',
+								   'b': f'{self.equation_coeffs[1]:18.15g}',
+								   'c': f'{self.equation_coeffs[2]:18.15g}',
+								   'd': f'{self.equation_coeffs[3]:18.15g}',
+							   })
 
 
 class Sphere(Geometry):
@@ -230,11 +230,11 @@ class Sphere(Geometry):
 
 	def format(self):
 		return Geometry.do_format(self,
-							   {
-								   'type': 'searchableSphere',
-								   'centre': self.center.format(),
-								   'radius': f'{self.radius:18.15g}'
-							   })
+								  {
+									  'type': 'searchableSphere',
+									  'centre': self.center.format(),
+									  'radius': f'{self.radius:18.15g}'
+								  })
 
 
 class Cylinder(Geometry):
@@ -246,12 +246,12 @@ class Cylinder(Geometry):
 
 	def format(self):
 		return Geometry.do_format(self,
-							   {
-								   'type': 'searchableCylinder',
-								   'point1': self.point1.format(),
-								   'point2': self.point2.format(),
-								   'radius': f'{self.radius:18.15g}'
-							   })
+								  {
+									  'type': 'searchableCylinder',
+									  'point1': self.point1.format(),
+									  'point2': self.point2.format(),
+									  'radius': f'{self.radius:18.15g}'
+								  })
 
 
 class Cone(Geometry):
@@ -268,15 +268,15 @@ class Cone(Geometry):
 
 	def format(self):
 		return Geometry.do_format(self,
-							   {
-								   'type': 'searchableCone',
-								   'point1': self.point1.format(),
-								   'point2': self.point2.format(),
-								   'radius1': f'{self.radius1:18.15g}',
-								   'radius2': f'{self.radius2:18.15g}',
-								   'inner_radius1': f'{self.inner_radius1:18.15g}',
-								   'inner_radius2': f'{self.inner_radius2:18.15g}'
-							   })
+								  {
+									  'type': 'searchableCone',
+									  'point1': self.point1.format(),
+									  'point2': self.point2.format(),
+									  'radius1': f'{self.radius1:18.15g}',
+									  'radius2': f'{self.radius2:18.15g}',
+									  'inner_radius1': f'{self.inner_radius1:18.15g}',
+									  'inner_radius2': f'{self.inner_radius2:18.15g}'
+								  })
 
 
 class Face(object):
@@ -289,7 +289,8 @@ class Face(object):
 
 	def proj_geom(self, geometry):
 		if self.proj_g:
-			warnings.warn(f'Face-{self.name} has already been projected to {self.proj_g.name}; over-writing with {geometry.name}.')
+			warnings.warn(
+				f'Face-{self.name} has already been projected to {self.proj_g.name}; over-writing with {geometry.name}.')
 
 		self.proj_g = geometry
 
@@ -589,7 +590,8 @@ class BlockMeshDict(object):
 
 	def __init__(self, metric='m', of_dist='.org', block_structure_only=False):
 		if of_dist not in self._of_geometries:
-			warnings.warn(f'Unknown OpenFOAM distribution {of_dist}. The available options are {self._of_geometries.keys()}. Switching to .org distribution.')
+			warnings.warn(
+				f'Unknown OpenFOAM distribution {of_dist}. The available options are {self._of_geometries.keys()}. Switching to .org distribution.')
 			of_dist = '.org'
 		self.of_dist = of_dist
 		self.of_available_geometries = self._of_geometries[of_dist]
@@ -616,7 +618,8 @@ class BlockMeshDict(object):
 	def add_geometries(self, other_geometries):
 		for geometry in other_geometries:
 			if type(geometry) not in self.of_available_geometries:
-				raise TypeError(f'Geometry of type {type(geometry)} is not implemented in the {self.of_dist} distribution.')
+				raise TypeError(
+					f'Geometry of type {type(geometry)} is not implemented in the {self.of_dist} distribution.')
 
 		self.geometries.update(other_geometries)
 
@@ -678,6 +681,7 @@ mergePatchPairs
 			of_case_path += 'blockMeshDict'
 		with open(of_case_path, 'w') as infile:
 			infile.write(self.format(block_structure_only))
+
 
 '''
 /*--------------------------------*- C++ -*----------------------------------*\
