@@ -14,22 +14,26 @@ import numpy as np
 from numpy import sin, cos
 import warnings
 
-
 def cart_to_cart(crds):
 	return crds.copy()
 
 
 def cyl_to_cart(crds):
 	ncrds = crds.copy()
-	ncrds[0], ncrds[1] = crds[0] * cos(crds[1]), crds[0] * sin(crds[1])
+	ncrds[0] = crds[0] * cos(crds[1])
+	ncrds[1] = crds[0] * sin(crds[1])
 	return ncrds
 
 
 def cart_to_cyl(crds):
 	ncrds = crds.copy()
-	ncrds[0] = np.sqrt(crds[0] ** 2 + crds[1] ** 2)
+	ncrds[0] = np.hypot(crds[0], crds[1])
 	ncrds[1] = np.arctan2(crds[1], crds[0])
 	return ncrds
+
+
+cyl_to_cart = np.vectorize(cyl_to_cart, signature='(3)->(3)')
+cart_to_cyl = np.vectorize(cart_to_cyl, signature='(3)->(3)')
 
 
 class Point(object):

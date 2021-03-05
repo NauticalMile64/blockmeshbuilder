@@ -12,7 +12,8 @@ If you wish to simply omit the center block from the mesh instead of writing it,
 block to True instead of editing the 'zone_tags' array.
 """
 import numpy as np
-from blockmeshbuilder import BlockMeshDict, CartBlockStruct, SimpleGradingElement, BoundaryTag, ZoneTag
+from blockmeshbuilder import BlockMeshDict, cart_to_cyl, cyl_to_cart, CartBlockStruct, \
+	SimpleGradingElement, BoundaryTag, ZoneTag
 
 xs = ys = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) - 0.5
 zs = np.array([0.0, 0.01])
@@ -30,16 +31,13 @@ GD[0, :, :, 0] = SimpleGradingElement(edge_grd)  # left
 GD[-2, :, :, 0] = SimpleGradingElement(1 / edge_grd)  # right
 
 # Rotate vertices
-vts = cavity.vertices
-XS, YS = vts[:, :, :, 0], vts[:, :, :, 1]
-RS = np.sqrt(XS ** 2 + YS ** 2)
-TS = np.arctan2(YS, XS)
+vts_cyl = cart_to_cyl(cavity.vertices)  # Create new array of vertices in a cylindrical co-ordinate system
 
-TS[1:5, 1:5, :] += np.pi / 8  # Rotate interior blocks by 22.5 degrees
-TS[2:4, 2:4, :] += np.pi / 8  # Rotate innermost block by a further 22.5 degrees
+theta_coordinates = vts_cyl[..., 1]  # Select the angle co-ordinate theta
+theta_coordinates[1:-1, 1:-1, :] += np.pi / 8  # Rotate interior blocks by 22.5 degrees
+theta_coordinates[2:-2, 2:-2, :] += np.pi / 8  # Rotate innermost block by a further 22.5 degrees
 
-XS[:] = RS * np.cos(TS)
-YS[:] = RS * np.sin(TS)
+cavity.vertices[:] = cyl_to_cart(vts_cyl)  # Transform back into the Cartesian system and re-assign
 
 # Set middle block to solid
 cavity.zone_tags[2, 2, 0] = ZoneTag('solid_zone')
