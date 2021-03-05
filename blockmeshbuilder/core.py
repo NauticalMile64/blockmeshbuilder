@@ -11,29 +11,27 @@ else:
 
 from six import string_types
 import numpy as np
-from numpy import sin, cos
 import warnings
 
+
 def cart_to_cart(crds):
-	return crds.copy()
+	return np.asarray(crds).copy()
 
 
 def cyl_to_cart(crds):
+	crds = np.asarray(crds)
 	ncrds = crds.copy()
-	ncrds[0] = crds[0] * cos(crds[1])
-	ncrds[1] = crds[0] * sin(crds[1])
+	ncrds[..., 0] = np.multiply(crds[..., 0], np.cos(crds[..., 1]))
+	ncrds[..., 1] = np.multiply(crds[..., 0], np.sin(crds[..., 1]))
 	return ncrds
 
 
 def cart_to_cyl(crds):
+	crds = np.asarray(crds)
 	ncrds = crds.copy()
-	ncrds[0] = np.hypot(crds[0], crds[1])
-	ncrds[1] = np.arctan2(crds[1], crds[0])
+	ncrds[..., 0] = np.hypot(crds[..., 0], crds[..., 1])
+	ncrds[..., 1] = np.arctan2(crds[..., 1], crds[..., 0])
 	return ncrds
-
-
-cyl_to_cart = np.vectorize(cyl_to_cart, signature='(3)->(3)')
-cart_to_cyl = np.vectorize(cart_to_cyl, signature='(3)->(3)')
 
 
 class Point(object):

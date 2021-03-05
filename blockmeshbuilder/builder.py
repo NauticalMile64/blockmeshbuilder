@@ -20,20 +20,6 @@ def wrap_radians(values):
 	return values % (2 * np.pi)
 
 
-def np_cyl_to_cart(crds):
-	ncrds = crds.copy()
-	ncrds[..., 0] = np.multiply(crds[..., 0], np.cos(crds[..., 1]))
-	ncrds[..., 1] = np.multiply(crds[..., 0], np.sin(crds[..., 1]))
-	return ncrds
-
-
-def np_cart_to_cyl(crds):
-	ncrds = crds.copy()
-	ncrds[..., 0] = np.linalg.norm(crds[..., :-1], axis=-1)
-	ncrds[..., 1] = np.arctan2(crds[..., 1], crds[..., 0])
-	return ncrds
-
-
 class BaseBlockStruct(np.recarray):
 
 	def __new__(cls, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, zone_tag=DEFAULT_ZONE_TAG):
