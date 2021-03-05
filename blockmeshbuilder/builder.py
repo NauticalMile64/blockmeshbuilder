@@ -16,6 +16,10 @@ init_pos = np.arange(3)
 init_pos.setflags(write=False)
 
 
+def wrap_radians(values):
+	return values % (2 * np.pi)
+
+
 class BaseBlockStruct(np.recarray):
 
 	def __new__(cls, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, zone_tag=DEFAULT_ZONE_TAG):
