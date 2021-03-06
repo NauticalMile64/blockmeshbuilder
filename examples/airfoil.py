@@ -117,11 +117,12 @@ ff_struct.baked_vertices[1:, 2] = bl_struct.baked_vertices[0, 3:]
 # Mesh tuning
 bl_struct.grading[0, ..., 0] = SimpleGradingElement(1./2)
 
-len_pcts = np.array([0.8, 0.2])
-dens = np.array([1., 1., 3.])
-ff_struct.grading[0, ..., 0] = MultiGradingElement(*get_grading_info(len_pcts, dens))
-ff_struct.grading[:, 0, :, 1] = MultiGradingElement(*get_grading_info(len_pcts, dens))
-ff_struct.grading[:, 2, :, 1] = MultiGradingElement(*get_grading_info(len_pcts[::-1], dens[::-1]))
+len_pcts = [0.8, 0.2]
+dens = [1., 1., 3.]
+ff_grading_element = MultiGradingElement(*get_grading_info(len_pcts, dens))
+ff_struct.grading[0, ..., 0] = ff_grading_element
+ff_struct.grading[:, 0, :, 1] = ff_grading_element
+ff_struct.grading[:, 2, :, 1] = -ff_grading_element
 
 # Define boundary_tags
 ff_struct.boundary_tags[0, ..., 0] = BoundaryTag('inlet')

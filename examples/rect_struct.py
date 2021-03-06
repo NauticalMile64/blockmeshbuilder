@@ -45,7 +45,7 @@ GD[2, :, :, 0] = SimpleGradingElement(3.)
 
 # Divide the x-edges of the block into 3 chunks: the first chunk is the first 20% of the length,
 # the second is the next 60%, and the last chunk is the final 20%.
-len_pcts = np.array([0.2, 0.6, 0.2])
+len_pcts = [0.2, 0.6, 0.2]
 
 # Now assign the grid densities at the boundaries of each of the chunks:
 # at the beginning, the grid is densest with a relative value of 2.5.
@@ -53,9 +53,9 @@ len_pcts = np.array([0.2, 0.6, 0.2])
 # At the end of chunk 2 (80% of the length), the grid density is still 1,
 # so the grid density is uniform through the second chunk.
 # Finally we increase the density again at the right edge of the block so the grid is refined towards the boundary.
-dens = np.array([2.5, 1., 1., 2.])
+dens = [2.5, 1., 1., 2.]
 
-# We create a MulitGradingElement from this information, using the getGradingInfo helper function to
+# We create a MulitGradingElement from this information, using the get_grading_info helper function to
 # translate this information into the length percent, cell percent, and expansion ratios expected by blockMesh
 grd_elm = MultiGradingElement(*get_grading_info(len_pcts, dens))
 

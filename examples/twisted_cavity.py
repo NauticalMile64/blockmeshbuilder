@@ -24,11 +24,11 @@ ndz = 1
 cavity = CartBlockStruct(xs, ys, zs, ndx, ndy, ndz, zone_tag=ZoneTag('fluid_zone'))
 
 GD = cavity.grading
-edge_grd = 4
-GD[:, 0, :, 1] = SimpleGradingElement(edge_grd)  # bottom
-GD[:, -2, :, 1] = SimpleGradingElement(1 / edge_grd)  # top
-GD[0, :, :, 0] = SimpleGradingElement(edge_grd)  # left
-GD[-2, :, :, 0] = SimpleGradingElement(1 / edge_grd)  # right
+edge_grading = SimpleGradingElement(4)
+GD[:, 0, :, 1] = edge_grading  # bottom
+GD[:, -2, :, 1] = -edge_grading  # top
+GD[0, :, :, 0] = edge_grading  # left
+GD[-2, :, :, 0] = -edge_grading  # right
 
 # Rotate vertices
 vts_cyl = cart_to_cyl(cavity.vertices)  # Create new array of vertices in a cylindrical co-ordinate system
