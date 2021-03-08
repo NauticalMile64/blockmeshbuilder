@@ -363,7 +363,7 @@ class TubeBlockStruct(BaseBlockStruct):
 
 		b_vts = self.baked_vertices
 		vertex_mask = self.vertex_mask
-		proj_rcrds = self.vertices[..., 0]
+		proj_rcrds = vts[..., 0]
 
 		shape = self.shape
 		shp = (shape[0], shape[1] - 1 if self.is_complete else shape[1], shape[2])
@@ -371,15 +371,12 @@ class TubeBlockStruct(BaseBlockStruct):
 			if not (vertex_mask[ind] or np.isclose(proj_rcrds[ind], 0.)):
 				b_vts[ind].proj_geom(cyls[proj_rcrds[ind]])
 
-		edges = self.edges
-		edge_mask = self.edge_mask
-		acrds = self.vertices[..., 1]
-
 		# Test and see if the circumferential edges or axial edges need to be projected
-		a_edges = edges[..., 2]
-		a_edge_mask = edge_mask[..., 2]
-		c_edges = edges[..., 1]
-		c_edge_mask = edge_mask[..., 1]
+		a_edges = self.edges[..., 2]
+		a_edge_mask = self.edge_mask[..., 2]
+		c_edges = self.edges[..., 1]
+		c_edge_mask = self.edge_mask[..., 1]
+		acrds = self.vertices[..., 1]
 
 		cones = {}
 		are_cones = Cone in block_mesh_dict.of_available_geometries
