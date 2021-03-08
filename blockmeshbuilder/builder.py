@@ -344,10 +344,8 @@ class TubeBlockStruct(BaseBlockStruct):
 
 		vts = self.vertices
 
-		isR0 = np.isclose(vts[0, ..., 0], 0.)
-
-		if self.is_full and not np.all(isR0):
-			warnings.warn('When initialized, the inner radii in TubeBlockStruct in zone_tag {self.zone_tag} were '
+		if self.is_full and not np.all(np.isclose(vts[0, ..., 0], 0.)):
+			warnings.warn(f'When initialized, the inner radii in TubeBlockStruct in zone_tag {self.zone_tag} were '
 						  f'set to 0, but some were changed before writing. The nodes along the centerline of '
 						  f'the tube may not be positioned as expected.')
 
