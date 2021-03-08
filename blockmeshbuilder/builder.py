@@ -339,9 +339,6 @@ class TubeBlockStruct(BaseBlockStruct):
 
 	def write(self, block_mesh_dict):
 
-		shape = self.shape
-		shp = tuple((shape[0], shape[1] - 1, shape[2]))
-
 		vts = self.vertices
 
 		if self.is_full and not np.all(np.isclose(vts[0, ..., 0], 0.)):
@@ -368,6 +365,8 @@ class TubeBlockStruct(BaseBlockStruct):
 		vertex_mask = self.vertex_mask
 		proj_rcrds = self.vertices[..., 0]
 
+		shape = self.shape
+		shp = (shape[0], shape[1] - 1 if self.is_complete else shape[1], shape[2])
 		for ind in np.ndindex(shp):
 			if not (vertex_mask[ind] or np.isclose(proj_rcrds[ind], 0.)):
 				b_vts[ind].proj_geom(cyls[proj_rcrds[ind]])
