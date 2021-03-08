@@ -289,6 +289,10 @@ class TubeBlockStruct(BaseBlockStruct):
 						  f'The resulting tube struct may visually appear closed, but a circumferential \'wall\' '
 						  f'will be present at theta={ts[0]}.')
 
+		if is_complete and len(ts) < 3:
+			raise ValueError(f'Too few elements in ts array supplied to TubeBlockStruct. At least 3 elements are '
+							 f'required when the is_complete flag is raised.')
+
 		block_structure = super(TubeBlockStruct, cls).__new__(cls, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone_tag)
 
 		b_vts = block_structure.baked_vertices
