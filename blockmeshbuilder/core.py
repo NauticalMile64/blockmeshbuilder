@@ -186,8 +186,8 @@ class PlanePointAndNormal(Plane):
 	def format(self):
 		return Plane.do_format(self,
 							   {
-								   'point': self.point.format(),
-								   'normal': self.normal.format()
+								   'point': Point.format(self.point),
+								   'normal': Point.format(self.normal)
 							   })
 
 
@@ -201,9 +201,9 @@ class PlaneEmbeddedPoints(Plane):
 	def format(self):
 		return Plane.do_format(self,
 							   {
-								   'point1': self.points[0].format(),
-								   'point2': self.points[1].format(),
-								   'point3': self.points[2].format()
+								   'point1': Point.format(self.points[0]),
+								   'point2': Point.format(self.points[1]),
+								   'point3': Point.format(self.points[2])
 							   })
 
 
@@ -234,7 +234,7 @@ class Sphere(Geometry):
 		return Geometry.do_format(self,
 								  {
 									  'type': 'searchableSphere',
-									  'centre': self.center.format(),
+									  'centre': Point.format(self.center),
 									  'radius': f'{self.radius:18.15g}'
 								  })
 
@@ -250,8 +250,8 @@ class Cylinder(Geometry):
 		return Geometry.do_format(self,
 								  {
 									  'type': 'searchableCylinder',
-									  'point1': self.point1.format(),
-									  'point2': self.point2.format(),
+									  'point1': Point.format(self.point1),
+									  'point2': Point.format(self.point2),
 									  'radius': f'{self.radius:18.15g}'
 								  })
 
@@ -272,8 +272,8 @@ class Cone(Geometry):
 		return Geometry.do_format(self,
 								  {
 									  'type': 'searchableCone',
-									  'point1': self.point1.format(),
-									  'point2': self.point2.format(),
+									  'point1': Point.format(self.point1),
+									  'point2': Point.format(self.point2),
 									  'radius1': f'{self.radius1:18.15g}',
 									  'radius2': f'{self.radius2:18.15g}',
 									  'inner_radius1': f'{self.inner_radius1:18.15g}',
