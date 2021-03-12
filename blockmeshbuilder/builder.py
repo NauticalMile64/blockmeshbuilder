@@ -293,6 +293,11 @@ class TubeBlockStruct(BaseBlockStruct):
 			raise ValueError(f'Too few elements in ts array supplied to TubeBlockStruct. At least 3 elements are '
 							 f'required when the is_complete flag is raised.')
 
+		if np.any(np.diff(ts) >= np.pi):
+			warnings.warn(f'The ts array passed to TubeBlockStruct in zone_tag {zone_tag} contains neighbouring angles '
+						  f'separated by approximately 180 degrees or more. When these edges are rendered in blockmesh, '
+						  f'either an error will be triggered, or it may constitute a degenerate case.')
+
 		block_structure = super(TubeBlockStruct, cls).__new__(cls, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone_tag)
 
 		b_vts = block_structure.baked_vertices
@@ -345,6 +350,11 @@ class TubeBlockStruct(BaseBlockStruct):
 			warnings.warn(f'When initialized, the inner radii in TubeBlockStruct in zone_tag {self.zone_tag} were '
 						  f'set to 0, but some were changed before writing. The nodes along the centerline of '
 						  f'the tube may not be positioned as expected.')
+
+		if np.any(np.diff(self.vertices[..., 1], axis=1) >= np.pi):
+			raise ValueError(f'One or more angles assigned to a tube block struct are separated from their neighbour by 180 '
+					   f'degrees or more. When these edges are rendered in blockmesh, either an error will be '
+					   f'triggered, or it may constitute a degenerate case.')
 
 		cyls = {}
 		s_pt = Point([0, 0, -1e5])
