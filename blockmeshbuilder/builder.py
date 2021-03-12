@@ -350,10 +350,8 @@ class TubeBlockStruct(BaseBlockStruct):
 		s_pt = Point([0, 0, -1e5])
 		e_pt = Point([0, 0, 1e5])
 		for i, r in np.ndenumerate(np.unique(vts[..., 0])):
-			if np.isclose(r, 0.):
-				continue
-
-			cyls[r] = Cylinder(s_pt, e_pt, r, f'blockcyl-{i}')
+			if not np.isclose(r, 0.):
+				cyls[r] = Cylinder(s_pt, e_pt, r, f'blockcyl-{i}')
 
 		# Mask axial and radial edges as well as circumferential faces so
 		# no redundant edges or faces are written to file
