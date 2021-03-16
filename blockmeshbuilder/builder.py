@@ -70,6 +70,9 @@ class BaseBlockStruct(np.recarray):
 		nd1 = nd1 if (nd1.ndim == 0 or nd1.size == x1.size) else np.append(nd1, 0)
 		nd2 = nd2 if (nd2.ndim == 0 or nd2.size == x2.size) else np.append(nd2, 0)
 
+		if not callable(conv_func):
+			raise TypeError(f'The conversion function object passed is not callable.')
+
 		if isinstance(zone_tag, str):
 			zone_tag = ZoneTag(zone_tag)
 		elif not isinstance(zone_tag, ZoneTag):
