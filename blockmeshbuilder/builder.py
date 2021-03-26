@@ -354,10 +354,12 @@ class TubeBlockStruct(BaseBlockStruct):
 						  f'set to 0, but some were changed before writing. The nodes along the centerline of '
 						  f'the tube may not be positioned as expected.')
 
+		'''
 		if np.any(np.diff(self.vertices[..., 1], axis=1) >= np.pi):
 			raise ValueError(f'One or more angles assigned to a tube block struct are separated from their neighbour by 180 '
 					   f'degrees or more. When these edges are rendered in blockmesh, either an error will be '
 					   f'triggered, or it may constitute a degenerate case.')
+		'''
 
 		cyls = {}
 		s_pt = Point([0, 0, -1e5])
