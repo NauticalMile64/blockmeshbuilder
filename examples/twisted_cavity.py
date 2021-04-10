@@ -47,4 +47,4 @@ cavity.boundary_tags[:, -1, :, 1] = BoundaryTag('lid')
 
 block_mesh_dict = BlockMeshDict(metric='mm')
 cavity.write(block_mesh_dict)
-block_mesh_dict.write_file('OF_case/system/')
+block_mesh_dict.write_file('OF_case')

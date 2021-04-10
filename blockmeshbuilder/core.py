@@ -12,7 +12,7 @@ else:
 from six import string_types
 import numpy as np
 import warnings
-
+from pathlib import Path
 
 def cart_to_cart(crds):
 	return np.asarray(crds).copy()
@@ -686,9 +686,10 @@ mergePatchPairs
 // ************************************************************************* //
 '''
 
-	def write_file(self, of_case_path, block_structure_only=False):
-		if of_case_path[-1] in r"/\\":  # Test whether a directory or the full file path is specified
-			of_case_path += 'blockMeshDict'
+	def write_file(self, of_case_path=Path(), file_name='blockMeshDict', block_structure_only=False):
+		of_case_path = Path(of_case_path)
+		if of_case_path.is_dir():
+			of_case_path = of_case_path / 'system' / file_name
 		with open(of_case_path, 'w') as infile:
 			infile.write(self.format(block_structure_only))
 

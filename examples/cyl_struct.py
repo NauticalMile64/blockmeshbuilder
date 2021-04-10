@@ -32,4 +32,4 @@ cyl.tube_struct.boundary_tags[-1, ..., 0] = BoundaryTag('wall')
 
 block_mesh_dict = BlockMeshDict(metric='mm')
 cyl.write(block_mesh_dict)
-block_mesh_dict.write_file('OF_case/system/')
+block_mesh_dict.write_file('OF_case')

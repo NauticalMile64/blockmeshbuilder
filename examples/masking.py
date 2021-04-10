@@ -42,4 +42,4 @@ i_struct.vertices[0, :-2, :, 1] -= 0.2  # This line does nothing
 block_mesh_dict = BlockMeshDict(metric='mm')
 f_struct.write(block_mesh_dict)
 i_struct.write(block_mesh_dict)
-block_mesh_dict.write_file('OF_case/system/')
+block_mesh_dict.write_file('OF_case')

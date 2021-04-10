@@ -33,4 +33,4 @@ block_mesh_dict = BlockMeshDict(metric='mm', of_dist='.org')
 wedge.write(block_mesh_dict)
 
 # Output
-block_mesh_dict.write_file('OF_case/system/')
+block_mesh_dict.write_file('OF_case')
