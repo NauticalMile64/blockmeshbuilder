@@ -54,7 +54,7 @@ After running the above code, which writes the blockMeshDict file into the syste
 
 How is this better than writing the blockMeshDict file myself?
 --------------------------------------------------------------------
-blockMeshDict files contain lists of geometries, blocks, faces, etc... which all reference a master list of vertices by index or by name. This is reasonable for simple geometries, but quickly becomes untennable for complex ones. Manually tracking chages to vertex references is tedious at best. I have even found it difficult to debug blockMeshDict files with two blocks.
+blockMeshDict files contain lists of geometries, blocks, faces, etc... which all reference a master list of vertices by index or by name. This is reasonable for simple geometries, but quickly becomes untenable for complex ones. Manually tracking changes to vertex references is tedious at best. I have even found it difficult to debug blockMeshDict files with two blocks.
 
 There are many other issues related to the required duplication of commands. For example, when grading a block edge shared by two or more blocks, the same grading specifications must be provided to each block definition. In blockmeshbuilder, all these things are handled automatically. For example, in the same grading scenario, blockmeshbuilder requires the grading to be specified once, and will write the required grading definition to all blocks sharing the common edge.
 
