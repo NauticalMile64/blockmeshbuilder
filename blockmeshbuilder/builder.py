@@ -416,7 +416,7 @@ dummy_edge = Edge([dummy_vertex] * 2, name='dummy')
 _drt2 = 1. / np.sqrt(2)
 
 
-class CylBlockStructContainer(object):
+class CylBlockStructContainer:
 	# O-grid curvature offsets for core-oriented cylinders, and tube-oriented cylinders
 	_og_core_vectors = np.array([Point([0, -1, 0]), Point([1, 0, 0]), Point([0, 1, 0]), Point([-1, 0, 0])])
 	_og_core_vectors.setflags(write=False)
@@ -455,9 +455,9 @@ class CylBlockStructContainer(object):
 		if is_core_aligned:  # Rotate the tube to match the core
 			self.tube_struct.vertices[..., 1] -= 3 / 4 * np.pi
 		else:  # Rotate the core to match the tube
-			cyl_vts = np_cart_to_cyl(self.core_struct.vertices)
+			cyl_vts = cart_to_cyl(self.core_struct.vertices)
 			cyl_vts[..., 1] -= 5 / 4 * np.pi
-			self.core_struct.vertices[:] = np_cyl_to_cart(cyl_vts)
+			self.core_struct.vertices[:] = cyl_to_cart(cyl_vts)
 
 		core_b_vts = self.core_struct.baked_vertices
 		tube_b_vts = self.tube_struct.baked_vertices
