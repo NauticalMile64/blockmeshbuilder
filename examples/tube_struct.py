@@ -24,4 +24,4 @@ tube.vertices[-1, :-1, [2, 3], 0] += 0.2		# Produces correct conical surface for
 
 block_mesh_dict = BlockMeshDict(metric='mm', of_dist='.org')
 tube.write(block_mesh_dict)
-block_mesh_dict.write_file('OF_case')
+block_mesh_dict.write_file('OF_case', run_blockMesh=True)

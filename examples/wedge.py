@@ -32,5 +32,5 @@ block_mesh_dict = BlockMeshDict(metric='mm', of_dist='.org')
 # Write the wedge to the block_mesh_dict object
 wedge.write(block_mesh_dict)
 
-# Output
-block_mesh_dict.write_file('OF_case')
+# Write the block mesh dict and execute blockMesh from a subprocess
+block_mesh_dict.write_file('OF_case', run_blockMesh=True)

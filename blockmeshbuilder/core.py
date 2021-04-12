@@ -1,6 +1,7 @@
 from io import StringIO
 import numpy as np
 import warnings
+import subprocess
 from pathlib import Path
 
 
@@ -676,12 +677,19 @@ mergePatchPairs
 // ************************************************************************* //
 '''
 
-	def write_file(self, of_case_path=Path(), file_name='blockMeshDict', block_structure_only=False):
+	def write_file(self, of_case_path=Path(), file_name='blockMeshDict', block_structure_only=False,
+				   run_blockMesh=False):
 		of_case_path = Path(of_case_path)
-		if of_case_path.is_dir():
-			of_case_path = of_case_path / 'system' / file_name
-		with open(of_case_path, 'w') as infile:
+		local_bmd_path = Path('system') / file_name
+
+		with open(of_case_path / local_bmd_path, 'w') as infile:
 			infile.write(self.format(block_structure_only))
+
+		if run_blockMesh:
+			try:
+				subprocess.run(["blockMesh", "-case", of_case_path, "-dict", local_bmd_path])
+			except FileNotFoundError as error:
+				warnings.warn("The system couldn't find the blockMesh application.")
 
 
 '''

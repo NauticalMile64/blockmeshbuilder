@@ -104,4 +104,4 @@ rect_struct.project_structure(0, cyl, -1)
 # Write the blocks to the blockMeshDict
 block_mesh_dict = BlockMeshDict(metric='mm')
 rect_struct.write(block_mesh_dict)
-block_mesh_dict.write_file('OF_case')
+block_mesh_dict.write_file('OF_case', run_blockMesh=True)

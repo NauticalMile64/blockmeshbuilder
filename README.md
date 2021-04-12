@@ -44,11 +44,11 @@ block_mesh_dict = BlockMeshDict(metric='mm', of_dist='.org')
 # Write the wedge to the block_mesh_dict object
 wedge.write(block_mesh_dict)
 
-# Output
-block_mesh_dict.write_file('OF_case/system/')
+# Write the block mesh dict and execute blockMesh from a subprocess
+block_mesh_dict.write_file('OF_case', run_blockMesh=True)
 ```
 
-After running the above code, which writes the blockMeshDict file into the system folder of an OpenFOAM case directory, run `blockMesh` to create the mesh. The mesh can be viewed using [Paraview](https://www.paraview.org/). 
+The above code writes the blockMeshDict file into the system folder of an OpenFOAM case directory, and with the `run_blockMesh` flag set to `True`, will run `blockMesh` using a subprocess to create the mesh. The mesh can be viewed using [Paraview](https://www.paraview.org/). 
 
 ![wedge example](images/wedge_example.png)
 
