@@ -60,11 +60,9 @@ There are many other issues related to the required duplication of commands. For
 
 Dependencies
 -----------------
-In order to run blockmeshbuilder you will need a working installation of Python 2.7 or 3, along with the following modules:
+In order to run blockmeshbuilder you will need a working installation of 3.6+, along with the following modules:
 
- - [future-fstrings](https://pypi.org/project/future-fstrings/)
  - [numpy](https://numpy.org/)
- - [six](https://pypi.org/project/six/)
 
 In addition, the airfoil example above relies on [shapely](https://pypi.org/project/Shapely/) to produce the outer boundary layer curve.
 
