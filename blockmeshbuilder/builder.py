@@ -1,12 +1,6 @@
-# -*- coding: future_fstrings -*-
 from .core import *
 import numpy as np
 import warnings
-
-from sys import version_info
-
-if version_info[0] == 2:
-	from itertools import izip as zip
 
 headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces',
 		   'block_mask', 'vertex_mask', 'edge_mask', 'face_mask', 'zone_tags', 'boundary_tags']

@@ -1,18 +1,8 @@
-# -*- coding: future_fstrings -*-
-# for compatibility with Py2.7
-from __future__ import print_function
-
-from sys import version_info
-
-if version_info[0] == 2:
-	from StringIO import StringIO
-else:
-	from io import StringIO
-
-from six import string_types
+from io import StringIO
 import numpy as np
 import warnings
 from pathlib import Path
+
 
 def cart_to_cart(crds):
 	return np.asarray(crds).copy()
@@ -34,7 +24,7 @@ def cart_to_cyl(crds):
 	return ncrds
 
 
-class Point(object):
+class Point:
 	def __init__(self, crds, conv_func=cart_to_cart):
 		self.crds = np.asarray(crds, dtype=np.float64)
 		self.conv_func = conv_func
@@ -106,7 +96,7 @@ class Point(object):
 		self.crds[key] = value
 
 
-class Projectable(object):
+class Projectable:
 	def __init__(self, geometries=None):
 		self.proj_g = set(geometries) if geometries else set()
 
@@ -148,7 +138,7 @@ def _dict_format(dict_name, data_dict, indent_level=1):
 	return buf.getvalue()
 
 
-class Geometry(object):
+class Geometry:
 	_unique_id = 0
 
 	def __init__(self, name=''):
@@ -281,7 +271,7 @@ class Cone(Geometry):
 								  })
 
 
-class Face(object):
+class Face:
 	def __init__(self, vertices, name=''):
 
 		# vertices is a 2x2 array
@@ -318,7 +308,7 @@ class Face(object):
 		return res_str
 
 
-class GradingElement(object):
+class GradingElement:
 	pass
 
 
@@ -347,7 +337,7 @@ class MultiGradingElement(GradingElement):
 									  for lp, nc, ex in zip(self.len_pcts, self.cell_pcts, self.exp_ratios)))
 
 
-class Grading(object):
+class Grading:
 	def __init__(self, grading_elements):
 		self.grading_elements = grading_elements
 
@@ -387,7 +377,7 @@ uniformGradingElement = SimpleGradingElement(1)
 uniformGrading = SimpleGrading([uniformGradingElement] * 3)
 
 
-class ZoneTag(object):
+class ZoneTag:
 	def __init__(self, name):
 		self.name = name
 
@@ -395,7 +385,7 @@ class ZoneTag(object):
 DEFAULT_ZONE_TAG = ZoneTag('DEFAULT')
 
 
-class HexBlock(object):
+class HexBlock:
 	def __init__(self, vertices, cells, zone_tag=DEFAULT_ZONE_TAG, grading=uniformGrading):
 		self.vertices = vertices
 		self.cells = cells
@@ -443,7 +433,7 @@ class HexBlock(object):
 			'f-{}-b',
 			'f-{}-t']
 
-		if isinstance(index, string_types):
+		if isinstance(index, str):
 			index = kw_to_index[index]
 
 		face_vertices = [[self.vertices[i] for i in row] for row in index_to_vertex[index]]
@@ -454,7 +444,7 @@ class HexBlock(object):
 		return Face(face_vertices, name)
 
 
-class Edge(object):
+class Edge:
 	def __init__(self, vertices, name=''):
 		# http://www.openfoam.org/docs/user/mesh-description.php
 
@@ -530,13 +520,13 @@ class ProjectionEdge(Edge, Projectable):
 		return Edge.format(self).format(*self.format_geom())
 
 
-class BoundaryTag(object):
+class BoundaryTag:
 	def __init__(self, name, type_='patch'):
 		self.type_ = type_
 		self.name = name
 
 
-class _Boundary(object):
+class _Boundary:
 	def __init__(self, boundary_tag):
 		assert (isinstance(boundary_tag, BoundaryTag))
 		self.boundary_tag = boundary_tag
@@ -576,7 +566,7 @@ def _format_section(name, section_items):
 	return buf.getvalue()
 
 
-class BlockMeshDict(object):
+class BlockMeshDict:
 	metricsym_to_conversion = {
 		'km': 1000,
 		'm': 1,
