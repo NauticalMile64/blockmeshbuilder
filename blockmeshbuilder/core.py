@@ -25,70 +25,81 @@ def cart_to_cyl(crds):
 	return ncrds
 
 
+cart_conv_pair = (cart_to_cart, cart_to_cart)
+cyl_conv_pair = (cyl_to_cart, cart_to_cyl)
+
+
 class Point:
-	def __init__(self, crds, conv_func=cart_to_cart):
+	def __init__(self, crds, conv_funcs=cart_conv_pair):
 		self.crds = np.asarray(crds, dtype=np.float64)
-		self.conv_func = conv_func
+		self.conv_funcs = conv_funcs
+
+	def get_cart_crds(self):
+		return self.conv_funcs[0](self.crds)
 
 	def format(self):
-		ccrds = self.conv_func(self.crds)
+		ccrds = self.get_cart_crds()
 		return f'( {ccrds[0]:18.15g} {ccrds[1]:18.15g} {ccrds[2]:18.15g} )'
 
 	@staticmethod
 	def _get_oth_coordinates(rhs):
-		return rhs.crds if issubclass(type(rhs), Point) else rhs
+		return rhs.get_cart_crds() if issubclass(type(rhs), Point) else rhs
 
 	def __add__(self, rhs):
-		return type(self)(self.crds + Point._get_oth_coordinates(rhs), self.conv_func)
+		return type(self)(self.conv_funcs[1](self.get_cart_crds() + Point._get_oth_coordinates(rhs)), self.conv_funcs)
 
 	def __radd__(self, lhs):
 		return self + lhs
 
 	def __sub__(self, rhs):
-		return type(self)(self.crds - Point._get_oth_coordinates(rhs), self.conv_func)
+		return type(self)(self.conv_funcs[1](self.get_cart_crds() - Point._get_oth_coordinates(rhs)), self.conv_funcs)
 
 	def __rsub__(self, lhs):
-		return type(self)(Point._get_oth_coordinates(lhs) - self.crds, self.conv_func)
+		return type(self)(self.conv_funcs[1](Point._get_oth_coordinates(lhs) - self.get_cart_crds()), self.conv_funcs)
 
 	def __mul__(self, rhs):
-		return type(self)(self.crds * Point._get_oth_coordinates(rhs), self.conv_func)
+		return type(self)(self.conv_funcs[1](self.get_cart_crds() * Point._get_oth_coordinates(rhs)), self.conv_funcs)
 
 	def __rmul__(self, lhs):
 		return self * lhs
 
 	def __pow__(self, rhs):
-		return type(self)(self.crds ** rhs, self.conv_func)
+		return type(self)(self.conv_funcs[1](self.get_cart_crds() ** rhs), self.conv_funcs)
 
 	def __truediv__(self, rhs):
-		return type(self)(self.crds / Point._get_oth_coordinates(rhs), self.conv_func)
+		return type(self)(self.conv_funcs[1](self.get_cart_crds() / Point._get_oth_coordinates(rhs)), self.conv_funcs)
 
-	def __isub__(self, rhs):
-		self.crds -= Point._get_oth_coordinates(rhs)
-		return self
+	@staticmethod
+	def _convert_oth_coordinates(rhs, conv_func):
+		return conv_func(rhs.get_cart_crds()) if issubclass(type(rhs), Point) else rhs
 
 	def __iadd__(self, rhs):
-		self.crds += Point._get_oth_coordinates(rhs)
+		self.crds += Point._convert_oth_coordinates(rhs, self.conv_funcs[1])
+		return self
+
+	def __isub__(self, rhs):
+		self.crds -= Point._convert_oth_coordinates(rhs, self.conv_funcs[1])
 		return self
 
 	def __imul__(self, rhs):
-		self.crds *= Point._get_oth_coordinates(rhs)
+		self.crds *= Point._convert_oth_coordinates(rhs, self.conv_funcs[1])
 		return self
 
 	def __itruediv__(self, rhs):
-		self.crds /= Point._get_oth_coordinates(rhs)
+		self.crds /= Point._convert_oth_coordinates(rhs, self.conv_funcs[1])
 		return self
 
 	def __lt__(self, rhs):
-		return self.crds < self._get_oth_coordinates(rhs)
+		return self.crds < Point._convert_oth_coordinates(rhs, self.conv_funcs[1])
 
 	def __gt__(self, lhs):
 		return lhs < self
 
 	def __neg__(self):
-		return type(self)(-self.crds, self.conv_func)
+		return type(self)(self.conv_funcs[1](-self.get_cart_crds()), self.conv_funcs)
 
 	def __abs__(self):
-		return abs(self.crds)
+		return abs(self.get_cart_crds())
 
 	def __getitem__(self, key):
 		return self.crds[key]

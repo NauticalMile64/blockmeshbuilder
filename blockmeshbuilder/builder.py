@@ -16,7 +16,7 @@ def wrap_radians(values):
 
 class BaseBlockStruct(np.recarray):
 
-	def __new__(cls, x0, x1, x2, nd0, nd1, nd2, conv_func=cart_to_cart, zone_tag=DEFAULT_ZONE_TAG):
+	def __new__(cls, x0, x1, x2, nd0, nd1, nd2, conv_funcs=cart_conv_pair, zone_tag=DEFAULT_ZONE_TAG):
 		x0 = np.asarray(x0)
 		x1 = np.asarray(x1)
 		x2 = np.asarray(x2)
@@ -64,7 +64,7 @@ class BaseBlockStruct(np.recarray):
 		nd1 = nd1 if (nd1.ndim == 0 or nd1.size == x1.size) else np.append(nd1, 0)
 		nd2 = nd2 if (nd2.ndim == 0 or nd2.size == x2.size) else np.append(nd2, 0)
 
-		if not callable(conv_func):
+		if not callable(conv_funcs[0]) or not callable(conv_funcs[1]):
 			raise TypeError(f'The conversion function object passed is not callable.')
 
 		if isinstance(zone_tag, str):
@@ -85,7 +85,7 @@ class BaseBlockStruct(np.recarray):
 		vts[..., 2] = X2
 
 		for ind in np.ndindex(shape):
-			block_structure.baked_vertices[ind] = Vertex(vts[ind], conv_func)
+			block_structure.baked_vertices[ind] = Vertex(vts[ind], conv_funcs)
 
 		# Initialize number of divisions
 		ND0, ND1, ND2 = np.meshgrid(nd0, nd1, nd2, indexing='ij')
@@ -295,7 +295,7 @@ class TubeBlockStruct(BaseBlockStruct):
 						  f'separated by approximately 180 degrees or more. When these edges are rendered in blockmesh, '
 						  f'either an error will be triggered, or it may constitute a degenerate case.')
 
-		block_structure = super(TubeBlockStruct, cls).__new__(cls, rs, ts, zs, nr, nt, nz, cyl_to_cart, zone_tag)
+		block_structure = super(TubeBlockStruct, cls).__new__(cls, rs, ts, zs, nr, nt, nz, cyl_conv_pair, zone_tag)
 
 		b_vts = block_structure.baked_vertices
 		edges = block_structure.edges
