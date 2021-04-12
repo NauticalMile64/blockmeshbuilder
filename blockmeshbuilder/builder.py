@@ -268,7 +268,7 @@ CartBlockStruct = BaseBlockStruct
 
 class TubeBlockStruct(BaseBlockStruct):
 
-	def __new__(cls, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, is_complete=False):
+	def __new__(cls, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, is_complete=False, offset=Point((0., 0., 0.))):
 
 		if np.any(np.asarray(rs) < 0):
 			raise ValueError('Negative values supplied to array of radial values in TubeBlockStruct.')
@@ -322,6 +322,7 @@ class TubeBlockStruct(BaseBlockStruct):
 					faces[0, j, k, 1] = Face(b_vts[0:2, j, k:k + 2])
 
 		block_structure.is_complete = is_complete
+		block_structure.offset = offset
 
 		return block_structure
 
@@ -338,6 +339,8 @@ class TubeBlockStruct(BaseBlockStruct):
 
 		self.is_full = other_block_structure.is_full and \
 					   np.all(np.isin(self.baked_vertices[0], other_block_structure.baked_vertices[0]))
+
+		self.offset = other_block_structure.offset
 
 	def write(self, block_mesh_dict):
 
@@ -356,8 +359,8 @@ class TubeBlockStruct(BaseBlockStruct):
 		'''
 
 		cyls = {}
-		s_pt = Point([0, 0, -1e5])
-		e_pt = Point([0, 0, 1e5])
+		s_pt = Point([0, 0, -1e5]) + self.offset
+		e_pt = Point([0, 0, 1e5]) + self.offset
 		for i, r in np.ndenumerate(np.unique(vts[..., 0])):
 			if not np.isclose(r, 0.):
 				cyls[r] = Cylinder(s_pt, e_pt, r, f'blockcyl-{i}')
@@ -398,7 +401,8 @@ class TubeBlockStruct(BaseBlockStruct):
 						if are_cones:
 							cone_tuple = (proj_rcrds[ind], proj_rcrds[nind], acrds[ind], acrds[nind])
 							if cone_tuple not in cones:
-								cones[cone_tuple] = Cone(Point((0, 0, acrds[ind])), Point((0, 0, acrds[nind])),
+								cones[cone_tuple] = Cone(Point((0, 0, acrds[ind])) + self.offset,
+														 Point((0, 0, acrds[nind])) + self.offset,
 														 proj_rcrds[ind], proj_rcrds[nind], 'block_cone')
 							a_edge.proj_geom(cones[cone_tuple])
 					else:
@@ -407,6 +411,8 @@ class TubeBlockStruct(BaseBlockStruct):
 			c_edge = c_edges[ind]
 			if (not c_edge_mask[ind]) and isinstance(c_edge, ProjectionEdge):
 				c_edge.proj_geom(cyls[proj_rcrds[ind]])
+
+		vts[:] = cart_to_cyl(cyl_to_cart(vts) + self.offset.get_cart_crds())
 
 		BaseBlockStruct.write(self, block_mesh_dict)
 
@@ -424,9 +430,10 @@ class CylBlockStructContainer:
 								 Point([-_drt2, -_drt2, 0]), Point([_drt2, -_drt2, 0])])
 	_og_tube_vectors.setflags(write=False)
 
-	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, inner_arc_curve=0.25, is_core_aligned=True):
+	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, offset=Point((0., 0., 0.)),
+				 inner_arc_curve=0.25, is_core_aligned=True):
 
-		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag=zone_tag, is_complete=True)
+		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag=zone_tag, is_complete=True, offset=offset)
 
 		if np.isclose(rs[0], 0.):
 			raise ValueError(f'CylBlockStructContainer in zone_tag {zone_tag} has an inner tube radius of {rs[0]}, '
@@ -440,6 +447,7 @@ class CylBlockStructContainer:
 
 		self.inner_arc_curve = inner_arc_curve
 		self.is_core_aligned = is_core_aligned
+		self.offset = offset
 
 		num_side_blocks = (len(ts) - 1) // 4
 		xs = ys = np.linspace(-rs[0], rs[0], num_side_blocks + 1) * _drt2
@@ -489,8 +497,8 @@ class CylBlockStructContainer:
 
 			# Create a dictionary of cylinder geometries of the innermost vertices on the tube struct
 			cyl_dict = {}
-			s_pt = Point([0, 0, -1e5])
-			e_pt = Point([0, 0, 1e5])
+			s_pt = Point([0, 0, -1e5]) + self.offset
+			e_pt = Point([0, 0, 1e5]) + self.offset
 			cyl_arr = np.empty((shape[2], 4), dtype=Cylinder)
 			for k, r in np.ndenumerate(tube_vts[0, :, 0]):
 				if r not in cyl_dict:
@@ -518,6 +526,8 @@ class CylBlockStructContainer:
 
 		else:
 			self.tube_struct.edge_mask[0, :, :, [1, 2]] = True
+
+		self.core_struct.vertices += self.offset.get_cart_crds()
 
 		self.tube_struct.write(block_mesh_dict)
 		self.core_struct.write(block_mesh_dict)

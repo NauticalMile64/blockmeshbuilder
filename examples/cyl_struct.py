@@ -1,7 +1,7 @@
 # Builds a structured O-grid mesh
 
 import numpy as np
-from blockmeshbuilder import BlockMeshDict, CylBlockStructContainer, BoundaryTag
+from blockmeshbuilder import BlockMeshDict, CylBlockStructContainer, BoundaryTag, Point
 
 rs = np.array([0.3, 0.6, 1.0])
 num_side_blocks = 3  # Must be a positive integer
@@ -18,7 +18,8 @@ ndt = nd1 + nd2 + nd1[::-1] + nd2[::-1]  # Specifying the node counts in this wa
 ndz = 8
 
 iac = 0.45
-cyl = CylBlockStructContainer(rs, ts, zs, ndr, ndt, ndz, zone_tag='ts', is_core_aligned=True, inner_arc_curve=iac)
+cyl = CylBlockStructContainer(rs, ts, zs, ndr, ndt, ndz, zone_tag='ts', is_core_aligned=True, inner_arc_curve=iac,
+							  offset=Point((1., 1., 0.)))
 
 # Increase size of back half
 scale = 1.15
