@@ -2,13 +2,14 @@ import os
 from setuptools import setup, find_packages
 
 ver_file = os.path.join('blockmeshbuilder', 'version.py')
-vars = {}
-exec(open(ver_file).read(), vars)
+variables = {}
+exec(open(ver_file).read(), variables)
 
 setup(
 	name='blockmeshbuilder',
-	version=vars['__version__'],
-	description='Helper utilities for OpenFOAM blockMeshDict generation.',
+	version=variables['__version__'],
+	description='Concisely define and manipulate 3D block structures to produce '
+				'hexahedral block-structured meshes for CFD.',
 	long_description=open('README.md', 'rt').read(),
 	author='Nolan Dyck',
 	url='https://github.com/NauticalMile64/blockmeshbuilder',
