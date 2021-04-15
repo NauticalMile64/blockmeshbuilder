@@ -452,11 +452,12 @@ class CylBlockStructContainer:
 		num_side_blocks = (len(ts) - 1) // 4
 		xs = ys = np.linspace(-rs[0], rs[0], num_side_blocks + 1) * _drt2
 
-		if isinstance(nt, int):
-			nx = ny = nt
+		nt_arr = np.asarray(nt, dtype=np.int32)
+		if nt_arr.ndim == 0:
+			nx = ny = nt_arr
 		else:
-			nx = nt[:num_side_blocks]
-			ny = nt[num_side_blocks:2 * num_side_blocks]
+			nx = nt_arr[:num_side_blocks]
+			ny = nt_arr[num_side_blocks:2 * num_side_blocks]
 
 		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, zone_tag=zone_tag)
 
