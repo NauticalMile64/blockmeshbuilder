@@ -52,8 +52,9 @@ class BaseBlockStruct(np.recarray):
 								 f'{nd_array_error_msg}')
 
 			if nd.ndim == 1 and not (x.size - 1 <= nd.size <= x.size):
-				raise IndexError(f'The length of the number of cell divisions array is invalid. It must be equal to or '
-								 f'\none element shorter than the corresponding dimension array. {nd_array_error_msg}')
+				raise IndexError(f'The length of the number of cell divisions array of the {arr_order} array is invalid.'
+								 f'\nIt must be equal to or one element shorter than the corresponding dimension array.'
+								 f'\n{nd_array_error_msg}')
 
 			if np.any(nd <= 0):
 				raise ValueError(f'The {arr_order} number of cell divisions array contains '
