@@ -124,9 +124,13 @@ mergePatchPairs
 '''
 
 	def write_file(self, of_case_path=Path(), file_name='blockMeshDict', block_structure_only=False,
-				   run_blockMesh=False):
+				   run_blockMesh=False, density_scale=1.0):
 		of_case_path = Path(of_case_path)
 		local_bmd_path = Path('system') / file_name
+
+		if density_scale != 1.0 and not block_structure_only:
+			for block in self.blocks:
+				block.cells = tuple(round(block.cells[i] * density_scale) for i in range(3))
 
 		with open(of_case_path / local_bmd_path, 'w') as infile:
 			infile.write(self.format(block_structure_only))

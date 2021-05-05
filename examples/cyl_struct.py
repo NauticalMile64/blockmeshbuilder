@@ -33,4 +33,8 @@ cyl.tube_struct.boundary_tags[-1, ..., 0] = BoundaryTag('wall')
 
 block_mesh_dict = BlockMeshDict(metric='mm')
 cyl.write(block_mesh_dict)
-block_mesh_dict.write_file('OF_case', run_blockMesh=True)
+
+# density_scale modifies the global mesh density by multiplying the number of cell divisions along each block edge.
+# density_scale < 1.0 coarsens the mesh, density_scale = 1.0 leaves the mesh density as specified,
+# and density_scale > 1.0 increases the density
+block_mesh_dict.write_file('OF_case', run_blockMesh=True, density_scale=1.2)
