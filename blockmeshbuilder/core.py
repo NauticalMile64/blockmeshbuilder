@@ -579,7 +579,7 @@ def _format_section(name, section_items):
 
 
 class BlockMeshDict:
-	metricsym_to_conversion = {
+	metric_conversion_dict = {
 		'km': 1000,
 		'm': 1,
 		'cm': 0.01,
@@ -587,7 +587,8 @@ class BlockMeshDict:
 		'um': 1e-6,
 		'nm': 1e-9,
 		'A': 1e-10,
-		'Angstrom': 1e-10}
+		'Angstrom': 1e-10
+	}
 
 	_of_geometries = {
 		'.org': {
@@ -607,7 +608,7 @@ class BlockMeshDict:
 			of_dist = '.org'
 		self.of_dist = of_dist
 		self.of_available_geometries = self._of_geometries[of_dist]
-		self.convert_to_meters = self.metricsym_to_conversion[metric]
+		self.convert_to_meters = self.metric_conversion_dict[metric]
 		self.blocks = set()
 		self.edges = set()
 		self.boundaries = {}
