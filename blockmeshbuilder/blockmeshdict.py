@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 from .geometry import _of_distribution_geometries
 from .tags import _Boundary, _of_distribution_constraints
+from .version import __version__
 
 _of_distributions = ('.org', '.com')
 features = ('constraints', 'geometries')
@@ -101,6 +102,15 @@ class BlockMeshDict:
 
 		self._assign_vertexid()
 		return f'''
+/*--------------------------------*- C++ -*----------------------------------*\\
+| =========                 |                                                 |
+| \\\\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\\\    /   O peration     | Version:  8.0.0                                 |
+|   \\\\  /    A nd           | Web:      www.OpenFOAM{self.of_distribution}                      |
+|    \\\\/     M anipulation  |                                                 |
+\\*---------------------------------------------------------------------------*/
+// This blockMeshDict was generated using blockmeshbuilder version {__version__},
+// a Python module available at https://github.com/NauticalMile64/blockmeshbuilder
 FoamFile
 {{
 	version     2.0;
@@ -148,14 +158,3 @@ mergePatchPairs
 				subprocess.run(["blockMesh", "-case", of_case_path, "-dict", local_bmd_path])
 			except FileNotFoundError as error:
 				warnings.warn("The system couldn't find the blockMesh application.")
-
-
-'''
-/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  5.0.0                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
-'''
