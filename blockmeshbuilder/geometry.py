@@ -149,7 +149,7 @@ class Cone(Geometry):
 								  })
 
 
-_of_geometries = {
+_of_distribution_geometries = {
 	'.org': {
 		PlanePointAndNormal, PlaneEmbeddedPoints, PlaneEquation, Cylinder, Sphere,
 		# closedTriSurfaceMesh, Box, Disc, ExtrudedCircle, Plate, SurfaceCollection, SurfaceWithGaps, triSurfaceMesh

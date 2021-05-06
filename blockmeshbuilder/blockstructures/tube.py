@@ -133,7 +133,7 @@ class TubeBlockStruct(BaseBlockStruct):
 		acrds = self.vertices[..., 1]
 
 		cones = {}
-		are_cones = Cone in block_mesh_dict.of_available_geometries
+		are_cones = Cone in block_mesh_dict.of_distribution_features['geometries']
 
 		for ind in np.ndindex(shape):
 

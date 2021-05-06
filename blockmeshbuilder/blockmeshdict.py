@@ -2,8 +2,16 @@ from io import StringIO
 import warnings
 import subprocess
 from pathlib import Path
-from .geometry import _of_geometries
-from .tags import _Boundary
+from .geometry import _of_distribution_geometries
+from .tags import _Boundary, _of_distribution_constraints
+
+_of_distributions = ('.org', '.com')
+features = ('constraints', 'geometries')
+_of_distribution_features = dict()
+for dist in _of_distributions:
+	_of_distribution_features[dist] = dict()
+	for dict_name, feature_dict in zip(features, (_of_distribution_constraints, _of_distribution_geometries)):
+		_of_distribution_features[dist][dict_name] = feature_dict[dist]
 
 
 def _format_section(name, section_items):
@@ -35,13 +43,13 @@ class BlockMeshDict:
 	}
 
 	def __init__(self, metric='m', of_dist='.org', block_structure_only=False):
-		if of_dist not in _of_geometries:
+		if of_dist not in _of_distributions:
 			warnings.warn(
-				f'Unknown OpenFOAM distribution {of_dist}. The available options are {_of_geometries.keys()}. '
+				f'Unknown OpenFOAM distribution {of_dist}. The available options are {_of_distributions}. '
 				f'\nSwitching to .org distribution.')
 			of_dist = '.org'
-		self.of_dist = of_dist
-		self.of_available_geometries = _of_geometries[of_dist]
+		self.of_distribution = of_dist
+		self.of_distribution_features = _of_distribution_features[of_dist]
 		self.convert_to_meters = self.metric_conversion_dict[metric]
 		self.blocks = set()
 		self.edges = set()
@@ -64,9 +72,9 @@ class BlockMeshDict:
 
 	def add_geometries(self, other_geometries):
 		for geometry in other_geometries:
-			if type(geometry) not in self.of_available_geometries:
+			if type(geometry) not in self.of_distribution_features['geometries']:
 				raise TypeError(
-					f'Geometry of type {type(geometry)} is not implemented in the {self.of_dist} distribution.')
+					f'Geometry of type {type(geometry)} is not implemented in the {self.of_distribution} distribution.')
 
 		self.geometries.update(other_geometries)
 

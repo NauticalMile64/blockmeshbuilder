@@ -37,3 +37,15 @@ class _Boundary:
 		buf.write('    );\n')
 		buf.write('}')
 		return buf.getvalue()
+
+
+_of_distribution_constraints = {
+	'.org': {
+		'cyclic', 'cyclicACMI', 'cyclicAMI', 'cyclicRepeatAMI', 'cyclicSlip', 'empty', 'jumpCyclic',
+		'jumpCyclicAMI', 'processor', 'processorCyclic', 'symmetry', 'symmetryPlane', 'wedge'
+	},
+	'.com': {
+		'cyclic', 'cyclicACMI', 'cyclicAMI', 'cyclicSlip', 'empty', 'jumpCyclic', 'jumpCyclicAMI',
+		'nonUniformTransformCyclic', 'processor', 'processorCyclic', 'symmetry', 'symmetryPlane', 'wedge'
+	}
+}
