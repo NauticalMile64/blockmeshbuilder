@@ -50,7 +50,7 @@ wedge.write(block_mesh_dict)
 block_mesh_dict.write_file('OF_case', run_blockMesh=True)
 ```
 
-The above code writes the blockMeshDict file into the system folder of an OpenFOAM case directory, and with the `run_blockMesh` flag set to `True`, will run `blockMesh` using a subprocess to create the mesh. The mesh can be viewed using [Paraview](https://www.paraview.org/). 
+The above code writes the blockMeshDict file into the system folder of an OpenFOAM case directory, and with the `run_blockMesh` flag set to `True`, will attempt to run `blockMesh` using a subprocess to create the mesh. The mesh can be viewed using [Paraview](https://www.paraview.org/). 
 
 ![wedge example](images/wedge_example.png)
 
