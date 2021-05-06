@@ -135,6 +135,21 @@ if not close_trailing_edge:
 
 bl_struct.boundary_tags[-1, 1:-2, :, 0] = BoundaryTag('wall-airfoil')
 
+front_tag = BoundaryTag.empty_tag('front')
+bl_struct.boundary_tags[..., -1, 2] = front_tag
+ff_struct.boundary_tags[..., -1, 2] = front_tag
+
+back_tag = BoundaryTag.empty_tag('back')
+bl_struct.boundary_tags[..., 0, 2] = back_tag
+ff_struct.boundary_tags[..., 0, 2] = back_tag
+
+if not close_trailing_edge:
+	te_struct.boundary_tags[..., -1, 2] = front_tag
+	te_struct.boundary_tags[..., 0, 2] = back_tag
+
+ff_struct.boundary_tags[:, 0, :, 1] = BoundaryTag.symmetry_tag('bottom')
+ff_struct.boundary_tags[:, -1, :, 1] = BoundaryTag.symmetry_tag('top')
+
 # Write the blocks to the blockMeshDict
 block_mesh_dict = BlockMeshDict(metric='mm')
 bl_struct.write(block_mesh_dict)

@@ -2,7 +2,7 @@ import numpy as np
 import warnings
 from ..blockelements import cyl_conv_pair, cart_to_cyl, cyl_to_cart, Point, ProjectionEdge, Face
 from ..geometry import Cylinder, Cone
-from ..tags import DEFAULT_ZONE_TAG
+from ..zone_tags import DEFAULT_ZONE_TAG
 from .cartesian import BaseBlockStruct
 
 

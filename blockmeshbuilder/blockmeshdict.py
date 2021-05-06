@@ -3,7 +3,7 @@ import warnings
 import subprocess
 from pathlib import Path
 from .geometry import _of_distribution_geometries
-from .tags import _Boundary, _of_distribution_constraints
+from .boundary_tags import _Boundary, _of_distribution_constraints
 from .version import __version__
 
 _of_distributions = ('.org', '.com')

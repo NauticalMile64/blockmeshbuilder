@@ -2,7 +2,7 @@ import numpy as np
 import warnings
 from ..blockelements import cart_conv_pair, Vertex, ProjectionEdge, Face, HexBlock
 from ..grading import SimpleGrading, EdgeGrading, uniformGrading, uniformGradingElement
-from ..tags import ZoneTag, DEFAULT_ZONE_TAG
+from ..zone_tags import ZoneTag, DEFAULT_ZONE_TAG
 
 
 headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces',

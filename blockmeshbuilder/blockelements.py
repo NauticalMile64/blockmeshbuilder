@@ -1,7 +1,7 @@
 from io import StringIO
 import numpy as np
 import warnings
-from .tags import DEFAULT_ZONE_TAG
+from .zone_tags import DEFAULT_ZONE_TAG
 from .grading import uniformGrading
 
 

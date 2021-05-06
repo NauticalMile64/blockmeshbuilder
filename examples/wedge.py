@@ -6,7 +6,7 @@ from math import radians
 from blockmeshbuilder import BlockMeshDict, TubeBlockStruct, BoundaryTag
 
 # Wedge dimensions
-wedge_angle = radians(10.0)
+wedge_angle = radians(2.5)
 wedge_radius = 0.19
 
 # Co-ordinates of block vertices (r, theta, z)
@@ -22,9 +22,11 @@ nz = 10
 # Create the block structure
 wedge = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag='wedge')
 
-# Tag front and back boundaries
+# Apply wedge boundary conditions to front and back boundaries
 wedge.boundary_tags[..., 0, 2] = BoundaryTag('front')
 wedge.boundary_tags[..., -1, 2] = BoundaryTag('back')
+wedge.boundary_tags[:, 0, :, 1] = BoundaryTag.wedge_tag('wedge_sideA')
+wedge.boundary_tags[:, -1, :, 1] = BoundaryTag.wedge_tag('wedge_sideB')
 
 # Initialize blockmeshbuilder to gather block structures.
 block_mesh_dict = BlockMeshDict(metric='mm', of_dist='.org')

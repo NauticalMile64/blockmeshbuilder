@@ -1,6 +1,6 @@
 from ..blockelements import cart_to_cyl, cyl_to_cart, Point, Vertex, Edge
 from ..geometry import Cylinder
-from ..tags import DEFAULT_ZONE_TAG
+from ..zone_tags import DEFAULT_ZONE_TAG
 from .cartesian import CartBlockStruct
 from .tube import TubeBlockStruct
 import numpy as np
