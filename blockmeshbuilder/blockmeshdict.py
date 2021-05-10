@@ -2,9 +2,14 @@ from io import StringIO
 import warnings
 import subprocess
 from pathlib import Path
+from .blockelements import Face
 from .geometry import _of_distribution_geometries
-from .boundary_tags import _Boundary, _of_distribution_constraints
+from .boundary_tags import BoundaryTag, _Boundary, _of_distribution_constraints
 from .version import __version__
+import numpy as np
+
+init_pos = np.arange(3)
+init_pos.setflags(write=False)
 
 _of_distributions = ('.org', '.com')
 features = ('constraints', 'geometries')
@@ -142,13 +147,47 @@ mergePatchPairs
 '''
 
 	def write_file(self, of_case_path=Path(), file_name='blockMeshDict', block_structure_only=False,
-				   run_blockMesh=False, density_scale=1.0):
+				   run_blockMesh=False, density_scale=1.0, default_boundary_tag=None):
 		of_case_path = Path(of_case_path)
 		local_bmd_path = Path('system') / file_name
 
 		if density_scale != 1.0 and not block_structure_only:
 			for block in self.blocks:
 				block.cells = tuple(max(round(block.cells[i] * density_scale), 1) for i in range(3))
+
+		if default_boundary_tag is not None:
+			if not isinstance(default_boundary_tag, BoundaryTag):
+				raise TypeError('default_boundary must be a BoundaryTag.')
+
+			# Get list of boundary faces already in use
+			face_vertices_dict = dict()
+			for boundary in self.boundaries.values():
+				for face in boundary.faces:
+					face_vertices_dict[face] = sorted(face.vertices.flatten(), key=id)
+
+			# Find external faces not assigned to boundaries
+			for b in self.blocks:
+				block_remaining_faces = dict()
+				for s in range(3):
+					block_vertices = np.moveaxis(b.vertices, init_pos, np.roll(init_pos, s))
+					for face_vertices in block_vertices:
+						face_vertices_sorted = sorted(face_vertices.flatten(), key=id)
+						match_found = False
+						for face, vertices in face_vertices_dict.items():
+							if face_vertices_sorted == vertices:
+								del face_vertices_dict[face]
+								match_found = True
+								break
+
+						if not match_found:
+							block_remaining_faces[Face(face_vertices)] = face_vertices_sorted
+
+				face_vertices_dict.update(block_remaining_faces)
+
+			if not (default_boundary_tag in self.boundaries.keys()):
+				self.boundaries[default_boundary_tag] = _Boundary(default_boundary_tag)
+
+			self.boundaries[default_boundary_tag].faces |= face_vertices_dict.keys()
 
 		with open(of_case_path / local_bmd_path, 'w') as infile:
 			infile.write(self.format(block_structure_only))
