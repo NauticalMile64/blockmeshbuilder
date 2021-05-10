@@ -87,7 +87,7 @@ class BlockMeshDict:
 
 		i = 0
 		for b in self.blocks:
-			for v in b.vertices:
+			for v in b.vertices.flatten():
 				if v not in valid_vertices:
 					valid_vertices.append(v)
 					v.index = i

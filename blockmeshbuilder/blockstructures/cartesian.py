@@ -174,14 +174,6 @@ class BaseBlockStruct(np.recarray):
 
 			return EdgeGrading(grd_arr.flatten())
 
-	@staticmethod
-	def _get_block_vertices(c_vs):
-		return tuple((c_vs[0, 0, 0], c_vs[1, 0, 0],
-					  c_vs[1, 1, 0], c_vs[0, 1, 0],
-
-					  c_vs[0, 0, 1], c_vs[1, 0, 1],
-					  c_vs[1, 1, 1], c_vs[0, 1, 1]))
-
 	def write(self, block_mesh_dict):
 
 		# Reset block_mask edge
@@ -207,7 +199,7 @@ class BaseBlockStruct(np.recarray):
 
 						nd = block_data.num_divisions[0, 0, 0]
 
-						vts = self._get_block_vertices(block_data.baked_vertices)
+						vts = block_data.baked_vertices.copy()
 
 						block_zone_tag = block_data.zone_tags[0, 0, 0]
 
