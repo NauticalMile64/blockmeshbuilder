@@ -195,5 +195,6 @@ mergePatchPairs
 		if run_blockMesh:
 			try:
 				subprocess.run(["blockMesh", "-case", of_case_path, "-dict", local_bmd_path])
-			except FileNotFoundError as error:
+			# Note that in the cases when the blockMeshDict file cannot be found, blockMesh should throw it's own error
+			except FileNotFoundError:
 				warnings.warn("The system couldn't find the blockMesh application.")
