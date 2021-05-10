@@ -48,7 +48,7 @@ class BlockMeshDict:
 		'Angstrom': 1e-10
 	}
 
-	def __init__(self, metric='m', of_dist='.org', block_structure_only=False):
+	def __init__(self, metric='m', of_dist='.org'):
 		if of_dist not in _of_distributions:
 			warnings.warn(
 				f'Unknown OpenFOAM distribution {of_dist}. The available options are {_of_distributions}. '
@@ -62,7 +62,6 @@ class BlockMeshDict:
 		self.boundaries = {}
 		self.geometries = set()
 		self.faces = set()
-		self.block_structure_only = block_structure_only
 
 	def add_hexblock(self, block):
 		self.blocks.add(block)
@@ -100,11 +99,7 @@ class BlockMeshDict:
 
 		self.valid_vertices = valid_vertices
 
-	def format(self, block_structure_only=False):
-		if block_structure_only or self.block_structure_only:
-			for block in self.blocks:
-				block.cells = (1, 1, 1)
-
+	def format(self):
 		self._assign_vertexid()
 		return f'''
 /*--------------------------------*- C++ -*----------------------------------*\\
@@ -190,7 +185,7 @@ mergePatchPairs
 			self.boundaries[default_boundary_tag].faces |= face_vertices_dict.keys()
 
 		with open(of_case_path / local_bmd_path, 'w') as infile:
-			infile.write(self.format(block_structure_only))
+			infile.write(self.format())
 
 		if run_blockMesh:
 			try:
