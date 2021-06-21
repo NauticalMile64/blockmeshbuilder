@@ -183,7 +183,7 @@ mergePatchPairs
 // ************************************************************************* //
 '''
 
-	def write_file(self, of_case_path=Path(), file_name='blockMeshDict', run_blockMesh=False, **kwargs):
+	def write_file(self, of_case_path=Path(), file_name='blockMeshDict', run_blockMesh=False, run_renumberMesh=True, **kwargs):
 		of_case_path = Path(of_case_path)
 		local_bmd_path = Path('system') / file_name
 
@@ -196,3 +196,9 @@ mergePatchPairs
 			# Note that in the cases when the blockMeshDict file cannot be found, blockMesh should throw it's own error
 			except FileNotFoundError:
 				warnings.warn("The system couldn't find the blockMesh application.")
+
+			if run_renumberMesh:
+				try:
+					subprocess.run(["renumberMesh", "-case", of_case_path, "-overwrite"])
+				except FileNotFoundError:
+					warnings.warn("The system couldn't find the renumberMesh application.")
