@@ -149,7 +149,8 @@ class TubeBlockStruct(BaseBlockStruct):
 														 Point((0, 0, acrds[nind])) + self.offset,
 														 proj_rcrds[ind], proj_rcrds[nind], 'block_cone')
 							a_edge.proj_geom(cones[cone_tuple])
-					else:
+
+					elif not np.allclose(proj_rcrds[ind], 0.):
 						a_edge.proj_geom(cyls[proj_rcrds[ind]])
 
 			c_edge = c_edges[ind]
