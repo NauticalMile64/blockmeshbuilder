@@ -11,7 +11,8 @@ def _rotational_specs(rotational, rotation_axis, rotation_centre):
 		return {
 			'transformType': 'rotational',
 			'rotationAxis': rotation_axis,
-			'rotationCentre': rotation_centre
+			'rotationCentre': rotation_centre,
+			'rotationAngle': 0.0
 		}
 	else:
 		return {}
@@ -46,8 +47,8 @@ class BoundaryTag:
 
 	@classmethod
 	def _cyclic_tags(cls, name_a, name_b, type_, common_dict):
-		return cls(name_a, type_, {**{'neighbourPatch': name_b}, **common_dict}), \
-			   cls(name_b, type_, {**{'neighbourPatch': name_a}, **common_dict})
+		return cls(name_a, type_, {**common_dict, **{'neighbourPatch': name_b}}), \
+			   cls(name_b, type_, {**common_dict, **{'neighbourPatch': name_a}})
 
 	@classmethod
 	def cyclic_tags(cls, name_a, name_b, rotational=False, rotation_axis=None, rotation_centre=None):
@@ -65,12 +66,14 @@ class BoundaryTag:
 
 	@classmethod
 	def cyclicRepeatAMI_tags(cls, name_a, name_b, rotational=False, rotation_axis=None, rotation_centre=None,
-							 match_tolerance=None, transform_patch=None):
+							 match_tolerance=None, transform_patch=None, rotation_angle_a=0., rotation_angle_b=0.):
 		common_dict = {}
 		common_dict.update(_rotational_specs(rotational, rotation_axis, rotation_centre))
 		common_dict.update(_match_tolerance_spec(match_tolerance))
 		common_dict.update(_transform_patch_spec(transform_patch))
-		return cls._cyclic_tags(name_a, name_b, 'cyclicRepeatAMI', common_dict)
+
+		return cls(name_a, 'cyclicRepeatAMI', {**common_dict, **{'neighbourPatch': name_b, 'rotationAngle': rotation_angle_a}}), \
+			   cls(name_b, 'cyclicRepeatAMI', {**common_dict, **{'neighbourPatch': name_a, 'rotationAngle': rotation_angle_b}})
 
 	@classmethod
 	def symmetry_tag(cls, name):
