@@ -20,7 +20,7 @@ def _dict_format(dict_name, data_dict, indent_level=1):
 class Geometry:
 	_unique_id = 0
 
-	def __init__(self, name=''):
+	def __init__(self, name):
 		check_name(name)
 		self.name = f'{name}_id-{self._unique_id}'
 		Geometry._unique_id += 1
@@ -33,7 +33,7 @@ class Plane(Geometry):
 	plane_type = 'Plane Base Class'
 	plane_data = {}
 
-	def __init__(self, name):
+	def __init__(self, name='Plane'):
 		Geometry.__init__(self, name)
 
 	def do_format(self, plane_data):
@@ -95,7 +95,7 @@ class PlaneEquation(Plane):
 
 
 class Sphere(Geometry):
-	def __init__(self, center, radius, name):
+	def __init__(self, center, radius, name='Sphere'):
 		Geometry.__init__(self, name)
 		self.center = center
 		self.radius = radius
@@ -110,7 +110,7 @@ class Sphere(Geometry):
 
 
 class Cylinder(Geometry):
-	def __init__(self, point1, point2, radius, name):
+	def __init__(self, point1, point2, radius, name='Cylinder'):
 		Geometry.__init__(self, name)
 		self.point1 = point1
 		self.point2 = point2
@@ -129,7 +129,8 @@ class Cylinder(Geometry):
 class Cone(Geometry):
 	small_value = np.finfo(np.float64).eps
 
-	def __init__(self, point1, point2, radius1, radius2, name, inner_radius1=small_value, inner_radius2=small_value):
+	def __init__(self, point1, point2, radius1, radius2, name='Cone',
+				 inner_radius1=small_value, inner_radius2=small_value):
 		Geometry.__init__(self, name)
 		self.point1 = point1
 		self.point2 = point2
