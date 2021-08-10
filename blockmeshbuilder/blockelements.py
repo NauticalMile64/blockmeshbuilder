@@ -127,25 +127,25 @@ class Projectable:
 
 
 class Vertex(Point, Projectable):
-	def __init__(self, crds, conv_func=cart_to_cart, name='', geometries=None):
+	def __init__(self, crds, conv_func=cart_to_cart, debug_name='', geometries=None):
 		Point.__init__(self, crds, conv_func)
 		Projectable.__init__(self, geometries)
-		self.name = name
+		self.debug_name = debug_name
 		self.index = None
 
 	def format(self):
-		com = f'{self.index} {self.name}'
+		com = f'{self.index} {self.debug_name}'
 		vertex_str = Point.format(self)
 		proj_str, geom_name = self.format_geom()
 		return f'{proj_str}{vertex_str} {geom_name}// {com:s}'
 
 
 class Edge:
-	def __init__(self, vertices, name=''):
+	def __init__(self, vertices, debug_name=''):
 		# http://www.openfoam.org/docs/user/mesh-description.php
 
 		self.vertices = vertices
-		self.name = name
+		self.debug_name = debug_name
 
 	@staticmethod
 	def is_relevant():
@@ -154,8 +154,8 @@ class Edge:
 	def format(self):
 		indices = [v.index for v in self.vertices]
 		index = ' '.join(str(ind) for ind in indices)
-		vcom = ' '.join(str(v.name) for v in self.vertices)
-		res_str = f'{{0}} {index:s} {{1}} // {self.name:s} ({vcom:s})'
+		vcom = ' '.join(str(v.debug_name) for v in self.vertices)
+		res_str = f'{{0}} {index:s} {{1}} // {self.debug_name:s} ({vcom:s})'
 
 		# If either vertex has not been included in any blocks the edge is meaningless
 		if None in indices:
@@ -165,8 +165,8 @@ class Edge:
 
 
 class ArcEdge(Edge):
-	def __init__(self, vertices, arc_mid_point, name=''):
-		Edge.__init__(self, vertices, name)
+	def __init__(self, vertices, arc_mid_point, debug_name=''):
+		Edge.__init__(self, vertices, debug_name)
 		self.arc_mid_point = arc_mid_point
 
 	def format(self):
@@ -176,8 +176,8 @@ class ArcEdge(Edge):
 class CurvedEdge(Edge):
 	edge_type = 'Curved Edge Base Class'
 
-	def __init__(self, vertices, points, name=''):
-		Edge.__init__(self, vertices, name)
+	def __init__(self, vertices, points, debug_name=''):
+		Edge.__init__(self, vertices, debug_name)
 		self.points = points
 
 	def format(self):
@@ -205,8 +205,11 @@ class BSplineCurvedEdge(CurvedEdge):
 
 
 class ProjectionEdge(Edge, Projectable):
-	def __init__(self, vertices, name='', geometries=[]):
-		Edge.__init__(self, vertices, name)
+	def __init__(self, vertices, debug_name='', geometries=None):
+		if geometries is None:
+			self.geometries = []
+
+		Edge.__init__(self, vertices, debug_name)
 		Projectable.__init__(self, geometries)
 
 	def is_relevant(self):
@@ -217,17 +220,17 @@ class ProjectionEdge(Edge, Projectable):
 
 
 class Face:
-	def __init__(self, vertices, name=''):
+	def __init__(self, vertices, debug_name=''):
 
 		# vertices is a 2x2 array
 		self.vertices = vertices
-		self.name = name
+		self.debug_name = debug_name
 		self.proj_g = None
 
 	def proj_geom(self, geometry):
 		if self.proj_g:
 			warnings.warn(
-				f'Face-{self.name} has already been projected to {self.proj_g.name}; over-writing with {geometry.name}.')
+				f'Face-{self.debug_name} has already been projected to {self.proj_g.name}; over-writing with {geometry.name}.')
 
 		self.proj_g = geometry
 
@@ -237,14 +240,14 @@ class Face:
 		vts = [v_arr[0][0], v_arr[0][1], v_arr[1][0], v_arr[1][1]]
 
 		index = ' '.join(str(v.index) for v in vts)
-		com = ' '.join(v.name for v in vts)
+		com = ' '.join(v.debug_name for v in vts)
 
 		proj_str, geom_name = '', ''
 		if write_proj:
 			proj_str = 'project '
 			geom_name = self.proj_g.name
 
-		res_str = f'{proj_str}({index:s}) {geom_name}// {self.name:s} ({com:s})'
+		res_str = f'{proj_str}({index:s}) {geom_name}// {self.debug_name:s} ({com:s})'
 
 		# If either vertex has not been included in any blocks the edge is meaningless
 		if 'None' in index:
@@ -272,4 +275,4 @@ class HexBlock:
 		index = ' '.join(str(v.index) for v in self._get_block_vertices(self.vertices))
 		cls = self.cells
 		zone_name = self.zone_tag.name
-		return f'hex ({index:s}) {zone_name:s} ({cls[0]:d} {cls[1]:d} {cls[2]:d}) {self.grading.format():s}  // {zone_name:s}'
+		return f'hex ({index:s}) {zone_name:s} ({cls[0]:d} {cls[1]:d} {cls[2]:d}) {self.grading.format():s}'

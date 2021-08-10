@@ -6,7 +6,7 @@ from .tube import TubeBlockStruct
 import numpy as np
 
 dummy_vertex = Vertex((0, 0, 0))
-dummy_edge = Edge([dummy_vertex] * 2, name='dummy')
+dummy_edge = Edge([dummy_vertex] * 2, debug_name='dummy')
 _drt2 = 1. / np.sqrt(2)
 
 
