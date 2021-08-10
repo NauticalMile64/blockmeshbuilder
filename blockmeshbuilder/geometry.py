@@ -1,6 +1,7 @@
 from io import StringIO
 import numpy as np
 from .blockelements import Point
+from .check_names import check_name
 
 
 def _dict_format(dict_name, data_dict, indent_level=1):
@@ -20,6 +21,7 @@ class Geometry:
 	_unique_id = 0
 
 	def __init__(self, name=''):
+		check_name(name)
 		self.name = f'{name}_id-{self._unique_id}'
 		Geometry._unique_id += 1
 

@@ -1,5 +1,6 @@
 from io import StringIO
 from .blockelements import Point
+from .check_names import check_name
 
 
 def _rotational_specs(rotational, rotation_axis, rotation_centre):
@@ -28,13 +29,14 @@ def _match_tolerance_spec(match_tolerance):
 def _transform_patch_spec(transform_patch):
 	if not isinstance(transform_patch, BoundaryTag):
 		raise TypeError('repeat=True and something other than a BoundaryTag was passed as transform_patch. '
-						 '\n A BoundaryTag must be passed to transform_patch.')
+						'\n A BoundaryTag must be passed to transform_patch.')
 	return {'transformPatch': transform_patch.name}
 
 
 class BoundaryTag:
 	def __init__(self, name, type_='patch', info_dict=None):
 		self.type_ = type_
+		check_name(name)
 		self.name = name
 		if info_dict is None:
 			info_dict = dict()
@@ -72,8 +74,10 @@ class BoundaryTag:
 		common_dict.update(_match_tolerance_spec(match_tolerance))
 		common_dict.update(_transform_patch_spec(transform_patch))
 
-		return cls(name_a, 'cyclicRepeatAMI', {**common_dict, **{'neighbourPatch': name_b, 'rotationAngle': rotation_angle_a}}), \
-			   cls(name_b, 'cyclicRepeatAMI', {**common_dict, **{'neighbourPatch': name_a, 'rotationAngle': rotation_angle_b}})
+		return cls(name_a, 'cyclicRepeatAMI',
+				   {**common_dict, **{'neighbourPatch': name_b, 'rotationAngle': rotation_angle_a}}), \
+			   cls(name_b, 'cyclicRepeatAMI',
+				   {**common_dict, **{'neighbourPatch': name_a, 'rotationAngle': rotation_angle_b}})
 
 	@classmethod
 	def symmetry_tag(cls, name):
@@ -121,7 +125,7 @@ class _Boundary:
 
 _of_distribution_constraints = {
 	'.org': {
-		'cyclic',  'cyclicAMI', 'cyclicRepeatAMI',  'empty', 'symmetry', 'symmetryPlane', 'wedge'
+		'cyclic', 'cyclicAMI', 'cyclicRepeatAMI', 'empty', 'symmetry', 'symmetryPlane', 'wedge'
 		# 'cyclicACMI', 'cyclicSlip', 'jumpCyclic', 'jumpCyclicAMI', 'processor', 'processorCyclic',
 	},
 	'.com': {
