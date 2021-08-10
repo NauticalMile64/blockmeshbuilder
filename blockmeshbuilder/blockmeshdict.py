@@ -20,14 +20,14 @@ for dist in _of_distributions:
 		_of_distribution_features[dist][dict_name] = feature_dict[dist]
 
 
-def _format_section(name, section_items):
+def _format_section(section_name, section_items):
 	buf = StringIO()
-	if name == 'geometry':
+	if section_name == 'geometry':
 		brackets = ['{', '}']
 	else:
 		brackets = ['(', ')']
 
-	buf.write(f'{name}\n')
+	buf.write(f'{section_name}\n')
 	buf.write(f'{brackets[0]}\n')
 	for item in section_items:
 		buf.write(f'    {item.format()}\n')
