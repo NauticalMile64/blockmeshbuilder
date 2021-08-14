@@ -1,6 +1,6 @@
 import numpy as np
 import warnings
-from ..blockelements import cart_conv_pair, Vertex, ProjectionEdge, Face, HexBlock
+from ..blockelements import cart_conv_pair, Point, Vertex, ProjectionEdge, Face, HexBlock
 from ..grading import SimpleGrading, EdgeGrading, uniformGrading, uniformGradingElement
 from ..zone_tags import ZoneTag, DEFAULT_ZONE_TAG
 
@@ -15,7 +15,7 @@ init_pos.setflags(write=False)
 
 class BaseBlockStruct(np.recarray):
 
-	def __new__(cls, x0, x1, x2, nd0, nd1, nd2, conv_funcs=cart_conv_pair, zone_tag=DEFAULT_ZONE_TAG):
+	def __new__(cls, x0, x1, x2, nd0, nd1, nd2, conv_funcs, **kwargs):
 		x0 = np.asarray(x0)
 		x1 = np.asarray(x1)
 		x2 = np.asarray(x2)
@@ -64,9 +64,11 @@ class BaseBlockStruct(np.recarray):
 		nd1 = nd1 if (nd1.ndim == 0 or nd1.size == x1.size) else np.append(nd1, 0)
 		nd2 = nd2 if (nd2.ndim == 0 or nd2.size == x2.size) else np.append(nd2, 0)
 
+		conv_funcs = kwargs['conversion_functions']
 		if not callable(conv_funcs[0]) or not callable(conv_funcs[1]):
 			raise TypeError(f'The conversion function object passed is not callable.')
 
+		zone_tag = kwargs['zone_tag'] if 'zone_tag' in kwargs else DEFAULT_ZONE_TAG
 		if isinstance(zone_tag, str):
 			zone_tag = ZoneTag(zone_tag)
 		elif not isinstance(zone_tag, ZoneTag):
@@ -117,6 +119,9 @@ class BaseBlockStruct(np.recarray):
 						d_faces[i, j, k] = Face(d_vts[i, j:j + 2, k:k + 2])
 
 		block_structure.zone_tags[:] = zone_tag
+
+		block_structure.conv_funcs = conv_funcs
+		block_structure.offset = kwargs['offset'] if 'offset' in kwargs else Point((0, 0, 0))
 
 		return block_structure
 
@@ -175,6 +180,9 @@ class BaseBlockStruct(np.recarray):
 			return EdgeGrading(grd_arr.flatten())
 
 	def write(self, block_mesh_dict):
+
+		vts = self.vertices
+		vts[:] = self.conv_funcs[1](self.conv_funcs[0](vts) + self.offset.get_cart_crds())
 
 		# Reset block_mask edge
 		bmask = self.block_mask
@@ -254,5 +262,6 @@ class BaseBlockStruct(np.recarray):
 								block_mesh_dict.add_geometries((face.proj_g,))
 
 
-# There is truly no need to subclass the BaseBlockStruct into CartBlockStruct
-CartBlockStruct = BaseBlockStruct
+class CartBlockStruct(BaseBlockStruct):
+	def __new__(cls, xs, ys, zs, nx, ny, nz, **kwargs):
+		return super(CartBlockStruct, cls).__new__(cls, xs, ys, zs, nx, ny, nz, cart_conv_pair, **kwargs)

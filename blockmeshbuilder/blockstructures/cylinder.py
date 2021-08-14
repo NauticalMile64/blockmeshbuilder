@@ -1,6 +1,5 @@
 from ..blockelements import cart_to_cyl, cyl_to_cart, Point, Vertex, Edge
 from ..geometry import Cylinder
-from ..zone_tags import DEFAULT_ZONE_TAG
 from .cartesian import CartBlockStruct
 from .tube import TubeBlockStruct
 import numpy as np
@@ -18,13 +17,12 @@ class CylBlockStructContainer:
 								 Point([-_drt2, -_drt2, 0]), Point([_drt2, -_drt2, 0])])
 	_og_tube_vectors.setflags(write=False)
 
-	def __init__(self, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, offset=Point((0., 0., 0.)),
-				 inner_arc_curve=0.25, is_core_aligned=True):
+	def __init__(self, rs, ts, zs, nr, nt, nz, inner_arc_curve=0.25, is_core_aligned=True, **kwargs):
 
-		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, zone_tag=zone_tag, is_complete=True, offset=offset)
+		self.tube_struct = TubeBlockStruct(rs, ts, zs, nr, nt, nz, is_complete=True, **kwargs)
 
 		if np.isclose(rs[0], 0.):
-			raise ValueError(f'CylBlockStructContainer in zone_tag {zone_tag} has an inner tube radius of {rs[0]}, '
+			raise ValueError(f'CylBlockStructContainer has an inner tube radius of {rs[0]}, '
 							 f'which is too close to 0, such that an o-grid cannot be accomodated. '
 							 f'Consider using TubeBlockStruct instead.')
 
@@ -35,7 +33,6 @@ class CylBlockStructContainer:
 
 		self.inner_arc_curve = inner_arc_curve
 		self.is_core_aligned = is_core_aligned
-		self.offset = offset
 
 		num_side_blocks = (len(ts) - 1) // 4
 		xs = ys = np.linspace(-rs[0], rs[0], num_side_blocks + 1) * _drt2
@@ -47,7 +44,7 @@ class CylBlockStructContainer:
 			nx = nt_arr[:num_side_blocks]
 			ny = nt_arr[num_side_blocks:2 * num_side_blocks]
 
-		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, zone_tag=zone_tag)
+		self.core_struct = CartBlockStruct(xs, ys, zs, nx, ny, nz, **kwargs)
 
 		if is_core_aligned:  # Rotate the tube to match the core
 			self.tube_struct.vertices[..., 1] -= 3 / 4 * np.pi
@@ -86,8 +83,8 @@ class CylBlockStructContainer:
 
 			# Create a dictionary of cylinder geometries of the innermost vertices on the tube struct
 			cyl_dict = {}
-			s_pt = Point([0, 0, -1e5]) + self.offset
-			e_pt = Point([0, 0, 1e5]) + self.offset
+			s_pt = Point([0, 0, -1e5]) + self.tube_struct.offset
+			e_pt = Point([0, 0, 1e5]) + self.tube_struct.offset
 			cyl_arr = np.empty((shape[2], 4), dtype=Cylinder)
 			for k, r in np.ndenumerate(tube_vts[0, :, 0]):
 				if r not in cyl_dict:
@@ -115,8 +112,6 @@ class CylBlockStructContainer:
 
 		else:
 			self.tube_struct.edge_mask[0, :, :, [1, 2]] = True
-
-		self.core_struct.vertices += self.offset.get_cart_crds()
 
 		self.tube_struct.write(block_mesh_dict)
 		self.core_struct.write(block_mesh_dict)

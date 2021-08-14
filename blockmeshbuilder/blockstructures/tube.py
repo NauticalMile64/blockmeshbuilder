@@ -1,8 +1,7 @@
 import numpy as np
 import warnings
-from ..blockelements import cyl_conv_pair, cart_to_cyl, cyl_to_cart, Point, ProjectionEdge, Face
+from ..blockelements import cyl_conv_pair, Point, ProjectionEdge, Face
 from ..geometry import Cylinder, Cone
-from ..zone_tags import DEFAULT_ZONE_TAG
 from .cartesian import BaseBlockStruct
 
 
@@ -12,20 +11,20 @@ def wrap_radians(values):
 
 class TubeBlockStruct(BaseBlockStruct):
 
-	def __new__(cls, rs, ts, zs, nr, nt, nz, zone_tag=DEFAULT_ZONE_TAG, is_complete=False, offset=Point((0., 0., 0.))):
+	def __new__(cls, rs, ts, zs, nr, nt, nz, is_complete=False, **kwargs):
 
 		if np.any(np.asarray(rs) < 0):
 			raise ValueError('Negative values supplied to array of radial values in TubeBlockStruct.')
 
 		are_first_and_last_close = np.isclose(wrap_radians(ts[0]), wrap_radians(ts[-1]))
 		if is_complete and ~are_first_and_last_close:
-			warnings.warn(f'TubeBlockStruct in zone_tag {zone_tag} had the is_complete flag raised, while the '
+			warnings.warn(f'TubeBlockStruct had the is_complete flag raised, while the '
 						  f'first and last angles are unequal; make sure these are separated by 2*pi. '
 						  f'Setting is_complete=False')
 			is_complete = False
 
 		if not is_complete and are_first_and_last_close:
-			warnings.warn(f'TubeBlockStruct in zone_tag {zone_tag} had the is_complete flag down, while the '
+			warnings.warn(f'TubeBlockStruct had the is_complete flag down, while the '
 						  f'first and last angles are equal or nearly equal; separated by a value less than 2*pi. '
 						  f'The resulting tube struct may visually appear closed, but a circumferential \'wall\' '
 						  f'will be present at theta={ts[0]}.')
@@ -35,11 +34,11 @@ class TubeBlockStruct(BaseBlockStruct):
 							 f'required when the is_complete flag is raised.')
 
 		if np.any(np.diff(ts) >= np.pi):
-			warnings.warn(f'The ts array passed to TubeBlockStruct in zone_tag {zone_tag} contains neighbouring angles '
+			warnings.warn(f'The ts array passed to TubeBlockStruct contains neighbouring angles '
 						  f'separated by approximately 180 degrees or more. When these edges are rendered in blockmesh, '
 						  f'either an error will be triggered, or it may constitute a degenerate case.')
 
-		block_structure = super(TubeBlockStruct, cls).__new__(cls, rs, ts, zs, nr, nt, nz, cyl_conv_pair, zone_tag)
+		block_structure = super(TubeBlockStruct, cls).__new__(cls, rs, ts, zs, nr, nt, nz, cyl_conv_pair, **kwargs)
 
 		b_vts = block_structure.baked_vertices
 		edges = block_structure.edges
@@ -66,7 +65,6 @@ class TubeBlockStruct(BaseBlockStruct):
 					faces[0, j, k, 1] = Face(b_vts[0:2, j, k:k + 2])
 
 		block_structure.is_complete = is_complete
-		block_structure.offset = offset
 
 		return block_structure
 
@@ -156,7 +154,5 @@ class TubeBlockStruct(BaseBlockStruct):
 			c_edge = c_edges[ind]
 			if (not c_edge_mask[ind]) and isinstance(c_edge, ProjectionEdge):
 				c_edge.proj_geom(cyls[proj_rcrds[ind]])
-
-		vts[:] = cart_to_cyl(cyl_to_cart(vts) + self.offset.get_cart_crds())
 
 		BaseBlockStruct.write(self, block_mesh_dict)
