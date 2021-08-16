@@ -64,9 +64,13 @@ class BaseBlockStruct(np.recarray):
 		nd1 = nd1 if (nd1.ndim == 0 or nd1.size == x1.size) else np.append(nd1, 0)
 		nd2 = nd2 if (nd2.ndim == 0 or nd2.size == x2.size) else np.append(nd2, 0)
 
-		conv_funcs = kwargs['conversion_functions']
-		if not callable(conv_funcs[0]) or not callable(conv_funcs[1]):
-			raise TypeError(f'The conversion function object passed is not callable.')
+		if not (hasattr(conv_funcs, '__len__') and len(conv_funcs) == 2):
+			raise TypeError('The conversion functions object must be an array-like object with 2 elements')
+		if not (callable(conv_funcs[0]) and callable(conv_funcs[1])):
+			raise TypeError('One of the conversion functions is not callable. Please provide 2 callable objects: one '
+							'to transform an ndarray of 3D points from the curvilinear coordinate system to Cartesian '
+							'coordinates, and a second function to perform the reverse transformation on an ndarray of '
+							'3D points.')
 
 		zone_tag = kwargs['zone_tag'] if 'zone_tag' in kwargs else DEFAULT_ZONE_TAG
 		if isinstance(zone_tag, str):
