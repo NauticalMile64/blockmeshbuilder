@@ -15,7 +15,7 @@ setup(
 	url='https://github.com/NauticalMile64/blockmeshbuilder',
 	packages=find_packages(),
 	package_dir={'blockmeshbuilder': 'blockmeshbuilder'},
-	install_requires=['numpy'],
+	install_requires=['numpy', 'shapely'],
 	classifiers=[
 		"Programming Language :: Python :: 3.6",
 		"Programming Language :: Python :: 3.7",
