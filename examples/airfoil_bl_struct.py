@@ -42,7 +42,7 @@ x = (1 - np.cos(np.linspace(0, np.pi, spine_points))) / 2
 xu, yu, xl, yl = airfoil.calculate_surface_points(x)
 u_pts = np.dstack((xu, yu))
 l_pts = np.dstack((xl, yl))
-s_pts = np.hstack((l_pts[:, ::-1], u_pts))[0]
+s_pts = np.hstack((l_pts[:, ::-1][:, :-1], u_pts))[0]
 
 # Need to separate the lists of points into y, x arrays for gradient function
 with np.errstate(divide='ignore', invalid='ignore'):
@@ -63,7 +63,7 @@ sb_idx = np.tile(sb_idx, (2, 1))
 
 nt = np.append(bl_ndy[1:-1], 20)
 
-bl_struct = create_boundary_block_structure(s_pts, sb_idx, np.array((0.0, 0.02)), zs, nt, bl_ndx, ndz, closed_boundary=True)
+bl_struct = create_boundary_block_structure(s_pts, sb_idx, np.array((0.0, 0.02, 0.04)), zs, nt, 1, ndz, closed_boundary=True)
 
 # Write the blocks to the blockMeshDict
 block_mesh_dict = BlockMeshDict(metric='mm')
