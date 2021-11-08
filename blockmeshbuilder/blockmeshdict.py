@@ -114,7 +114,7 @@ class BlockMeshDict:
 				block.cells = (1, 1, 1)
 		elif density_scale != 1.0:
 			for block in self.blocks:
-				block.cells = tuple(max(round(block.cells[i] * density_scale), 1) for i in range(3))
+				block.cells = tuple(int(max(round(block.cells[i] * density_scale), 1)) for i in range(3))
 
 		if default_boundary_tag is not None:
 			if not isinstance(default_boundary_tag, BoundaryTag):
