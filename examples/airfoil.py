@@ -133,7 +133,7 @@ bl_struct.boundary_tags[0, [0, -1], :, 1] = outlet_tag
 if not close_trailing_edge:
 	te_struct.boundary_tags[:, 0, :, 1] = outlet_tag
 
-bl_struct.boundary_tags[-1, 1:-2, :, 0] = BoundaryTag('wall-airfoil')
+bl_struct.boundary_tags[-1, 1:-2, :, 0] = BoundaryTag('wall-airfoil', type_='wall')
 
 front_tag = BoundaryTag.empty_tag('front')
 bl_struct.boundary_tags[..., -1, 2] = front_tag
