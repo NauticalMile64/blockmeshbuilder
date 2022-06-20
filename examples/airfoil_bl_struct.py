@@ -1,6 +1,6 @@
 import numpy as np
 from airfoil_points import NACA4
-from blockmeshbuilder import BlockMeshDict, create_boundary_block_structure
+from blockmeshbuilder import BlockMeshDict, create_boundary_block_structure, BoundaryTag
 
 
 # Airfoil shape and dimensions
@@ -64,6 +64,8 @@ sb_idx = np.tile(sb_idx, (2, 1))
 nt = np.append(bl_ndy[1:-1], 20)
 
 bl_struct = create_boundary_block_structure(s_pts, sb_idx, np.array((0.0, 0.02, 0.04)), zs, nt, 1, ndz, closed_boundary=True)
+
+bl_struct.boundary_tags[:, 0, :, 1] = BoundaryTag('airfoilWall')
 
 # Write the blocks to the blockMeshDict
 block_mesh_dict = BlockMeshDict(metric='mm')
