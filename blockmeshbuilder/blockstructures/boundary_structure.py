@@ -108,7 +108,6 @@ def create_boundary_block_structure(boundary_points, boundary_indices, ns, zs, n
 				c_pt = boundary_pts_z[1] - unit_norm_vecs[0] * ns[n]
 				zero_index = (norm(bl_pts - c_pt, axis=1)).argmin()
 				bl_pts = np.roll(bl_pts, -zero_index, axis=0)
-				plt.plot(*c_pt, color=f'C{n}', marker='v')
 				bl_pts = np.pad(bl_pts, ((0, 1), (0, 0)), mode='wrap')
 
 				for i in range(boundary_indices_z.size):
