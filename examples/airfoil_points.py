@@ -69,12 +69,14 @@ if __name__ == "__main__":
 
 	import matplotlib.pyplot as plt
 
-	plt.plot(xu1, yu1)
-	plt.scatter(xl1, yl1)
+	# plt.plot(xu1, yu1)
+	# plt.scatter(xl1, yl1)
 	circle = plt.Circle((leading_edge_radius, leading_edge_y), leading_edge_radius, color='blue')
-	plt.plot(xu2, yu2, color='orange')
-	plt.scatter(xl2, yl2, color='orange')
+	plt.plot(xu2, yu2, color='black')
+	plt.plot(xl2, yl2, color='black')
 	ax = plt.gca()
 	ax.add_patch(circle)
 	ax.set_aspect('equal')
+	plt.axis('off')
+
 	plt.show()
