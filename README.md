@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/339175772.svg)](https://zenodo.org/badge/latestdoi/339175772)
+
 blockmeshbuilder
 =============================
 This module enables users to concisely define and efficiently manipulate 3D block structures, for the purposes of creating hexahedral block-structured meshes for CFD.
