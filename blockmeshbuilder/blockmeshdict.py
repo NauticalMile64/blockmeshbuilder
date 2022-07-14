@@ -5,6 +5,7 @@ from pathlib import Path
 from .blockelements import Face
 from .geometry import _of_distribution_geometries
 from .boundary_tags import BoundaryTag, _Boundary, _of_distribution_constraints
+from .merge_patch_pairs import _MergePatchPair
 from .check_names import BoundaryNameClashError
 from .version import __version__
 import numpy as np
@@ -63,6 +64,7 @@ class BlockMeshDict:
 		self.boundaries = {}
 		self.geometries = set()
 		self.faces = set()
+		self.mergePatchPairs = set()
 
 	def add_hexblock(self, block):
 		self.blocks.add(block)
@@ -93,6 +95,9 @@ class BlockMeshDict:
 
 	def add_face(self, face):
 		self.faces.add(face)
+
+	def add_mergePatchPair(self, large_boundary, small_boundary):
+		self.mergePatchPairs.add(_MergePatchPair(large_boundary, small_boundary))
 
 	def _assign_vertexid(self):
 		valid_vertices = []
@@ -184,9 +189,7 @@ convertToMeters {self.convert_to_meters};
 
 {_format_section('boundary', list(self.boundaries.values()))}
 
-mergePatchPairs
-(
-);
+{_format_section('mergePatchPairs', self.mergePatchPairs)}
 
 // ************************************************************************* //
 '''
