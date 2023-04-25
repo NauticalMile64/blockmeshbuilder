@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  5                                     |
+|  \\    /   O peration     | Version:  8,10                                  |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -17,12 +17,12 @@ FoamFile
 
 libs            ("libblockMesh.so");
 
-DebugSwitches
-{
+//DebugSwitches
+//{
 //    project 1;
 //    searchableExtrudedCircle 1;
 //    projectCurve 1;
-}
+//}
 
 application     blockMesh;
 

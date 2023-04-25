@@ -2,6 +2,7 @@ from io import StringIO
 import warnings
 import subprocess
 from pathlib import Path
+from os import getenv
 from .blockelements import Face
 from .geometry import _of_distribution_geometries
 from .boundary_tags import BoundaryTag, _Boundary, _of_distribution_constraints
@@ -202,6 +203,15 @@ convertToMeters {self.convert_to_meters};
 			infile.write(self.format(**kwargs))
 
 		if run_blockMesh:
+
+			of_version = getenv("WM_PROJECT_VERSION")
+			if of_version is None:
+				raise ValueError("OpenFOAM not detected. Please check your installation and the environment variable"
+								 "$WM_PROJECT_VERSION")
+
+			if self.of_distribution == '.org' and int(of_version) >= 9:
+				local_bmd_path = file_name
+
 			try:
 				subprocess.run(["blockMesh", "-case", of_case_path, "-dict", local_bmd_path])
 			# Note that in the cases when the blockMeshDict file cannot be found, blockMesh should throw it's own error
