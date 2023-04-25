@@ -1,3 +1,6 @@
+# NOTE THIS EXAMPLE HAS AN ADDITIONAL DEPENDENCY ON SHAPELY v>=2.0.0
+# which can be installed with python -m pip install shapely
+
 import numpy as np
 from airfoil_points import NACA4
 from blockmeshbuilder import BlockMeshDict, CartBlockStruct, Point, \
@@ -49,7 +52,7 @@ s_pts = np.hstack((l_pts[:, ::-1], u_pts))[0]
 
 # Get the boundary layer outer profile
 af_line_string = shp.LineString(s_pts)
-bl_pts = np.array(af_line_string.parallel_offset(num_chords_bl_thickness, 'left'))
+bl_pts = np.stack(af_line_string.parallel_offset(num_chords_bl_thickness, 'left').coords.xy, axis=1)
 
 # Need to separate the lists of points into y, x arrays for gradient function
 with np.errstate(divide='ignore', invalid='ignore'):
