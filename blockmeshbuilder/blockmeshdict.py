@@ -48,7 +48,9 @@ class BlockMeshDict:
 		'um': 1e-6,
 		'nm': 1e-9,
 		'A': 1e-10,
-		'Angstrom': 1e-10
+		'Angstrom': 1e-10,
+		'ft': 0.3048,
+		'in': 0.0254,
 	}
 
 	def __init__(self, metric='m', of_dist='.org'):
