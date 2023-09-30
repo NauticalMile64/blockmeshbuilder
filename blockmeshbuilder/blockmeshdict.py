@@ -39,6 +39,14 @@ def _format_section(section_name, section_items):
 	return buf.getvalue()
 
 
+def _check_output_errors(output):
+
+	matches = ("ERROR", "WARNING", "abort")
+	if any([x in output for x in matches]):
+		return True
+
+	return True
+
 class BlockMeshDict:
 	metric_conversion_dict = {
 		'km': 1000,
@@ -215,13 +223,24 @@ convertToMeters {self.convert_to_meters};
 				local_bmd_path = file_name
 
 			try:
-				subprocess.run(["blockMesh", "-case", of_case_path, "-dict", local_bmd_path])
-			# Note that in the cases when the blockMeshDict file cannot be found, blockMesh should throw it's own error
+				mesh_res = subprocess.run(["blockMesh", "-case", of_case_path, "-dict", local_bmd_path],
+										  capture_output=True, universal_newlines=True)
+			# Note that in the cases when the blockMeshDict file cannot be found, blockMesh should throw its own error
 			except FileNotFoundError:
 				warnings.warn("The system couldn't find the blockMesh application.")
 
+			with open(of_case_path / f"{file_name}.log", 'w') as log_f:
+				log_f.write(mesh_res.stdout)
+
+			if _check_output_errors(mesh_res.stdout):
+				raise ChildProcessError(mesh_res.stdout)
+
 			if run_renumberMesh:
 				try:
-					subprocess.run(["renumberMesh", "-case", of_case_path, "-overwrite"])
+					renumber_res = subprocess.run(["renumberMesh", "-case", of_case_path, "-overwrite"],
+												  capture_output=True, universal_newlines=True)
 				except FileNotFoundError:
 					warnings.warn("The system couldn't find the renumberMesh application.")
+
+				if _check_output_errors(mesh_res.stdout):
+					raise ChildProcessError(renumber_res.stdout)
