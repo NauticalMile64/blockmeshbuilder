@@ -45,6 +45,9 @@ def _check_output_errors(output):
 	if any([x in output for x in matches]):
 		return True
 
+	if 'End' in output.splitlines()[-2]:
+		return False
+
 	return True
 
 class BlockMeshDict:
