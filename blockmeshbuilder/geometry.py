@@ -48,7 +48,7 @@ class Plane(Geometry):
 class PlanePointAndNormal(Plane):
 	plane_type = 'pointAndNormal'
 
-	def __init__(self, point, normal, name):
+	def __init__(self, point, normal, name='Plane_Norm'):
 		Plane.__init__(self, name)
 		self.point = point
 		self.normal = normal
@@ -64,7 +64,7 @@ class PlanePointAndNormal(Plane):
 class PlaneEmbeddedPoints(Plane):
 	plane_type = 'embeddedPoints'
 
-	def __init__(self, point1, point2, point3, name):
+	def __init__(self, point1, point2, point3, name='Plane_Pts'):
 		Plane.__init__(self, name)
 		self.points = (point1, point2, point3)
 
@@ -80,7 +80,7 @@ class PlaneEmbeddedPoints(Plane):
 class PlaneEquation(Plane):
 	plane_type = 'planeEquation'
 
-	def __init__(self, a, b, c, d, name):
+	def __init__(self, a, b, c, d, name='Plane_Eq'):
 		Plane.__init__(self, name)
 		self.equation_coeffs = (a, b, c, d)
 
