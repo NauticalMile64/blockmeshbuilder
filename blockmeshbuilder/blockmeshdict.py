@@ -9,6 +9,7 @@ from .boundary_tags import BoundaryTag, _Boundary, _of_distribution_constraints
 from .merge_patch_pairs import _MergePatchPair
 from .check_names import BoundaryNameClashError
 from .version import __version__
+from .utilities import safe_int
 import numpy as np
 
 init_pos = np.arange(3)
@@ -222,7 +223,7 @@ convertToMeters {self.convert_to_meters};
 				raise ValueError("OpenFOAM not detected. Please check your installation and the environment variable"
 								 "$WM_PROJECT_VERSION")
 
-			if self.of_distribution == '.org' and int(of_version) >= 9:
+			if self.of_distribution == '.org' and safe_int(of_version) >= 9:
 				local_bmd_path = file_name
 
 			try:

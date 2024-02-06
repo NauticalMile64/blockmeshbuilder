@@ -24,3 +24,12 @@ def interp_coordinates(vertices, axis, C):
 	y_start = t_vts[0, np.newaxis, ..., C]
 	t_vts[..., C] = np.einsum('i...,...,...->i...', x_diff, x_range_inv, y_range) + y_start
 
+
+def safe_int(i, default=0):
+	try:
+		return int(i)
+	except ValueError:
+		try:
+			return int(''.join(filter(str.isdigit, s)))
+		except:
+			return default
