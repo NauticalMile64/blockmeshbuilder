@@ -23,7 +23,7 @@ class CylBlockStructContainer:
 
 		if np.isclose(rs[0], 0.):
 			raise ValueError(f'CylBlockStructContainer has an inner tube radius of {rs[0]}, '
-							 f'which is too close to 0, such that an o-grid cannot be accomodated. '
+							 f'which is too close to 0, such that an o-grid cannot be accommodated. '
 							 f'Consider using TubeBlockStruct instead.')
 
 		if (len(ts) - 1) % 4 > 0:
