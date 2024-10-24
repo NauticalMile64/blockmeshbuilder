@@ -88,13 +88,14 @@ class BlockMeshDict:
 		self.edges.add(edge)
 
 	def add_boundary_face(self, boundary_tag, face):
-
 		if boundary_tag not in self.boundaries:
 			for other_boundary_tag in self.boundaries:
 				if boundary_tag.name == other_boundary_tag.name:
-					raise BoundaryNameClashError(f'The boundary named {boundary_tag.name} of type '
-												 f'{boundary_tag._type} shares a name with another boundary of type '
-												 f'{other_boundary_tag._type}. Please rename one of the boundaries.')
+					raise BoundaryNameClashError(
+						f'The boundary named {boundary_tag.name} of type '
+						f'{boundary_tag.type_} shares a name with another boundary of type '
+						f'{other_boundary_tag.type_}. Please rename one of the boundaries.'
+					)
 
 			self.boundaries[boundary_tag] = _Boundary(boundary_tag)
 
