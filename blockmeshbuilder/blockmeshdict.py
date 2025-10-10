@@ -51,6 +51,7 @@ def _check_output_errors(output):
 
 	return True
 
+
 class BlockMeshDict:
 	metric_conversion_dict = {
 		'km': 1000,

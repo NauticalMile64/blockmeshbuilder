@@ -258,6 +258,7 @@ class BaseBlockStruct(np.recarray):
 									warnings.warn(
 										f'Attempting to specify a boundary at an interior face. '
 										f'Please check assignment to boundary_tags.')
+									# continue  # NEED TO MAKE THIS A GENERAL SWITCH, SO USER CAN DECIDE IF IGNORING IS GOOD
 								else:
 									block_mesh_dict.add_boundary_face(d_boundary_tags[i, j, k], face)
 
