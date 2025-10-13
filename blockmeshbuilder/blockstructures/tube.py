@@ -11,15 +11,16 @@ def wrap_radians(values):
 
 class TubeBlockStruct(BaseBlockStruct):
 
-	def __new__(cls, rs, ts, zs, nr, nt, nz, is_complete=False, **kwargs):
+	def __new__(cls, rs, ts, zs, nr, nt, nz, is_complete=False, angle_r_tol=1e-8, **kwargs):
 
 		if np.any(np.asarray(rs) < 0):
 			raise ValueError('Negative values supplied to array of radial values in TubeBlockStruct.')
 
-		are_first_and_last_close = np.isclose(wrap_radians(ts[0]), wrap_radians(ts[-1]))
-		if is_complete and ~are_first_and_last_close:
+		are_first_and_last_close = np.isclose(*wrap_radians(ts[0], ts[-1]), angle_r_tol)
+		if not are_first_and_last_close and is_complete:
 			warnings.warn(f'TubeBlockStruct had the is_complete flag raised, while the '
 						  f'first and last angles are unequal; make sure these are separated by 2*pi. '
+						  f'Alternatively, increase angle_tol.'
 						  f'Setting is_complete=False')
 			is_complete = False
 
