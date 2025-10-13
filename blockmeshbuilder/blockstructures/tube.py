@@ -5,8 +5,10 @@ from ..geometry import Cylinder, Cone
 from .cartesian import BaseBlockStruct
 
 
-def wrap_radians(values):
-	return values % (2 * np.pi)
+def are_coterminal(a, b, tol):
+	modulus = 2 * np.pi
+	diff = (a - b) % modulus
+	return min(diff, modulus - diff) <= tol
 
 
 class TubeBlockStruct(BaseBlockStruct):
@@ -16,7 +18,8 @@ class TubeBlockStruct(BaseBlockStruct):
 		if np.any(np.asarray(rs) < 0):
 			raise ValueError('Negative values supplied to array of radial values in TubeBlockStruct.')
 
-		are_first_and_last_close = np.isclose(*wrap_radians(ts[0], ts[-1]), angle_r_tol)
+		are_first_and_last_close = are_coterminal(ts[0], ts[-1], angle_r_tol)
+		# print(are_first_and_last_close, is_complete, wrap_radians(np.array((ts[0], ts[-1]))))
 		if not are_first_and_last_close and is_complete:
 			warnings.warn(f'TubeBlockStruct had the is_complete flag raised, while the '
 						  f'first and last angles are unequal; make sure these are separated by 2*pi. '
