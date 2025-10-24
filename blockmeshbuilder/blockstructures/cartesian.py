@@ -211,11 +211,11 @@ class BaseBlockStruct(np.recarray):
 
 						nd = block_data.num_divisions[0, 0, 0]
 
-						vts = block_data.baked_vertices.copy()
+						blk_vts = block_data.baked_vertices.copy()
 
 						block_zone_tag = block_data.zone_tags[0, 0, 0]
 
-						block = HexBlock(vts, nd, block_zone_tag, grading)
+						block = HexBlock(blk_vts, nd, block_zone_tag, grading)
 						block_mesh_dict.add_hexblock(block)
 
 		b_vts = self.baked_vertices
