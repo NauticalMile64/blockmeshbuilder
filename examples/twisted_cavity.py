@@ -12,8 +12,9 @@ If you wish to simply omit the center block from the mesh instead of writing it,
 block to True instead of editing the 'zone_tags' array.
 """
 import numpy as np
-from blockmeshbuilder import BlockMeshDict, cart_to_cyl, cyl_to_cart, CartBlockStruct, \
+from blockmeshbuilder import BlockMeshDict, CartBlockStruct, \
 	SimpleGradingElement, BoundaryTag, ZoneTag
+from blockmeshbuilder.transform import Transform, rotation_z
 
 xs = ys = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) - 0.5
 zs = np.array([0.0, 0.01])
@@ -30,14 +31,13 @@ GD[:, -2, :, 1] = -edge_grading  # top
 GD[0, :, :, 0] = edge_grading  # left
 GD[-2, :, :, 0] = -edge_grading  # right
 
-# Rotate vertices
-vts_cyl = cart_to_cyl(cavity.vertices)  # Create new array of vertices in a cylindrical co-ordinate system
-
-theta_coordinates = vts_cyl[..., 1]  # Select the angle co-ordinate theta
-theta_coordinates[1:-1, 1:-1, :] += np.pi / 8  # Rotate interior blocks by 22.5 degrees
-theta_coordinates[2:-2, 2:-2, :] += np.pi / 8  # Rotate innermost block by a further 22.5 degrees
-
-cavity.vertices[:] = cyl_to_cart(vts_cyl)  # Transform back into the Cartesian system and re-assign
+# Successively twist smaller groups of blocks about the z-axis
+# Note the innermost block has the transformation applied twice, for a 45 deg twist
+transform = Transform(rotation=rotation_z(np.radians(22.5)))
+vts_twist = cavity.vertices
+for i in range(2):
+	vts_twist = vts_twist[1:-1, 1:-1, :]
+	vts_twist[:] = transform.apply(vts_twist)
 
 # Set middle block to solid
 cavity.zone_tags[2, 2, 0] = ZoneTag('solid_zone')

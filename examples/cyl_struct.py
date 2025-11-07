@@ -2,6 +2,7 @@
 
 import numpy as np
 from blockmeshbuilder import BlockMeshDict, CylBlockStructContainer, BoundaryTag, Point
+from blockmeshbuilder.transform import Transform, rotation_y
 
 rs = np.array([0.3, 0.6, 1.0])
 num_side_blocks = 3  # Must be a positive integer
@@ -17,11 +18,18 @@ ndt = nd1 + nd2 + nd1[::-1] + nd2[::-1]  # Specifying the node counts in this wa
 
 ndz = 8
 
+# Create a transformation object that will rotate and move the structure at write time
+# Before the write command is called, the vertices remain in the canonical cylindrical coordinate system
+rotation = rotation_y(np.radians(45)) # Rotate 45 deg about y axis
+translation = [2, 0, 0] # Afterward, translate along x axis
+transform = Transform(translation=translation, rotation=rotation)
+
 iac = 0.45
 cyl = CylBlockStructContainer(rs, ts, zs, ndr, ndt, ndz, zone_tag='ts', is_core_aligned=True, inner_arc_curve=iac,
-							  offset=Point((1., 1., 0.)))
+							  transform=transform, offset=Point((1., 1., 0.)))
 
 # Increase size of back half
+# When adjusting the position block vertices of the core_struct and tube_struct, ensure that both values agree
 scale = 1.15
 cyl.tube_struct.vertices[:, :, 1:, 0] *= scale		# Scale tube radii
 cyl.core_struct.vertices[:, :, 1:, [0, 1]] *= scale	# Scale core x and y co-ordinates
@@ -30,6 +38,9 @@ cyl.core_struct.vertices[:, :, 1:, [0, 1]] *= scale	# Scale core x and y co-ordi
 cyl.tube_struct.vertices[-1, :-1, -1, 1] += np.pi / 16
 
 cyl.tube_struct.boundary_tags[-1, ..., 0] = BoundaryTag('wall')
+
+# Uncomment this line to see only the core structure
+# cyl.tube_struct.block_mask[:] = True
 
 block_mesh_dict = BlockMeshDict(metric='mm')
 cyl.write(block_mesh_dict)

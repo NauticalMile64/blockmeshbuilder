@@ -19,7 +19,6 @@ class TubeBlockStruct(BaseBlockStruct):
 			raise ValueError('Negative values supplied to array of radial values in TubeBlockStruct.')
 
 		are_first_and_last_close = are_coterminal(ts[0], ts[-1], angle_r_tol)
-		# print(are_first_and_last_close, is_complete, wrap_radians(np.array((ts[0], ts[-1]))))
 		if not are_first_and_last_close and is_complete:
 			warnings.warn(f'TubeBlockStruct had the is_complete flag raised, while the '
 						  f'first and last angles are unequal; make sure these are separated by 2*pi. '
@@ -97,19 +96,34 @@ class TubeBlockStruct(BaseBlockStruct):
 						  f'set to 0, but some were changed before writing. The nodes along the centerline of '
 						  f'the tube may not be positioned as expected.')
 
-		'''
-		if np.any(np.diff(self.vertices[..., 1], axis=1) >= np.pi):
-			raise ValueError(f'One or more angles assigned to a tube block struct are separated from their neighbour by 180 '
-					   f'degrees or more. When these edges are rendered in blockmesh, either an error will be '
-					   f'triggered, or it may constitute a degenerate case.')
-		'''
+		# Define cylinder axis in canonical (untransformed) coordinate system
+		axis_length = 1e5  # Large value to ensure it spans the domain
 
+		# Start and end points along the cylindrical axis (Z-axis) in curvilinear coords
+		canonical_start = np.array([0., 0., -axis_length])
+		canonical_end = np.array([0., 0., axis_length])
+
+		# Convert to Cartesian, apply transform, create Points
+		start_cart = self.conv_funcs[0](canonical_start)  # cyl -> cart
+		end_cart = self.conv_funcs[0](canonical_end)
+
+		# Apply the transformation (rotation + translation + scale)
+		transformed_start = self.transform.apply(start_cart.reshape(1, 3)).ravel()
+		transformed_end = self.transform.apply(end_cart.reshape(1, 3)).ravel()
+
+		s_pt = Point(transformed_start)
+		e_pt = Point(transformed_end)
+
+		# Create cylinders for each unique radius
 		cyls = {}
-		s_pt = Point([0, 0, -1e5]) + self.offset
-		e_pt = Point([0, 0, 1e5]) + self.offset
 		for i, r in np.ndenumerate(np.unique(vts[..., 0])):
 			if not np.isclose(r, 0.):
-				cyls[r] = Cylinder(s_pt, e_pt, r, f'blockcyl-{i}')
+				# Radius also needs to be scaled if non-uniform scaling is used
+				# For uniform scaling, all radii scale the same
+				# For non-uniform, we use the average of X and Y scale factors
+				# (assuming cylindrical coords are in X-Y plane)
+				scaled_r = r * np.mean(self.transform.scale[:2])
+				cyls[r] = Cylinder(s_pt, e_pt, scaled_r, f'blockcyl-{i}')
 
 		# Mask axial and radial edges as well as circumferential faces so
 		# no redundant edges or faces are written to file
@@ -147,9 +161,32 @@ class TubeBlockStruct(BaseBlockStruct):
 						if are_cones:
 							cone_tuple = (proj_rcrds[ind], proj_rcrds[nind], acrds[ind], acrds[nind])
 							if cone_tuple not in cones:
-								cones[cone_tuple] = Cone(Point((0, 0, acrds[ind])) + self.offset,
-														 Point((0, 0, acrds[nind])) + self.offset,
-														 proj_rcrds[ind], proj_rcrds[nind], 'block_cone')
+
+								# Cone endpoints at specific Z-coordinates in cylindrical coords
+								cone_start_cyl = np.array([0., 0., acrds[ind]])
+								cone_end_cyl = np.array([0., 0., acrds[nind]])
+
+								# Convert to Cartesian
+								cone_start_cart = self.conv_funcs[0](cone_start_cyl)
+								cone_end_cart = self.conv_funcs[0](cone_end_cyl)
+
+								# Apply transformation
+								cone_start_transformed = self.transform.apply(cone_start_cart.reshape(1, 3)).ravel()
+								cone_end_transformed = self.transform.apply(cone_end_cart.reshape(1, 3)).ravel()
+
+								# Create Points
+								cone_s_pt = Point(cone_start_transformed)
+								cone_e_pt = Point(cone_end_transformed)
+
+								# Scale radii
+								scaled_r1 = proj_rcrds[ind] * np.mean(self.transform.scale[:2])
+								scaled_r2 = proj_rcrds[nind] * np.mean(self.transform.scale[:2])
+
+								cones[cone_tuple] = Cone(
+									cone_s_pt, cone_e_pt,
+									scaled_r1, scaled_r2,
+									'block_cone'
+								)
 							a_edge.proj_geom(cones[cone_tuple])
 
 					elif not np.allclose(proj_rcrds[ind], 0.):

@@ -81,21 +81,64 @@ class CylBlockStructContainer:
 
 			core = self.core_struct
 
+			# Define cylinder axis in canonical coordinate system (cylindrical)
+			axis_length = 1e5
+			canonical_start = np.array([0., 0., -axis_length])
+			canonical_end = np.array([0., 0., axis_length])
+
+			# Convert to Cartesian (tube_struct uses cylindrical coordinates)
+			start_cart = tube.conv_funcs[0](canonical_start)
+			end_cart = tube.conv_funcs[0](canonical_end)
+
+			# Apply transformation (rotation + translation + scale)
+			transformed_start = tube.transform.apply(start_cart.reshape(1, 3)).ravel()
+			transformed_end = tube.transform.apply(end_cart.reshape(1, 3)).ravel()
+
+			s_pt = Point(transformed_start)
+			e_pt = Point(transformed_end)
+
 			# Create a dictionary of cylinder geometries of the innermost vertices on the tube struct
 			cyl_dict = {}
-			s_pt = Point([0, 0, -1e5]) + self.tube_struct.offset
-			e_pt = Point([0, 0, 1e5]) + self.tube_struct.offset
 			cyl_arr = np.empty((shape[2], 4), dtype=Cylinder)
+
 			for k, r in np.ndenumerate(tube_vts[0, :, 0]):
 				if r not in cyl_dict:
 					u = np.arctan(iac)
 					a = r * _drt2
 					r_cyl = a / np.sin(u)
 					offset = a * (1 / iac - 1)
-					offset_axes = og_vectors * offset
-					local_cyls = np.array([Cylinder(s_pt - offset_axes[i], e_pt - offset_axes[i],
-													r_cyl, f'o-grid-cyl-{r_cyl}-{i}') for i in range(4)])
-					cyl_dict[r] = local_cyls
+
+					# Scale the offset magnitude
+					# Use average of X-Y scale since cylinders are in the X-Y plane
+					scaled_offset = offset * np.mean(tube.transform.scale[:2])
+
+					# The og_vectors need to be rotated but not translated
+					# Extract just the rotation component
+					rotated_og_vectors = tube.transform.rotation.rotate_points(
+						np.array([og_vectors[i].get_cart_crds() for i in range(4)])
+					)
+
+					# Scale the cylinder radius
+					scaled_r_cyl = r_cyl * np.mean(tube.transform.scale[:2])
+
+					# Create offset cylinders with transformed axes
+					local_cyls = []
+					for i in range(4):
+						# Offset the cylinder axis endpoints
+						offset_vec = rotated_og_vectors[i] * scaled_offset
+						cyl_start = s_pt.get_cart_crds() - offset_vec
+						cyl_end = e_pt.get_cart_crds() - offset_vec
+
+						local_cyls.append(
+							Cylinder(
+								Point(cyl_start),
+								Point(cyl_end),
+								scaled_r_cyl,
+								f'o-grid-cyl-{scaled_r_cyl}-{i}'
+							)
+						)
+
+					cyl_dict[r] = np.array(local_cyls)
 
 				cyl_arr[k] = cyl_dict[r]
 

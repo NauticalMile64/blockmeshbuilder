@@ -3,7 +3,7 @@ import warnings
 from ..blockelements import cart_conv_pair, Point, Vertex, ProjectionEdge, Face, HexBlock
 from ..grading import SimpleGrading, EdgeGrading, uniformGrading, uniformGradingElement
 from ..zone_tags import ZoneTag, DEFAULT_ZONE_TAG
-
+from ..transform import Transform
 
 headers = ['vertices', 'num_divisions', 'grading', 'baked_vertices', 'edges', 'faces',
 		   'block_mask', 'vertex_mask', 'edge_mask', 'face_mask', 'zone_tags', 'boundary_tags']
@@ -125,7 +125,14 @@ class BaseBlockStruct(np.recarray):
 		block_structure.zone_tags[:] = zone_tag
 
 		block_structure.conv_funcs = conv_funcs
-		block_structure.offset = kwargs['offset'] if 'offset' in kwargs else Point((0, 0, 0))
+		if 'transform' in kwargs:
+			block_structure.transform = kwargs['transform']
+		elif 'offset' in kwargs:
+			# Backward compatibility: convert old offset to Transform
+			block_structure.transform = Transform.from_offset(kwargs['offset'])
+		else:
+			# Default: identity transform (no transformation)
+			block_structure.transform = Transform()
 
 		return block_structure
 
@@ -186,7 +193,9 @@ class BaseBlockStruct(np.recarray):
 	def write(self, block_mesh_dict):
 
 		vts = self.vertices
-		vts[:] = self.conv_funcs[1](self.conv_funcs[0](vts) + self.offset.get_cart_crds())
+		cart_coords = self.conv_funcs[0](vts)  # Convert to Cartesian
+		transformed_coords = self.transform.apply(cart_coords)  # Apply transform
+		vts[:] = self.conv_funcs[1](transformed_coords)  # Convert back to curvilinear
 
 		# Reset block_mask edge
 		bmask = self.block_mask
