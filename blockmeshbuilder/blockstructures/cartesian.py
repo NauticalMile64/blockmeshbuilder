@@ -136,6 +136,12 @@ class BaseBlockStruct(np.recarray):
 
 		return block_structure
 
+	def __array_finalize__(self, other_block_structure):
+		if (other_block_structure is None) or (self.dtype is not other_block_structure.dtype):
+			return
+
+		self.transform = other_block_structure.transform
+
 	def project_structure(self, direction, geometry, face_ind):
 
 		# Get the subarray relevant to the face being projected

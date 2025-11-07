@@ -85,7 +85,7 @@ class TubeBlockStruct(BaseBlockStruct):
 		self.is_full = other_block_structure.is_full and \
 					   np.all(np.isin(self.baked_vertices[0], other_block_structure.baked_vertices[0]))
 
-		self.offset = other_block_structure.offset
+		BaseBlockStruct.__array_finalize__(self, other_block_structure)
 
 	def write(self, block_mesh_dict):
 
