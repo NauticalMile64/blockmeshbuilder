@@ -9,11 +9,11 @@ init_pos.setflags(write=False)
 
 
 def cart_to_cart(crds):
-	return np.asarray(crds).copy()
+	return np.asarray(crds, dtype=np.float64).copy()
 
 
 def cyl_to_cart(crds):
-	crds = np.asarray(crds, dtype=np.floating)
+	crds = np.asarray(crds, dtype=np.float64)
 	ncrds = crds.copy()
 	ncrds[..., 0] = np.multiply(crds[..., 0], np.cos(crds[..., 1]))
 	ncrds[..., 1] = np.multiply(crds[..., 0], np.sin(crds[..., 1]))
@@ -21,7 +21,7 @@ def cyl_to_cart(crds):
 
 
 def cart_to_cyl(crds):
-	crds = np.asarray(crds, dtype=np.floating)
+	crds = np.asarray(crds, dtype=np.float64)
 	ncrds = crds.copy()
 	ncrds[..., 0] = np.hypot(crds[..., 0], crds[..., 1])
 	ncrds[..., 1] = np.arctan2(crds[..., 1], crds[..., 0])
