@@ -1,7 +1,7 @@
 # Builds a structured O-grid mesh
 
 import numpy as np
-from blockmeshbuilder import BlockMeshDict, CylBlockStructContainer, BoundaryTag, Point
+from blockmeshbuilder import BlockMeshDict, CylBlockStructContainer, BoundaryTag, Point, number_of_divisions
 from blockmeshbuilder.transform import Transform, rotation_y
 
 rs = np.array([0.3, 0.6, 1.0])
@@ -16,7 +16,7 @@ nd1 = [2, 3, 4]  # Node counts for successive blocks in x direction
 nd2 = [5, 6, 7]  # Node counts for successive blocks in y direction
 ndt = nd1 + nd2 + nd1[::-1] + nd2[::-1]  # Specifying the node counts in this way preserves the o-grid anti-symmetry
 
-ndz = 8
+ndz = number_of_divisions(zs, 3.2, (3.0, 2.0))
 
 # Create a transformation object that will rotate and move the structure at write time
 # Before the write command is called, the vertices remain in the canonical cylindrical coordinate system

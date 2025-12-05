@@ -25,6 +25,10 @@ def interp_coordinates(vertices, axis, C):
 	t_vts[..., C] = np.einsum('i...,...,...->i...', x_diff, x_range_inv, y_range) + y_start
 
 
+def number_of_divisions(arr_s, scale, weights=None):
+	return np.round(np.maximum(np.multiply(np.diff(arr_s) * scale, weights or 1.0), 1)).astype(np.uint32)
+
+
 def safe_int(i, default=0):
 	try:
 		return int(i)
